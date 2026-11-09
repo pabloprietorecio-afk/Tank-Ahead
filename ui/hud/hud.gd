@@ -134,10 +134,12 @@ func _draw() -> void:
 	var armor_origin := Vector2(center.x - 120.0, size.y - 46.0)
 	draw_rect(Rect2(armor_origin, Vector2(240.0, 14.0)), Color(armor_color, 0.3), false, 2.0)
 	draw_rect(Rect2(armor_origin, Vector2(240.0 * armor, 14.0)), armor_color, true)
-	# Indicador de orientación del casco (arriba = hacia donde mira la torreta)
+	# Brújula: la marca fija es el norte del mapa; la aguja gira con el rumbo del tanque.
 	var gauge_center := Vector2(center.x, 70.0)
 	draw_arc(gauge_center, 34.0, 0.0, TAU, 32, Color(green, 0.4), 2.0)
-	var angle: float = tank.turret_controller.hull_relative_angle()
-	var direction := Vector2(-sin(angle), -cos(angle))
+	draw_line(gauge_center + Vector2(0.0, -34.0), gauge_center + Vector2(0.0, -42.0), Color(green, 0.7), 2.0)
+	draw_string(ThemeDB.fallback_font, gauge_center + Vector2(-6.0, -46.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, Color(green, 0.7))
+	var heading: float = tank.global_rotation.y
+	var direction := Vector2(-sin(heading), -cos(heading))
 	draw_line(gauge_center, gauge_center + direction * 34.0, green, 4.0)
-	draw_line(gauge_center, gauge_center + Vector2(0.0, -34.0), Color(green, 0.35), 1.0)
+	draw_line(gauge_center, gauge_center - direction * 12.0, Color(green, 0.35), 2.0)
