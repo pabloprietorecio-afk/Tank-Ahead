@@ -65,6 +65,7 @@ func reserved_zones() -> Array[Rect2]:
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
 	message.emit("%s — %s" % [mission["title"], _objective_line()], true)
+	get_tree().call_group(&"voice", &"say", "mission_start", VoiceManager.Priority.HIGH)
 	for i in mission.get("allies", 0):
 		var stats: TankStats = roster(PLAYER_TEAM).filter(func(s: TankStats) -> bool: return s.tier <= 2).pick_random()
 		var spawn: Vector3 = player_spawn().origin
@@ -189,6 +190,7 @@ func penalize(_source: Node) -> void:
 	player.health.apply_damage(PENALTY_ARMOR, null)
 	score = maxi(score - PENALTY_POINTS, 0)
 	message.emit("¡ALTO EL FUEGO! HAY PRISIONEROS EN LOS BARRACONES  −%d" % PENALTY_POINTS, true)
+	get_tree().call_group(&"voice", &"say", "cease_fire", VoiceManager.Priority.CRITICAL)
 
 
 func _process(delta: float) -> void:
@@ -211,6 +213,7 @@ func _process(delta: float) -> void:
 				_reinforce_timer = 25.0
 				# Los refuerzos salen a por el jugador desde lejos.
 				var origin := Vector2(player.global_position.x, player.global_position.z)
+				get_tree().call_group(&"voice", &"say", "reinforcements", VoiceManager.Priority.NORMAL)
 				_spawn_enemy(free_point_near(origin, 90.0, 150.0))
 				_spawn_enemy(free_point_near(origin, 90.0, 150.0))
 		"defend":
@@ -261,6 +264,8 @@ func _on_objective_destroyed(prop: Destructible) -> void:
 	remaining -= 1
 	score += 300
 	message.emit("%s DESTRUIDO — QUEDAN %d" % [prop.objective_name, remaining], true)
+	if remaining > 0:
+		get_tree().call_group(&"voice", &"say", "objective", VoiceManager.Priority.HIGH)
 	if remaining <= 0:
 		_win("LAS ALAMBRADAS HAN CAÍDO. LOS PRISIONEROS SON LIBRES" if kind == "liberate" else "OBJETIVOS CUMPLIDOS")
 
@@ -272,6 +277,7 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 	alive -= 1
 	if tank == _commander:
 		_commander.remove_from_group(&"radar_marks")
+		get_tree().call_group(&"voice", &"say", "commander", VoiceManager.Priority.HIGH)
 		_win("COMANDANTE ABATIDO")
 	elif kind == "assault":
 		remaining -= 1
@@ -280,6 +286,8 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 
 
 func _win(detail: String) -> void:
+	if kind == "liberate":
+		get_tree().call_group(&"voice", &"say", "liberation", VoiceManager.Priority.CRITICAL)
 	finish(true, "¡MISIÓN CUMPLIDA!", "%s — %s" % [mission["title"], detail])
 	GameSession.mark_mission_completed(GameSession.mission_index)
 

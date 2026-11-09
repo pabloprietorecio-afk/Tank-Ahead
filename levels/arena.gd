@@ -44,6 +44,10 @@ func _ready() -> void:
 	spawner.is_free_point = _mode.is_free_point
 	add_child(spawner)
 	_build_ui()
+	var voice := VoiceManager.new()
+	voice.name = "VoiceManager"
+	voice.player = _player
+	add_child(voice)
 	var music := AudioSetup.music_player("res://assets/music/battle_theme.ogg")
 	music.volume_db = -6.0
 	add_child(music)

@@ -100,6 +100,8 @@ func _update_lock() -> void:
 		if angle < best_angle:
 			best_angle = angle
 			best = enemy
+	if best != null:
+		get_tree().call_group(&"voice", &"say", "locked", VoiceManager.Priority.LOW)
 	tank.aim_lock = best
 
 

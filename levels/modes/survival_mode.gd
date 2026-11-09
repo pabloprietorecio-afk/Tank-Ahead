@@ -109,6 +109,7 @@ func _begin_wave() -> void:
 	_intro_timer = 3.0
 	_wave_active = true
 	message.emit("OLEADA %d — %d ENEMIGOS" % [wave, _pending.size()], true)
+	get_tree().call_group(&"voice", &"say", "wave_start", VoiceManager.Priority.HIGH)
 
 
 func _end_wave() -> void:
@@ -118,6 +119,7 @@ func _end_wave() -> void:
 	player.health.heal(REPAIR_PER_WAVE)
 	GameSession.record_wave(wave)
 	message.emit("OLEADA %d SUPERADA  +%d  BLINDAJE REPARADO" % [wave, WAVE_BONUS], false)
+	get_tree().call_group(&"voice", &"say", "wave_clear", VoiceManager.Priority.HIGH)
 	# Cada 4 oleadas se repone el arsenal especial.
 	if wave % 4 == 0:
 		missiles = 2

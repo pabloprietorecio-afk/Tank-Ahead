@@ -79,7 +79,7 @@ func enemy_air_raid() -> void:
 	if player == null or player.is_destroyed:
 		return
 	AirStrike.launch(world, player.global_position, true)
-	Sfx.play_2d(player, Sfx.ALARM, -2.0)
+	get_tree().call_group(&"voice", &"say", "raid", VoiceManager.Priority.CRITICAL)
 	message.emit("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA", true)
 
 
@@ -89,6 +89,7 @@ func fire_missile() -> bool:
 		return false
 	missiles -= 1
 	Missile.fire(player, player.aim_lock)
+	get_tree().call_group(&"voice", &"say", "missile", VoiceManager.Priority.NORMAL)
 	message.emit("MISIL LANZADO — QUEDAN %d" % missiles, false)
 	return true
 
@@ -109,9 +110,11 @@ func call_air_strike() -> bool:
 		point = hit["position"] if not hit.is_empty() else from - player.muzzle.global_transform.basis.z * 150.0
 	if Vector2(point.x - player.global_position.x, point.z - player.global_position.z).length() < 30.0:
 		message.emit("DEMASIADO CERCA PARA BOMBARDEAR: APUNTA MÁS LEJOS", true)
+		get_tree().call_group(&"voice", &"say", "strike_denied", VoiceManager.Priority.HIGH)
 		return false
 	strikes -= 1
 	AirStrike.launch(world, point, false, player)
+	get_tree().call_group(&"voice", &"say", "strike", VoiceManager.Priority.HIGH)
 	message.emit("BOMBARDEO ALIADO EN CAMINO", false)
 	return true
 
@@ -168,10 +171,13 @@ func finish(victory: bool, title: String, detail: String) -> void:
 	if is_over:
 		return
 	is_over = true
+	get_tree().call_group(&"voice", &"say", "mission_win" if victory else "mission_fail", VoiceManager.Priority.CRITICAL)
 	ended.emit(victory, title, detail)
 
 
 func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
+	if tank.team != PLAYER_TEAM and killer is Tank and (killer as Tank).team == PLAYER_TEAM:
+		get_tree().call_group(&"voice", &"say", "kill", VoiceManager.Priority.NORMAL)
 	if killer == player and tank.team != PLAYER_TEAM:
 		score += tank.stats.score_value
 		message.emit("%s DESTRUIDO  +%d" % [tank.stats.display_name, tank.stats.score_value], false)

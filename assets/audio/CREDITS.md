@@ -8,3 +8,5 @@
   la fuente de sonido FluidR3_GM (licencia MIT) mediante FluidSynth.
 - Partes de radio: textos originales. Voz alemana «Thorsten» (Thorsten-Voice, dataset CC0) con
   Piper TTS; voz inglesa «bm_george» de Kokoro TTS (Apache 2.0).
+- Voces en español de tripulación y radio: Kokoro TTS (Apache 2.0), voces «em_alex» y «em_santa»,
+  con efecto de radio añadido.

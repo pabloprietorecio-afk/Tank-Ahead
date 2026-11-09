@@ -111,6 +111,7 @@ func _collect() -> void:
 			player.add_buff(kind, BUFF_TIME)
 	get_tree().call_group(&"game_mode", &"announce", "PREMIO: %s" % KINDS[kind]["name"], false)
 	Sfx.play_2d(self, Sfx.PICKUP, 0.0)
+	get_tree().call_group(&"voice", &"say", "pickup", VoiceManager.Priority.LOW)
 	queue_free()
 
 

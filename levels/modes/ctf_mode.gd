@@ -138,8 +138,10 @@ func _update_flags() -> void:
 func _announce_pickup(flag: Flag, tank: Tank) -> void:
 	if tank == player:
 		message.emit("¡TIENES LA BANDERA ENEMIGA! VUELVE A TU BASE", true)
+		get_tree().call_group(&"voice", &"say", "flag_taken", VoiceManager.Priority.HIGH)
 	elif flag.team == PLAYER_TEAM:
 		message.emit("¡EL ENEMIGO TIENE NUESTRA BANDERA!", true)
+		get_tree().call_group(&"voice", &"say", "flag_lost", VoiceManager.Priority.HIGH)
 	else:
 		message.emit("UN ALIADO TIENE LA BANDERA ENEMIGA: ESCÓLTALO", false)
 
@@ -156,6 +158,8 @@ func _check_capture(flag: Flag) -> void:
 	if carrier == player:
 		score += 1000
 	var ours: bool = carrier.team == PLAYER_TEAM
+	if ours:
+		get_tree().call_group(&"voice", &"say", "flag_capture", VoiceManager.Priority.HIGH)
 	message.emit("¡CAPTURA %s!  %d — %d" % ["ALIADA" if ours else "ENEMIGA", captures[PLAYER_TEAM], captures[ENEMY_TEAM]], true)
 	if captures[carrier.team] >= CAPTURES_TO_WIN:
 		if ours:
