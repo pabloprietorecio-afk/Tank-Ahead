@@ -18,6 +18,11 @@ static var camera_view: int = 0
 ## Sombras en tiempo real (desactivar en móviles lentos).
 static var shadows: bool = true
 
+## Volúmenes (0..1). La música va bajita por defecto.
+static var music_volume: float = 0.3
+static var sfx_volume: float = 1.0
+static var voice_volume: float = 0.9
+
 static var _loaded: bool = false
 
 
@@ -30,6 +35,9 @@ static func ensure_loaded() -> void:
 		aim_assist = cfg.get_value("controls", "aim_assist", aim_assist)
 		camera_view = cfg.get_value("controls", "camera_view", camera_view)
 		shadows = cfg.get_value("graphics", "shadows", shadows)
+		music_volume = cfg.get_value("audio", "music", music_volume)
+		sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
+		voice_volume = cfg.get_value("audio", "voice", voice_volume)
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 
@@ -39,6 +47,9 @@ static func save() -> void:
 	cfg.set_value("controls", "aim_assist", aim_assist)
 	cfg.set_value("controls", "camera_view", camera_view)
 	cfg.set_value("graphics", "shadows", shadows)
+	cfg.set_value("audio", "music", music_volume)
+	cfg.set_value("audio", "sfx", sfx_volume)
+	cfg.set_value("audio", "voice", voice_volume)
 	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.save(PATH)

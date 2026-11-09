@@ -8,6 +8,9 @@ const GREEN := GOLD
 var _content: VBoxContainer
 var _title: Label
 var _subtitle: Label
+var _radio: AudioStreamPlayer
+var _radio_timer: Timer
+var _bulletins: Array[String] = []
 
 
 func _ready() -> void:
@@ -52,7 +55,34 @@ func _ready() -> void:
 	column.add_child(_content)
 	var version := _label("versión %s" % str(ProjectSettings.get_setting("application/config/version", "dev")), 16, Color(0.5, 0.6, 0.5))
 	column.add_child(version)
+	_start_audio()
 	_page_mode()
+
+
+## Música del menú y partes de guerra por radio de vez en cuando (la música baja al hablar).
+func _start_audio() -> void:
+	AudioSetup.ensure()
+	add_child(AudioSetup.music_player("res://assets/music/menu_theme.ogg"))
+	for lang in ["de", "en"]:
+		for i in 4:
+			_bulletins.append("res://assets/radio/radio_%s_%d.ogg" % [lang, i])
+	_bulletins.shuffle()
+	_radio = AudioStreamPlayer.new()
+	_radio.bus = AudioSetup.VOICE
+	add_child(_radio)
+	_radio_timer = Timer.new()
+	_radio_timer.one_shot = true
+	_radio_timer.timeout.connect(_play_bulletin)
+	add_child(_radio_timer)
+	_radio_timer.start(6.0)
+
+
+func _play_bulletin() -> void:
+	var path: String = _bulletins.pop_front()
+	_bulletins.append(path)
+	_radio.stream = load(path)
+	_radio.play()
+	_radio_timer.start(_radio.stream.get_length() + randf_range(18.0, 30.0))
 
 
 func _label(text: String, font_size: int, color: Color) -> Label:
@@ -94,8 +124,15 @@ func _page_mode() -> void:
 	_clear("ELIGE MODO DE JUEGO")
 	_button("HISTORIA — campañas con misiones", func() -> void: _choose_mode(GameSession.Mode.STORY))
 	_button("CAPTURA LA BANDERA — 4 contra 4", func() -> void: _choose_mode(GameSession.Mode.CTF))
+	_button("AJUSTES DE SONIDO", _page_audio)
 	var best: int = GameSession.best_wave()
 	_button("SUPERVIVENCIA — oleadas sin fin%s" % ("  (récord: oleada %d)" % best if best > 0 else ""), func() -> void: _choose_mode(GameSession.Mode.SURVIVAL))
+
+
+func _page_audio() -> void:
+	_clear("AJUSTES DE SONIDO")
+	_content.add_child(VolumeSliders.create())
+	_back(_page_mode)
 
 
 func _choose_mode(mode: int) -> void:

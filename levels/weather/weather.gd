@@ -53,6 +53,7 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 			_rain_loop = AudioStreamPlayer.new()
 			_rain_loop.stream = load("res://assets/audio/rain.wav")
 			_rain_loop.volume_db = -12.0
+			_rain_loop.bus = AudioSetup.SFX
 			add_child(_rain_loop)
 			_rain_loop.play()
 		Kind.SNOW:

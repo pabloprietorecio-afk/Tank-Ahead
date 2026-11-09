@@ -19,6 +19,7 @@ var _spawn_point: Vector2
 func _ready() -> void:
 	_rng.randomize()
 	GameSettings.ensure_loaded()
+	AudioSetup.ensure()
 	GameSession.resolve_front()
 	_mode = _create_mode()
 	_mode.name = "GameMode"
@@ -38,6 +39,9 @@ func _ready() -> void:
 	add_child(_mode)
 	_build_weather()
 	_build_ui()
+	var music := AudioSetup.music_player("res://assets/music/battle_theme.ogg")
+	music.volume_db = -6.0
+	add_child(music)
 	_mode.start(_player, self)
 
 

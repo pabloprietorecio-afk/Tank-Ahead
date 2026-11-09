@@ -11,6 +11,7 @@ const THUNDER := preload("res://assets/audio/thunder.wav")
 static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: float = 0.0, pitch: float = 1.0) -> void:
 	var player := AudioStreamPlayer3D.new()
 	player.stream = stream
+	player.bus = AudioSetup.SFX
 	player.volume_db = volume_db
 	player.pitch_scale = pitch * randf_range(0.92, 1.08)
 	# Atenuación suave: las explosiones cercanas suenan fuertes y las lejanas aún se oyen.
@@ -26,6 +27,7 @@ static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: 
 static func play_2d(host: Node, stream: AudioStream, volume_db: float = 0.0, pitch: float = 1.0) -> void:
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
+	player.bus = AudioSetup.SFX
 	player.volume_db = volume_db
 	player.pitch_scale = pitch * randf_range(0.95, 1.05)
 	_root(host).add_child(player)
