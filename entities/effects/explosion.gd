@@ -103,8 +103,8 @@ func _puff(pos: Vector3, velocity: Vector3, from: float, to: float, life: float,
 		_sphere = SphereMesh.new()
 		_sphere.radius = 0.5
 		_sphere.height = 1.0
-		_sphere.radial_segments = 12
-		_sphere.rings = 6
+		_sphere.radial_segments = 16
+		_sphere.rings = 8
 	var node := MeshInstance3D.new()
 	node.mesh = _sphere
 	node.material_override = VectorMaterials.effect("res://shaders/fire_ball.gdshader")
@@ -137,7 +137,7 @@ func _bit(velocity: Vector3, life: float, spark: bool) -> void:
 		node.mesh = _chunk_mesh
 		var hot: bool = _color.r > _color.b + 0.25
 		node.material_override = VectorMaterials.paint(Color(0.07, 0.06, 0.055) if hot else _color.darkened(0.35))
-		node.scale = Vector3.ONE * randf_range(0.5, 1.2) * clampf(_strength, 0.5, 1.6)
+		node.scale = Vector3(randf_range(0.3, 1.0), randf_range(0.2, 0.6), randf_range(0.3, 0.9)) * clampf(_strength, 0.5, 1.5)
 		node.rotation = Vector3(randf() * TAU, randf() * TAU, randf() * TAU)
 	add_child(node)
 	_bits.append({"node": node, "velocity": velocity, "life": life, "spark": spark, "spin": Vector3(randf_range(-9.0, 9.0), randf_range(-9.0, 9.0), randf_range(-9.0, 9.0))})

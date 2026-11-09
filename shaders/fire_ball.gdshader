@@ -17,7 +17,7 @@ void vertex() {
 	vec3 dir = normalize(VERTEX + vec3(0.0001));
 	vec2 key = dir.xz * 1.9 + dir.y * 1.4 + seed * 17.0 + life * 0.8;
 	float bulge = textureLod(noise_tex, (key + 0.5) / 64.0 * 2.5, 0.0).r;
-	VERTEX *= 1.0 + (bulge - 0.5) * 0.55;
+	VERTEX *= 1.0 + (bulge - 0.5) * 0.3;
 	lp = VERTEX;
 }
 
@@ -39,5 +39,5 @@ void fragment() {
 	float erode = smoothstep(life - 0.3, life + 0.12, n * 0.85 + 0.12);
 	float fade = 1.0 - smoothstep(0.7, 1.0, life);
 	float density = mix(0.8, 1.0, glow);
-	ALPHA = pow(facing, 1.4) * erode * fade * density;
+	ALPHA = smoothstep(0.05, 0.75, facing) * erode * fade * density;
 }
