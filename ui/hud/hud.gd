@@ -61,9 +61,6 @@ func _build_settings() -> void:
 	box.add_child(_make_toggle("Ayuda de apuntado (fija al enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
 		GameSettings.save()))
-	box.add_child(_make_toggle("Movimiento relativo a la vista", GameSettings.camera_relative, func(on: bool) -> void:
-		GameSettings.camera_relative = on
-		GameSettings.save()))
 	add_child(_panel)
 
 

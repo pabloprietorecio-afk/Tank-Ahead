@@ -1,7 +1,7 @@
 class_name PlayerInputSource
 extends Node
 ## Traduce los controles táctiles en órdenes para el tanque.
-## Incluye dos opciones de ajustes: ayuda de apuntado y movimiento relativo a la vista.
+## Incluye la ayuda de apuntado opcional.
 
 const LOCK_CONE: float = deg_to_rad(4.0)
 const LOCK_RANGE: float = 140.0
@@ -18,10 +18,7 @@ const WORLD_MASK: int = 1
 func _process(_delta: float) -> void:
 	if tank == null or touch == null or tank.is_destroyed:
 		return
-	if GameSettings.camera_relative:
-		_drive_camera_relative(touch.move_vector)
-	else:
-		tank.drive_input = touch.move_vector
+	tank.drive_input = touch.move_vector
 	tank.trigger_held = touch.fire_held
 
 	var look: Vector2 = touch.consume_look_delta()
@@ -33,24 +30,8 @@ func _process(_delta: float) -> void:
 		tank.turret_controller.aim_at(_lock_point(tank.aim_lock))
 	elif look != Vector2.ZERO:
 		tank.turret_controller.add_aim(-look.x * look_sensitivity, -look.y * look_sensitivity)
-
-
-## El joystick indica hacia dónde quiere ir el jugador respecto a la vista; el casco gira solo.
-func _drive_camera_relative(stick: Vector2) -> void:
-	if stick == Vector2.ZERO:
-		tank.drive_input = Vector2.ZERO
-		return
-	var desired: float = tank.turret_controller.world_yaw - atan2(stick.x, stick.y)
-	var hull: float = tank.global_rotation.y
-	var diff: float = angle_difference(hull, desired)
-	var direction: float = 1.0
-	if absf(diff) > PI * 0.5:
-		# Más cerca de dar marcha atrás que de girar media vuelta.
-		diff = angle_difference(hull, desired + PI)
-		direction = -1.0
-	var turn: float = clampf(-diff * 2.5, -1.0, 1.0)
-	var alignment: float = clampf(1.0 - absf(diff) / 1.0, 0.0, 1.0)
-	tank.drive_input = Vector2(turn, direction * minf(stick.length(), 1.0) * alignment)
+	else:
+		tank.turret_controller.hold_relative()
 
 
 func _update_lock(look: Vector2) -> void:
