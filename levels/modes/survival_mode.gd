@@ -192,9 +192,10 @@ func status_text() -> String:
 
 
 func _spawn(stats: TankStats) -> void:
+	# Entran por los límites del mapa, de cara al jugador.
 	var origin := Vector2(player.global_position.x, player.global_position.z)
-	var point: Vector2 = free_point_near(origin, SPAWN_MIN, SPAWN_MAX)
-	spawn_tank(stats, ENEMY_TEAM, point, randf() * TAU)
+	var point: Vector2 = edge_point()
+	spawn_tank(stats, ENEMY_TEAM, point, yaw_towards(point, origin))
 	alive += 1
 
 

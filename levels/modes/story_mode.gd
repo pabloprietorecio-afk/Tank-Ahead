@@ -203,19 +203,15 @@ func _process(delta: float) -> void:
 			if _to_spawn > 0 and alive < 5 and _spawn_timer <= 0.0:
 				_spawn_timer = 3.0
 				_to_spawn -= 1
-				var center := Vector2(0.0, -120.0)
-				if kind == "boss" and is_instance_valid(_commander):
-					center = Vector2(_commander.global_position.x, _commander.global_position.z)
-				_spawn_enemy(free_point_near(center, 10.0, 60.0))
+				_spawn_enemy(edge_point())
 		"destroy", "sabotage", "liberate":
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 2:
 				_reinforce_timer = 25.0
-				# Los refuerzos salen a por el jugador desde lejos.
-				var origin := Vector2(player.global_position.x, player.global_position.z)
+				# Los refuerzos entran por los límites del mapa y van a por el jugador.
 				get_tree().call_group(&"voice", &"say", "reinforcements", VoiceManager.Priority.NORMAL)
-				_spawn_enemy(free_point_near(origin, 90.0, 150.0))
-				_spawn_enemy(free_point_near(origin, 90.0, 150.0))
+				_spawn_enemy(edge_point())
+				_spawn_enemy(edge_point())
 		"defend":
 			time_left -= delta
 			if time_left <= 0.0:
@@ -224,8 +220,7 @@ func _process(delta: float) -> void:
 			var elapsed: float = mission["time"] - time_left
 			if alive < 4 + int(elapsed / 40.0) and _spawn_timer <= 0.0:
 				_spawn_timer = 4.0
-				var angle: float = randf_range(-PI * 0.8, -PI * 0.2)
-				var tank: Tank = _spawn_enemy(free_point_near(Vector2.from_angle(angle) * 150.0, 0.0, 20.0))
+				var tank: Tank = _spawn_enemy(edge_point(110.0, true))
 				var brain: AIBrain = tank.get_node("AIBrain")
 				brain.hunt = false
 				brain.objective = Vector3.ZERO
@@ -239,7 +234,10 @@ func _spawn_enemy(point: Vector2) -> Tank:
 	var max_tier: int = 2 if index < 2 else 3
 	var options: Array[TankStats] = pool.filter(func(s: TankStats) -> bool: return s.tier <= max_tier)
 	alive += 1
-	return spawn_tank(options.pick_random(), ENEMY_TEAM, point, PI)
+	var yaw: float = PI
+	if is_instance_valid(player):
+		yaw = yaw_towards(point, Vector2(player.global_position.x, player.global_position.z))
+	return spawn_tank(options.pick_random(), ENEMY_TEAM, point, yaw)
 
 
 func _build_zone() -> void:

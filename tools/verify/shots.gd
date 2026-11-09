@@ -27,6 +27,8 @@ class Runner extends Node:
 		var only: String = OS.get_environment("SHOTS_ONLY")
 		if only == "" or only.contains("tanks"):
 			await _tanks()
+		if only == "" or only.contains("boom"):
+			await _explosions()
 		if only == "" or only.contains("props"):
 			await _props()
 		if only == "" or only.contains("arena"):
@@ -155,6 +157,21 @@ class Runner extends Node:
 		await _snap("angle_player_rear")
 		_look(Vector3(-10.0, 7.0, -14.0), Vector3(22.0, 0.0, 12.0), 60.0)
 		await _snap("lineup")
+
+	## Explosiones a cámara lenta: grande, impacto pequeño y derrumbe sin fuego.
+	func _explosions() -> void:
+		for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA]:
+			await _new_stage(front)
+			_tank("panzer4", front, Fronts.Faction.AXIS, Vector3(-9.0, 0.0, -3.0), deg_to_rad(-50.0))
+			_look(Vector3(2.0, 3.5, 17.0), Vector3(0.5, 2.8, 0.0), 50.0)
+			await get_tree().create_timer(0.6).timeout
+			Engine.time_scale = 0.1
+			Explosion.spawn(_stage, Vector3(0.0, 0.5, 0.0), 1.6, VectorMaterials.ORANGE, true)
+			Explosion.spawn(_stage, Vector3(7.5, 1.2, 2.0), 0.4, VectorMaterials.ORANGE, true)
+			Explosion.spawn(_stage, Vector3(-6.0, 1.5, 4.0), 1.2, Color(0.5, 0.48, 0.45), true)
+			for i in 9:
+				await _snap("boom_%d_%d" % [front, i])
+			Engine.time_scale = 1.0
 
 	func _props() -> void:
 		for front in 3:

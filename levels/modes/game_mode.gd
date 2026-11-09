@@ -183,6 +183,46 @@ func free_point_near(center: Vector2, min_radius: float, max_radius: float) -> V
 	return point
 
 
+## Distancia del centro a la línea por la que entran los refuerzos (el muro está a 200 m).
+const EDGE: float = 186.0
+
+
+## Punto libre en el límite del mapa, a `min_distance` o más del jugador: los enemigos entran
+## desde fuera en vez de aparecer de la nada. Con `north_only` solo por el lado norte.
+func edge_point(min_distance: float = 110.0, north_only: bool = false) -> Vector2:
+	var origin := Vector2.ZERO
+	if is_instance_valid(player):
+		origin = Vector2(player.global_position.x, player.global_position.z)
+	var best := Vector2(0.0, -EDGE)
+	var best_distance: float = -1.0
+	for attempt in 40:
+		var along: float = randf_range(-EDGE, EDGE)
+		var point := Vector2(along, -EDGE)
+		if not north_only:
+			match randi() % 4:
+				1:
+					point = Vector2(along, EDGE)
+				2:
+					point = Vector2(-EDGE, along)
+				3:
+					point = Vector2(EDGE, along)
+		if not is_free_point.call(point):
+			continue
+		var distance: float = point.distance_to(origin)
+		if distance >= min_distance:
+			return point
+		if distance > best_distance:
+			best_distance = distance
+			best = point
+	return best
+
+
+## Giro con el que un tanque situado en `from` queda mirando hacia `to`.
+func yaw_towards(from: Vector2, to: Vector2) -> float:
+	var dir: Vector2 = to - from
+	return atan2(-dir.x, -dir.y)
+
+
 func finish(victory: bool, title: String, detail: String) -> void:
 	if is_over:
 		return
