@@ -14,11 +14,26 @@ const WORLD_MASK: int = 1
 ## Radianes de giro por píxel arrastrado.
 @export var look_sensitivity: float = 0.004
 
+## Modo clásico: máximo desvío del cañón respecto al casco y su recentrado.
+const FINE_AIM_LIMIT: float = deg_to_rad(15.0)
+const FINE_RECENTER_DELAY: float = 0.5
+const FINE_RECENTER_SPEED: float = 0.6
+## Suavizado del giro del casco (unidades de joystick por segundo).
+const TURN_SMOOTHING: float = 5.0
 
-func _process(_delta: float) -> void:
+var _fine_yaw: float = 0.0
+var _idle_time: float = 0.0
+var _turn: float = 0.0
+
+
+func _process(delta: float) -> void:
 	if tank == null or touch == null or tank.is_destroyed:
 		return
-	tank.drive_input = touch.move_vector
+	var stick: Vector2 = touch.move_vector
+	if GameSettings.classic_controls:
+		_turn = move_toward(_turn, stick.x, TURN_SMOOTHING * delta)
+		stick.x = _turn
+	tank.drive_input = stick
 	tank.trigger_held = touch.fire_held
 
 	var look: Vector2 = touch.consume_look_delta()
@@ -28,6 +43,8 @@ func _process(_delta: float) -> void:
 		tank.aim_lock = null
 	if tank.aim_lock != null:
 		tank.turret_controller.aim_at(_lock_point(tank.aim_lock))
+	elif GameSettings.classic_controls:
+		_classic_aim(look, delta)
 	elif look != Vector2.ZERO:
 		tank.turret_controller.add_aim(-look.x * look_sensitivity, -look.y * look_sensitivity)
 	else:
@@ -72,3 +89,16 @@ func _lock_point(enemy: Tank) -> Vector3:
 	var point: Vector3 = enemy.global_position + Vector3.UP * 1.2 * enemy.stats.body_scale
 	var travel: float = tank.global_position.distance_to(point) / maxf(tank.weapon.projectile_speed, 1.0)
 	return point + enemy.velocity * travel
+
+
+## Cañón fijo al casco; el arrastre solo permite un ajuste fino y se recentra al soltar.
+func _classic_aim(look: Vector2, delta: float) -> void:
+	if look != Vector2.ZERO:
+		_idle_time = 0.0
+		_fine_yaw = clampf(_fine_yaw - look.x * look_sensitivity, -FINE_AIM_LIMIT, FINE_AIM_LIMIT)
+		tank.turret_controller.aim_local(_fine_yaw, -look.y * look_sensitivity)
+		return
+	_idle_time += delta
+	if _idle_time > FINE_RECENTER_DELAY:
+		_fine_yaw = move_toward(_fine_yaw, 0.0, FINE_RECENTER_SPEED * delta)
+	tank.turret_controller.aim_local(_fine_yaw)

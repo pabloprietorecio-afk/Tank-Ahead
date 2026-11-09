@@ -36,6 +36,13 @@ func add_aim(delta_yaw: float, delta_pitch: float) -> void:
 	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, MAX_PITCH)
 
 
+## Fija el rumbo de la torreta respecto al casco (modo clásico: ajuste fino alrededor de 0).
+func aim_local(yaw: float, delta_pitch: float = 0.0) -> void:
+	_world_mode = false
+	_target_local = wrapf(yaw, -PI, PI)
+	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, MAX_PITCH)
+
+
 ## Deja de seguir un punto del mundo y mantiene la orientación actual respecto al casco.
 func hold_relative() -> void:
 	if _world_mode:

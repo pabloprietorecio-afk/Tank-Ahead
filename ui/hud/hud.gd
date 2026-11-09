@@ -58,6 +58,9 @@ func _build_settings() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	_panel.add_child(box)
+	box.add_child(_make_toggle("Control clásico (como el Battlezone original)", GameSettings.classic_controls, func(on: bool) -> void:
+		GameSettings.classic_controls = on
+		GameSettings.save()))
 	box.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
 		GameSettings.save()))
