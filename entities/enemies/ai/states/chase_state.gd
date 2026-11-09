@@ -1,6 +1,6 @@
 class_name ChaseState
 extends EnemyState
-## Se acerca al jugador hasta tener alcance de tiro.
+## Se acerca al enemigo hasta tener alcance de tiro.
 
 var _lost: float = 0.0
 
@@ -12,6 +12,9 @@ func enter(_previous: StringName) -> void:
 func update(delta: float) -> void:
 	var perception: Perception = brain.perception
 	var stats: TankStats = brain.tank.stats
+	if not brain.has_target():
+		machine.change_to(&"Patrol")
+		return
 	if stats.retreat_fraction > 0.0 and brain.armor_fraction() <= stats.retreat_fraction:
 		machine.change_to(&"Retreat")
 		return

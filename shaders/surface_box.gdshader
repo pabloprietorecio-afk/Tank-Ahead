@@ -10,6 +10,11 @@ uniform vec3 half_size = vec3(1.0);
 uniform vec3 base_color : source_color = vec3(0.5);
 uniform int pattern = 0;
 uniform float pattern_scale = 2.0;
+// Camuflaje: 0 liso, 1 manchas, 2 franjas, 3 encalado de invierno.
+uniform int camo_mode = 0;
+uniform vec3 camo_a : source_color = vec3(0.3, 0.35, 0.2);
+uniform vec3 camo_b : source_color = vec3(0.35, 0.25, 0.15);
+uniform float camo_scale = 1.0;
 uniform float roughness_value = 0.85;
 uniform float metallic_value = 0.0;
 uniform float edge_light = 0.12;
@@ -76,9 +81,10 @@ void fragment() {
 		detail = (0.5 + 0.5 * sin(along / pattern_scale * 6.2831 * 4.0)) * 0.5;
 	}
 
-	vec3 color = base_color * tint * (0.78 + grime * 0.38);
+	vec3 painted = apply_camo(base_color, camo_mode, camo_a, camo_b, camo_scale, local_pos);
+	vec3 color = painted * tint * (0.78 + grime * 0.38);
 	color *= 1.0 - detail * 0.5;
-	color = mix(color, base_color * 1.5 + vec3(0.05), edge * edge_light);
+	color = mix(color, painted * 1.5 + vec3(0.05), edge * edge_light);
 	ALBEDO = color;
 	ROUGHNESS = rough;
 	METALLIC = metallic_value;

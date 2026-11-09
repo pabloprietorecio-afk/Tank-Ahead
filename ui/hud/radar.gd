@@ -1,7 +1,7 @@
 class_name Radar
 extends Control
 ## Radar circular. Arriba = hacia donde mira la torreta (la vista del jugador).
-## No conoce ningún tipo de enemigo: dibuja todo nodo Node3D del grupo "enemies".
+## Dibuja tanques (enemigos por nivel de amenaza, aliados en azul) y marcas de misión.
 
 const RADIUS: float = 90.0
 const RANGE: float = 200.0
@@ -38,19 +38,35 @@ func _draw() -> void:
 		return
 	var yaw: float = player.turret_controller.world_yaw
 	var origin: Vector3 = player.global_position
-	for node in get_tree().get_nodes_in_group(&"enemies"):
-		var enemy := node as Node3D
-		if enemy == null:
+	# Marcas de misión (banderas, objetivos): cuadrados.
+	for node in get_tree().get_nodes_in_group(&"radar_marks"):
+		var mark := node as Node3D
+		if mark == null or not mark.is_visible_in_tree():
 			continue
-		var offset: Vector3 = enemy.global_position - origin
-		# Rotamos el desplazamiento para que "arriba" sea el rumbo de la torreta.
-		var local := Vector2(offset.x, offset.z).rotated(yaw)
-		var distance: float = local.length()
-		var out_of_range: bool = distance > RANGE
-		var pos: Vector2 = c + local.limit_length(RANGE) / RANGE * (RADIUS - 6.0)
-		var base: Color = enemy.stats.color if enemy is Tank else VectorMaterials.ORANGE
+		var pos: Vector2 = _to_radar(c, mark.global_position - origin, yaw)
+		var mark_color: Color = mark.get_meta("radar_color", Color.WHITE)
+		draw_rect(Rect2(pos - Vector2(5.0, 5.0), Vector2(10.0, 10.0)), mark_color, true)
+		draw_rect(Rect2(pos - Vector2(7.0, 7.0), Vector2(14.0, 14.0)), Color(mark_color, 0.6), false, 1.5)
+	for node in get_tree().get_nodes_in_group(&"tanks"):
+		var other := node as Tank
+		if other == null or other == player or other.is_destroyed:
+			continue
+		var offset: Vector3 = other.global_position - origin
+		var out_of_range: bool = Vector2(offset.x, offset.z).length() > RANGE
+		var pos: Vector2 = _to_radar(c, offset, yaw)
+		var hostile: bool = player.is_hostile_to(other)
+		var base: Color = other.stats.color if hostile else Color(0.35, 0.65, 1.0)
 		var color: Color = Color(base, 0.45 if out_of_range else 1.0)
-		var dot: float = (4.0 if out_of_range else 5.0) * (enemy.stats.body_scale if enemy is Tank else 1.0)
-		draw_circle(pos, dot, color)
-		if enemy == player.aim_lock:
+		var dot: float = (4.0 if out_of_range else 5.0) * other.stats.body_scale
+		if hostile:
+			draw_circle(pos, dot, color)
+		else:
+			draw_rect(Rect2(pos - Vector2(dot, dot) * 0.8, Vector2(dot, dot) * 1.6), color, false, 2.0)
+		if other == player.aim_lock:
 			draw_arc(pos, dot + 4.0, 0.0, TAU, 16, VectorMaterials.ORANGE, 2.0)
+
+
+## Pasa un desplazamiento del mundo al radar ("arriba" = rumbo de la torreta).
+func _to_radar(c: Vector2, offset: Vector3, yaw: float) -> Vector2:
+	var local := Vector2(offset.x, offset.z).rotated(yaw)
+	return c + local.limit_length(RANGE) / RANGE * (RADIUS - 6.0)

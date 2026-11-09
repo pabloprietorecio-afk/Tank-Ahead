@@ -123,3 +123,18 @@ static func _edge_key(a: Vector3, b: Vector3) -> String:
 		ka = kb
 		kb = tmp
 	return str(ka) + str(kb)
+
+
+static var _paint: Dictionary = {}
+
+
+## Pintura lisa iluminada, visible por ambas caras (distintivos, calcomanías).
+static func paint(color: Color) -> StandardMaterial3D:
+	var key: String = color.to_html()
+	if not _paint.has(key):
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = color
+		mat.roughness = 0.8
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_paint[key] = mat
+	return _paint[key]

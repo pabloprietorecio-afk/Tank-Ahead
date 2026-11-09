@@ -1,21 +1,24 @@
 class_name Hud
 extends Control
-## HUD de la Fase 2: blindaje, puntuación, oleada, avisos, retícula, recarga,
-## indicador del casco, destello de daño y pantalla de fin de partida.
+## HUD: estado del modo, avisos, retícula, recarga, blindaje, ficha del objetivo (blindaje,
+## ataque e historia), icono del tanque, pausa, ajustes y pantalla final.
 
 @export var tank: Tank
-@export var director: MatchDirector
+@export var director: GameMode
 var touch: TouchControls
 var input_source: PlayerInputSource
 var weather: Weather
 
 var _info: Label
 var _message: Label
-var _over: Label
+var _end_panel: PanelContainer
+var _pause_panel: PanelContainer
+var _history_panel: PanelContainer
+var _history_text: Label
+var _history_button: Button
 var _version: String = ""
 var _message_time: float = 0.0
 var _flash: float = 0.0
-var _over_time: float = 0.0
 var _panel: PanelContainer
 var _release: Button
 
@@ -31,17 +34,13 @@ func _ready() -> void:
 	_message.position.y = 110.0
 	_message.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_over = _make_label(40, Vector2.ZERO)
-	_over.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_over.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_over.grow_vertical = Control.GROW_DIRECTION_BOTH
-	_over.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_over.visible = false
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	tank.damaged.connect(func(amount: float, _s: Node) -> void: _flash = minf(_flash + amount / 40.0, 0.6))
 	director.message.connect(_show_message)
-	director.game_over.connect(_on_game_over)
+	director.ended.connect(_on_ended)
 	GameSettings.ensure_loaded()
 	_build_settings()
+	_build_pause_and_history()
 
 
 func _build_settings() -> void:
@@ -113,6 +112,144 @@ func _build_settings() -> void:
 		touch.exclusions.append_array([gear, view_button, _panel, _release])
 
 
+func _button(text: String, font_size: int = 26) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.add_theme_font_size_override("font_size", font_size)
+	button.custom_minimum_size = Vector2(260.0, 70.0)
+	return button
+
+
+func _centered_panel() -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.visible = false
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	add_child(panel)
+	return panel
+
+
+func _build_pause_and_history() -> void:
+	var pause := _button("II", 30)
+	pause.custom_minimum_size = Vector2.ZERO
+	pause.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	pause.offset_left = -270.0
+	pause.offset_right = -190.0
+	pause.offset_top = 14.0
+	pause.offset_bottom = 90.0
+	pause.pressed.connect(func() -> void: _set_paused(true))
+	add_child(pause)
+
+	_pause_panel = _centered_panel()
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 16)
+	_pause_panel.add_child(box)
+	var title := Label.new()
+	title.text = "PAUSA"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 36)
+	box.add_child(title)
+	var resume := _button("CONTINUAR")
+	resume.pressed.connect(func() -> void: _set_paused(false))
+	box.add_child(resume)
+	var restart := _button("REINICIAR")
+	restart.pressed.connect(_restart)
+	box.add_child(restart)
+	var menu := _button("MENÚ PRINCIPAL")
+	menu.pressed.connect(_to_menu)
+	box.add_child(menu)
+
+	# Botón HISTORIA junto a la ficha del objetivo fijado.
+	_history_button = _button("HISTORIA", 20)
+	_history_button.custom_minimum_size = Vector2(130.0, 48.0)
+	_history_button.set_anchors_preset(Control.PRESET_CENTER)
+	_history_button.offset_left = 150.0
+	_history_button.offset_right = 280.0
+	_history_button.offset_top = -100.0
+	_history_button.offset_bottom = -52.0
+	_history_button.visible = false
+	_history_button.pressed.connect(_show_history)
+	add_child(_history_button)
+
+	_history_panel = _centered_panel()
+	var hbox := VBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 14)
+	_history_panel.add_child(hbox)
+	_history_text = Label.new()
+	_history_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_history_text.custom_minimum_size = Vector2(760.0, 0.0)
+	_history_text.add_theme_font_size_override("font_size", 24)
+	hbox.add_child(_history_text)
+	var close := _button("CERRAR")
+	close.pressed.connect(func() -> void:
+		_history_panel.visible = false
+		get_tree().paused = false)
+	hbox.add_child(close)
+
+	_end_panel = _centered_panel()
+	if touch != null:
+		touch.exclusions.append_array([pause, _pause_panel, _history_button, _history_panel, _end_panel])
+
+
+func _set_paused(paused: bool) -> void:
+	if director.is_over:
+		return
+	get_tree().paused = paused
+	_pause_panel.visible = paused
+
+
+func _show_history() -> void:
+	var target: Tank = tank.aim_lock
+	if target == null or not is_instance_valid(target):
+		return
+	var stats: TankStats = target.stats
+	_history_text.text = "%s\n\n%s\n\nBLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h" % [stats.display_name, stats.history if stats.history != "" else stats.description, roundi(stats.max_armor), roundi(stats.damage), roundi(stats.max_speed * 3.6)]
+	_history_panel.visible = true
+	get_tree().paused = true
+
+
+func _restart() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+
+func _to_menu() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+
+
+func _on_ended(victory: bool, title_text: String, detail: String) -> void:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 16)
+	_end_panel.add_child(box)
+	var title := Label.new()
+	title.text = title_text
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 44)
+	title.add_theme_color_override("font_color", VectorMaterials.GREEN if victory else VectorMaterials.ORANGE)
+	box.add_child(title)
+	var info := Label.new()
+	info.text = detail
+	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	info.add_theme_font_size_override("font_size", 24)
+	box.add_child(info)
+	if victory and director is StoryMode and (director as StoryMode).has_next_mission():
+		var next := _button("SIGUIENTE MISIÓN")
+		next.pressed.connect(func() -> void:
+			GameSession.mission_index += 1
+			_restart())
+		box.add_child(next)
+	var retry := _button("REINTENTAR" if not victory else "JUGAR OTRA VEZ")
+	retry.pressed.connect(_restart)
+	box.add_child(retry)
+	var menu := _button("MENÚ PRINCIPAL")
+	menu.pressed.connect(_to_menu)
+	box.add_child(menu)
+	# Deja ver la escena unos instantes antes de mostrar el panel.
+	get_tree().create_timer(1.2).timeout.connect(func() -> void: _end_panel.visible = true)
+
+
 func _make_toggle(text: String, value: bool, on_change: Callable) -> CheckButton:
 	var toggle := CheckButton.new()
 	toggle.text = text
@@ -137,26 +274,14 @@ func _show_message(text: String, urgent: bool) -> void:
 	_message_time = 3.5
 
 
-func _on_game_over(score: int, wave: int) -> void:
-	_over.text = "TANQUE DESTRUIDO\nPUNTOS %d   OLEADA %d\n\nTOCA PARA REINICIAR" % [score, wave]
-	_over.visible = true
-	_over_time = 0.0
-
-
-func _input(event: InputEvent) -> void:
-	if director.is_over and _over_time > 1.2 and event is InputEventScreenTouch and event.pressed:
-		get_tree().reload_current_scene()
-
-
 func _process(delta: float) -> void:
 	_message_time = maxf(_message_time - delta, 0.0)
 	_message.modulate.a = clampf(_message_time, 0.0, 1.0)
 	_flash = maxf(_flash - delta * 1.5, 0.0)
-	if director.is_over:
-		_over_time += delta
 	_release.visible = tank.aim_lock != null and not director.is_over
+	_history_button.visible = _release.visible and not get_tree().paused
 	var sky: String = weather.display_name() if weather != null else ""
-	_info.text = "v%s  %d FPS   %s\nPUNTOS %d   OLEADA %d   ENEMIGOS %d" % [_version, Engine.get_frames_per_second(), sky, director.score, director.wave, director.alive]
+	_info.text = "v%s  %d FPS   %s   %s\n%s" % [_version, Engine.get_frames_per_second(), Fronts.NAMES[director.front], sky, director.status_text()]
 	queue_redraw()
 
 
@@ -178,10 +303,18 @@ func _draw() -> void:
 		var target: Tank = tank.aim_lock
 		var font: Font = ThemeDB.fallback_font
 		var label: String = "%s  %d m" % [target.stats.display_name, roundi(tank.global_position.distance_to(target.global_position))]
-		draw_string(font, center + Vector2(-140.0, -52.0), label, HORIZONTAL_ALIGNMENT_CENTER, 280.0, 18, target.stats.color)
-		var bar := Rect2(center + Vector2(-50.0, -44.0), Vector2(100.0, 5.0))
-		draw_rect(bar, Color(target.stats.color, 0.3), false, 1.0)
-		draw_rect(Rect2(bar.position, Vector2(bar.size.x * target.health.fraction(), bar.size.y)), target.stats.color, true)
+		draw_string(font, center + Vector2(-140.0, -60.0), label, HORIZONTAL_ALIGNMENT_CENTER, 280.0, 18, target.stats.color)
+		# Blindaje restante y potencia de ataque del objetivo.
+		var armor_bar := Rect2(center + Vector2(-60.0, -46.0), Vector2(120.0, 6.0))
+		draw_string(font, armor_bar.position + Vector2(-78.0, 7.0), "BLINDAJE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.8, 0.9, 0.8))
+		draw_rect(armor_bar, Color(0.3, 1.0, 0.4, 0.3), false, 1.0)
+		draw_rect(Rect2(armor_bar.position, Vector2(armor_bar.size.x * target.health.fraction(), armor_bar.size.y)), Color(0.3, 1.0, 0.4), true)
+		var attack_bar := Rect2(center + Vector2(-60.0, -36.0), Vector2(120.0, 6.0))
+		draw_string(font, attack_bar.position + Vector2(-78.0, 7.0), "ATAQUE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.9, 0.8, 0.8))
+		draw_rect(attack_bar, Color(1.0, 0.3, 0.2, 0.3), false, 1.0)
+		var power: float = clampf(target.stats.damage / 25.0, 0.0, 1.0)
+		draw_rect(Rect2(attack_bar.position, Vector2(attack_bar.size.x * power, attack_bar.size.y)), Color(1.0, 0.3, 0.2), true)
+		draw_string(font, attack_bar.position + Vector2(126.0, 7.0), "%d" % roundi(target.stats.damage), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(1.0, 0.5, 0.4))
 	# Barra de recarga bajo la retícula
 	var ready_fraction: float = tank.weapon.ready_fraction()
 	var bar_color: Color = green if ready_fraction >= 1.0 else VectorMaterials.ORANGE

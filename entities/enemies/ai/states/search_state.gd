@@ -1,6 +1,6 @@
 class_name SearchState
 extends EnemyState
-## Va a la última posición conocida del jugador y mira alrededor.
+## Va a la última posición conocida del enemigo y mira alrededor.
 
 var _time: float = 0.0
 
@@ -14,8 +14,11 @@ func update(delta: float) -> void:
 	if brain.perception.can_see:
 		machine.change_to(&"Chase")
 		return
-	var point: Vector3 = brain.perception.last_known if brain.perception.has_last_known else brain.random_waypoint()
-	var arrived: bool = brain.drive_to(point, 0.8, 8.0)
+	if not brain.perception.has_last_known:
+		machine.change_to(&"Patrol")
+		return
+	var arrived: bool = brain.drive_to(brain.perception.last_known, 0.8, 8.0)
 	brain.tank.turret_controller.aim_yaw(brain.tank.global_rotation.y + sin(_time * 1.5) * 1.2)
 	if (arrived and _time > 3.0) or _time > 15.0:
+		brain.perception.forget()
 		machine.change_to(&"Patrol")

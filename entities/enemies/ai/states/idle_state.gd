@@ -1,6 +1,6 @@
 class_name IdleState
 extends EnemyState
-## Parado, escaneando con la torreta. Pasa a patrullar o a perseguir si ve al jugador.
+## Parado, escaneando con la torreta. Pasa a patrullar o a perseguir si ve a un enemigo.
 
 var _time: float = 0.0
 var _duration: float = 2.0
@@ -9,7 +9,7 @@ var _duration: float = 2.0
 func enter(_previous: StringName) -> void:
 	brain.stop()
 	_time = 0.0
-	_duration = randf_range(1.5, 3.5)
+	_duration = randf_range(1.0, 2.5)
 
 
 func update(delta: float) -> void:

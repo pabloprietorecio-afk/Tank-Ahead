@@ -12,6 +12,8 @@ const CONCRETE := Color(0.5, 0.5, 0.48)
 static var _trunk: CylinderMesh
 static var _crown: CylinderMesh
 static var _roof: PrismMesh
+## Color de las montañas del frente actual.
+static var mountain_color: Color = Color(0.33, 0.31, 0.27)
 
 
 static func block(size: Vector3) -> Destructible:
@@ -164,6 +166,236 @@ static func lamp_post() -> Destructible:
 	return prop
 
 
+## Manzano de Normandía: copa redonda.
+static func apple_tree(height: float) -> Destructible:
+	var prop := _base(20.0, WOOD, 1.0)
+	prop.crushable = true
+	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), WOOD, WOOD.darkened(0.6), 1, 0.5)
+	trunk.scale = Vector3(1.0, height * 0.45, 1.0)
+	trunk.position.y = height * 0.225
+	prop.add_child(trunk)
+	var crown_mesh := SphereMesh.new()
+	crown_mesh.radial_segments = 10
+	crown_mesh.rings = 6
+	var crown := VectorMaterials.make_outlined(crown_mesh, Color(0.2, 0.35, 0.12), Color(0.45, 0.15, 0.1), 2, 0.25)
+	crown.scale = Vector3.ONE * height * 0.7
+	crown.position.y = height * 0.7
+	prop.add_child(crown)
+	_add_box_shape(prop, Vector3(0.8, height, 0.8), Vector3(0.0, height * 0.5, 0.0))
+	return prop
+
+
+## Abedul de la estepa: tronco blanco y fino.
+static func birch(height: float) -> Destructible:
+	var prop := _base(15.0, Color(0.85, 0.85, 0.8), 1.0)
+	prop.crushable = true
+	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), Color(0.85, 0.84, 0.78), Color(0.1, 0.1, 0.1), 1, 0.25)
+	trunk.scale = Vector3(0.6, height * 0.7, 0.6)
+	trunk.position.y = height * 0.35
+	prop.add_child(trunk)
+	var crown_mesh := SphereMesh.new()
+	crown_mesh.radial_segments = 8
+	crown_mesh.rings = 5
+	var crown := VectorMaterials.make_outlined(crown_mesh, Color(0.32, 0.42, 0.14), Color(0.2, 0.28, 0.1), 2, 0.3)
+	crown.scale = Vector3(height * 0.35, height * 0.55, height * 0.35)
+	crown.position.y = height * 0.78
+	prop.add_child(crown)
+	_add_box_shape(prop, Vector3(0.5, height, 0.5), Vector3(0.0, height * 0.5, 0.0))
+	return prop
+
+
+## Palmera del desierto: tronco alto y hojas en estrella.
+static func palm(height: float) -> Destructible:
+	var prop := _base(18.0, WOOD, 1.0)
+	prop.crushable = true
+	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), Color(0.45, 0.35, 0.22), Color(0.2, 0.15, 0.08), 1, 0.15)
+	trunk.scale = Vector3(0.7, height, 0.7)
+	trunk.position.y = height * 0.5
+	trunk.rotation.z = randf_range(-0.12, 0.12)
+	prop.add_child(trunk)
+	for i in 7:
+		var leaf := VectorMaterials.make_box(Vector3(0.5, 0.06, height * 0.42), Color(0.25, 0.4, 0.12), 6, 0.15)
+		var angle: float = TAU * i / 7.0
+		leaf.position = Vector3(sin(angle), 0.0, cos(angle)) * height * 0.18 + Vector3.UP * (height - 0.2)
+		leaf.rotation = Vector3(deg_to_rad(25.0), angle, 0.0)
+		prop.add_child(leaf)
+	_add_box_shape(prop, Vector3(0.6, height, 0.6), Vector3(0.0, height * 0.5, 0.0))
+	return prop
+
+
+## Seto de bocage normando: muro de tierra con vegetación, resistente.
+static func hedgerow(length: float) -> Destructible:
+	var prop := _base(90.0, Color(0.3, 0.4, 0.15), 1.5)
+	var bank := VectorMaterials.make_box(Vector3(length, 1.2, 2.2), Color(0.3, 0.24, 0.15), 0, 1.0)
+	bank.position.y = 0.6
+	prop.add_child(bank)
+	var bush_mesh := SphereMesh.new()
+	bush_mesh.radial_segments = 8
+	bush_mesh.rings = 4
+	var count: int = int(length / 2.5)
+	for i in count:
+		var bush := VectorMaterials.make_outlined(bush_mesh, Color(0.16, 0.3, 0.1), Color(0.1, 0.2, 0.06), 2, 0.4)
+		bush.scale = Vector3(randf_range(2.4, 3.2), randf_range(2.0, 3.0), 2.4)
+		bush.position = Vector3(-length * 0.5 + (i + 0.5) * length / count, 2.0, 0.0)
+		prop.add_child(bush)
+	_add_box_shape(prop, Vector3(length, 3.0, 2.4), Vector3(0.0, 1.5, 0.0))
+	return prop
+
+
+## Casa del desierto: encalada, de azotea plana con pretil.
+static func desert_house(size: Vector3) -> Destructible:
+	var prop := _base(120.0, Color(0.85, 0.8, 0.7), size.y)
+	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
+	var walls := VectorMaterials.make_box(size, Color(0.82, 0.78, 0.68), 0, 1.5)
+	walls.position.y = size.y * 0.5
+	prop.add_child(walls)
+	var parapet := VectorMaterials.make_box(Vector3(size.x, 0.5, size.z), Color(0.78, 0.74, 0.64), 0, 1.0)
+	parapet.position.y = size.y + 0.25
+	prop.add_child(parapet)
+	var door := VectorMaterials.make_box(Vector3(1.2, 2.0, 0.1), Color(0.2, 0.35, 0.5), 5, 0.8)
+	door.position = Vector3(0.0, 1.0, size.z * 0.5 + 0.06)
+	prop.add_child(door)
+	for side in [-1.0, 1.0]:
+		var window := VectorMaterials.make_box(Vector3(0.8, 0.8, 0.1), Color(0.15, 0.15, 0.15))
+		window.position = Vector3(side * size.x * 0.3, size.y * 0.6, size.z * 0.5 + 0.06)
+		prop.add_child(window)
+	return prop
+
+
+## Isba rusa de troncos con tejado a dos aguas.
+static func izba(size: Vector3) -> Destructible:
+	if _roof == null:
+		_roof = PrismMesh.new()
+		_roof.size = Vector3.ONE
+	var prop := _base(100.0, WOOD, size.y)
+	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
+	var walls := VectorMaterials.make_box(size, Color(0.4, 0.28, 0.17), 5, 1.6)
+	walls.position.y = size.y * 0.5
+	prop.add_child(walls)
+	var roof := VectorMaterials.make_outlined(_roof, Color(0.3, 0.3, 0.28), Color(0.2, 0.2, 0.18), 6, 0.5)
+	roof.scale = Vector3(size.x * 1.15, size.y * 0.7, size.z * 1.1)
+	roof.position.y = size.y + size.y * 0.35
+	prop.add_child(roof)
+	for side in [-1.0, 1.0]:
+		var window := VectorMaterials.make_box(Vector3(0.8, 0.9, 0.1), Color(0.5, 0.65, 0.4), 4, 0.4)
+		window.position = Vector3(side * size.x * 0.28, size.y * 0.55, size.z * 0.5 + 0.06)
+		prop.add_child(window)
+	return prop
+
+
+## Iglesia de pueblo normando con campanario.
+static func church() -> Destructible:
+	if _roof == null:
+		_roof = PrismMesh.new()
+		_roof.size = Vector3.ONE
+	var prop := _base(300.0, Color(0.6, 0.58, 0.52), 6.0)
+	var stone := Color(0.55, 0.53, 0.48)
+	var nave := VectorMaterials.make_box(Vector3(8.0, 7.0, 16.0), stone, 2, 1.8)
+	nave.position.y = 3.5
+	prop.add_child(nave)
+	var roof := VectorMaterials.make_outlined(_roof, Color(0.25, 0.27, 0.3), Color(0.15, 0.16, 0.18), 5, 0.6)
+	roof.scale = Vector3(8.6, 4.0, 16.4)
+	roof.position.y = 9.0
+	prop.add_child(roof)
+	var tower := VectorMaterials.make_box(Vector3(4.0, 15.0, 4.0), stone, 2, 1.8)
+	tower.position = Vector3(0.0, 7.5, 9.5)
+	prop.add_child(tower)
+	var spire_mesh := CylinderMesh.new()
+	spire_mesh.top_radius = 0.0
+	spire_mesh.bottom_radius = 2.8
+	spire_mesh.height = 7.0
+	spire_mesh.radial_segments = 4
+	var spire := VectorMaterials.make_outlined(spire_mesh, Color(0.25, 0.27, 0.3), Color(0.15, 0.16, 0.18), 5, 0.6)
+	spire.position = Vector3(0.0, 18.5, 9.5)
+	spire.rotation.y = PI * 0.25
+	prop.add_child(spire)
+	_add_box_shape(prop, Vector3(8.0, 9.0, 16.0), Vector3(0.0, 4.5, 0.0))
+	_add_box_shape(prop, Vector3(4.0, 15.0, 4.0), Vector3(0.0, 7.5, 9.5))
+	return prop
+
+
+## Almiar de heno (estepa): se atraviesa con el tanque.
+static func haystack() -> Destructible:
+	var prop := _base(8.0, Color(0.75, 0.65, 0.3), 1.2)
+	prop.crushable = true
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.3
+	mesh.bottom_radius = 1.8
+	mesh.height = 3.2
+	mesh.radial_segments = 10
+	var hay := VectorMaterials.make_outlined(mesh, Color(0.72, 0.6, 0.28), Color(0.55, 0.45, 0.2), 6, 0.2)
+	hay.position.y = 1.6
+	prop.add_child(hay)
+	_add_box_shape(prop, Vector3(2.6, 3.0, 2.6), Vector3(0.0, 1.5, 0.0))
+	return prop
+
+
+## Erizo checo antitanque: tres vigas cruzadas, muy duro.
+static func hedgehog() -> Destructible:
+	var prop := _base(150.0, Color(0.3, 0.28, 0.26), 0.8)
+	for axis in 3:
+		var beam := VectorMaterials.make_box(Vector3(0.25, 0.25, 2.6), Color(0.2, 0.19, 0.18), 4, 0.5)
+		beam.position.y = 0.9
+		beam.rotation = [Vector3(0.6, 0.0, 0.0), Vector3(-0.6, PI * 0.5, 0.0), Vector3(0.0, 0.0, PI * 0.5 - 0.4)][axis]
+		prop.add_child(beam)
+	_add_box_shape(prop, Vector3(2.0, 1.8, 2.0), Vector3(0.0, 0.9, 0.0))
+	return prop
+
+
+## Parapeto de sacos terreros.
+static func sandbags(length: float) -> Destructible:
+	var prop := _base(60.0, Color(0.65, 0.58, 0.42), 0.8)
+	for row in 3:
+		var bags := VectorMaterials.make_box(Vector3(length - row * 0.3, 0.45, 1.0 - row * 0.15), Color(0.62, 0.55, 0.4), 2, 0.9)
+		bags.position.y = 0.22 + row * 0.44
+		prop.add_child(bags)
+	_add_box_shape(prop, Vector3(length, 1.35, 1.0), Vector3(0.0, 0.67, 0.0))
+	return prop
+
+
+## Depósito de suministros (objetivo de misión): cajas y bidones bajo una lona.
+static func supply_depot() -> Destructible:
+	var prop := _base(160.0, Color(1.0, 0.6, 0.2), 3.0)
+	prop.blast_radius = 14.0
+	prop.blast_damage = 50.0
+	for i in 6:
+		var crate := VectorMaterials.make_box(Vector3(1.4, 1.1, 1.4), Color(0.4, 0.33, 0.2), 5, 0.6)
+		crate.position = Vector3((i % 3 - 1) * 1.6, 0.55 + (i / 3) * 1.1, -1.5)
+		prop.add_child(crate)
+	var drum_mesh := CylinderMesh.new()
+	drum_mesh.top_radius = 0.45
+	drum_mesh.bottom_radius = 0.45
+	drum_mesh.height = 1.2
+	drum_mesh.radial_segments = 8
+	for i in 8:
+		var drum := VectorMaterials.make_outlined(drum_mesh, Color(0.25, 0.3, 0.2), Color(0.12, 0.12, 0.1), 4, 0.5)
+		drum.position = Vector3(-2.2 + (i % 4) * 1.0, 0.6, 1.0 + (i / 4) * 1.0)
+		prop.add_child(drum)
+	var tarp := VectorMaterials.make_box(Vector3(6.0, 0.1, 6.5), Color(0.3, 0.32, 0.22), 6, 0.4)
+	tarp.position.y = 3.0
+	prop.add_child(tarp)
+	for x in [-2.8, 2.8]:
+		for z in [-3.0, 3.0]:
+			var post := VectorMaterials.make_box(Vector3(0.15, 3.0, 0.15), WOOD)
+			post.position = Vector3(x, 1.5, z)
+			prop.add_child(post)
+	_add_box_shape(prop, Vector3(5.5, 2.4, 5.5), Vector3(0.0, 1.2, 0.0))
+	prop.add_to_group(&"radar_marks")
+	prop.set_meta("radar_color", Color(1.0, 0.75, 0.1))
+	return prop
+
+
+static func _trunk_mesh() -> CylinderMesh:
+	if _trunk == null:
+		_trunk = CylinderMesh.new()
+		_trunk.top_radius = 0.25
+		_trunk.bottom_radius = 0.35
+		_trunk.height = 1.0
+		_trunk.radial_segments = 6
+		_trunk.rings = 0
+	return _trunk
+
+
 static func mountain(radius: float, height: float, segments: int = 7) -> Destructible:
 	var prop := _base(1.0, ROCK_COLOR, height * 0.2)
 	prop.indestructible = true
@@ -173,7 +405,7 @@ static func mountain(radius: float, height: float, segments: int = 7) -> Destruc
 	mesh.height = height
 	mesh.radial_segments = segments
 	mesh.rings = 1
-	var visual := VectorMaterials.make_outlined(mesh, Color(0.33, 0.31, 0.27), Color(0.15, 0.14, 0.12), 3, 3.0)
+	var visual := VectorMaterials.make_outlined(mesh, mountain_color, mountain_color.darkened(0.45), 3, 3.0)
 	visual.position.y = height * 0.5
 	prop.add_child(visual)
 	var shape := CollisionShape3D.new()

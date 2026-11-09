@@ -1,6 +1,7 @@
 class_name AttackState
 extends EnemyState
-## Dispara al jugador mientras se mueve en círculo para no ser un blanco fácil.
+## Dispara al enemigo moviéndose en círculo para no ser un blanco fácil.
+## Los cazacarros de casamata se quedan quietos y giran el casco para apuntar.
 
 var _aim_timer: float = 0.0
 var _side: float = 1.0
@@ -20,10 +21,13 @@ func exit() -> void:
 func update(delta: float) -> void:
 	var perception: Perception = brain.perception
 	var stats: TankStats = brain.tank.stats
+	if not brain.has_target():
+		machine.change_to(&"Patrol")
+		return
 	if stats.retreat_fraction > 0.0 and brain.armor_fraction() <= stats.retreat_fraction:
 		machine.change_to(&"Retreat")
 		return
-	# Los de largo alcance se retiran si el jugador se les echa encima.
+	# Los de largo alcance se retiran si el enemigo se les echa encima.
 	if stats.preferred_range > 80.0 and perception.distance < stats.preferred_range * 0.4:
 		machine.change_to(&"Retreat")
 		return
@@ -37,8 +41,11 @@ func update(delta: float) -> void:
 		brain.aim_with_error()
 		if randf() < 0.3:
 			_side = -_side
-	var radius: float = perception.distance if stats.preferred_range <= 0.0 else lerpf(perception.distance, stats.preferred_range, 0.6)
-	var spot: Vector3 = brain.strafe_point(brain.target.global_position, radius, _side)
-	brain.drive_to(spot, 0.5, 2.0)
+	var turret: TurretController = brain.tank.turret_controller
+	if stats.traverse_limit_deg > 0.0:
+		brain.face(brain.target.global_position)
+	else:
+		var radius: float = perception.distance if stats.preferred_range <= 0.0 else lerpf(perception.distance, stats.preferred_range, 0.6)
+		brain.drive_to(brain.strafe_point(brain.target.global_position, radius, _side), 0.5, 2.0)
 	var cone: float = deg_to_rad(stats.fire_cone_deg)
-	brain.tank.trigger_held = perception.can_see and brain.tank.turret_controller.is_aligned(cone)
+	brain.tank.trigger_held = perception.can_see and turret.is_aligned(cone)

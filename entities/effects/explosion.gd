@@ -25,9 +25,9 @@ static func spawn(host: Node, point: Vector3, strength: float = 1.0, color: Colo
 	explosion.global_position = point
 	if not silent:
 		if strength < 0.8:
-			Sfx.play_at(host, Sfx.HIT, point, -4.0)
+			Sfx.play_at(host, Sfx.HIT, point, 2.0)
 		else:
-			Sfx.play_at(host, Sfx.EXPLOSION, point, 2.0, 1.2 / clampf(strength, 0.8, 2.0))
+			Sfx.play_at(host, Sfx.EXPLOSION, point, 6.0, 1.1 / clampf(strength, 0.8, 2.0))
 
 
 func _ready() -> void:

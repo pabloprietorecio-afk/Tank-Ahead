@@ -24,11 +24,14 @@ var _target_world: float = 0.0
 var _world_mode: bool = false
 var _target_pitch: float = 0.0
 var _prev_hull_yaw: float = 0.0
+## Giro máximo respecto al casco (casamatas). 0 = sin límite.
+var traverse_limit: float = 0.0
 
 
 func setup(tank: Tank) -> void:
 	_tank = tank
 	_prev_hull_yaw = tank.global_rotation.y
+	traverse_limit = tank.turret.get_meta("traverse_limit", 0.0)
 
 
 ## Desplazamiento deseado en radianes (jugador). La torreta se queda donde la dejes,
@@ -77,6 +80,11 @@ func aim_yaw(yaw: float) -> void:
 	_target_pitch = 0.0
 
 
+## ¿Puede la torreta llegar a ese rumbo sin girar el casco?
+func can_reach(yaw: float) -> bool:
+	return traverse_limit <= 0.0 or absf(angle_difference(_tank.global_rotation.y, yaw)) <= traverse_limit
+
+
 func is_aligned(cone: float) -> bool:
 	return absf(angle_difference(world_yaw, _desired_world())) <= cone and absf(pitch - _target_pitch) <= cone
 
@@ -103,5 +111,7 @@ func _process(delta: float) -> void:
 	var diff: float = angle_difference(world_yaw, _desired_world())
 	local_yaw = wrapf(local_yaw + clampf(diff * ease, -max_step, max_step), -PI, PI)
 	pitch += clampf((_target_pitch - pitch) * ease, -max_step, max_step)
+	if traverse_limit > 0.0:
+		local_yaw = clampf(local_yaw, -traverse_limit, traverse_limit)
 	_tank.turret.rotation.y = local_yaw
 	_tank.gun_pivot.rotation.x = pitch

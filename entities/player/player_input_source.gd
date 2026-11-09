@@ -89,9 +89,9 @@ func _update_lock() -> void:
 	var aim_dir: Vector3 = -tank.muzzle.global_transform.basis.z
 	var best: Tank = null
 	var best_angle: float = LOCK_CONE
-	for node in get_tree().get_nodes_in_group(&"enemies"):
+	for node in get_tree().get_nodes_in_group(&"tanks"):
 		var enemy: Tank = node as Tank
-		if enemy == null or not _lock_valid(enemy):
+		if enemy == null or not tank.is_hostile_to(enemy) or not _lock_valid(enemy):
 			continue
 		var angle: float = aim_dir.angle_to(_lock_point(enemy) - origin)
 		if angle < best_angle:

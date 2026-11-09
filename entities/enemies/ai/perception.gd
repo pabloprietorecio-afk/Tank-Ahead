@@ -1,7 +1,7 @@
 class_name Perception
 extends RefCounted
-## Percepción del enemigo: distancia, línea de visión y última posición conocida del objetivo.
-## No depende de ningún tipo de enemigo concreto.
+## Percepción: distancia, línea de visión y última posición conocida del objetivo actual.
+## El objetivo puede cambiar (lo elige AIBrain); no depende de ningún tipo de tanque concreto.
 
 const WORLD_MASK: int = 1
 const INTERVAL: float = 0.2
@@ -17,9 +17,18 @@ var _target: Tank
 var _timer: float = randf() * INTERVAL
 
 
-func _init(owner_tank: Tank, target_tank: Tank) -> void:
+func _init(owner_tank: Tank) -> void:
 	_owner = owner_tank
-	_target = target_tank
+
+
+func set_target(target: Tank) -> void:
+	if target == _target:
+		return
+	_target = target
+	can_see = false
+	_timer = 0.0
+	if target == null:
+		distance = INF
 
 
 func update(delta: float) -> void:
@@ -33,7 +42,7 @@ func update(delta: float) -> void:
 		distance = INF
 		return
 	distance = _owner.global_position.distance_to(_target.global_position)
-	can_see = distance <= _owner.stats.detect_range and _line_of_sight()
+	can_see = distance <= _owner.stats.detect_range and line_of_sight(_target)
 	if can_see:
 		time_since_seen = 0.0
 		last_known = _target.global_position
@@ -41,15 +50,19 @@ func update(delta: float) -> void:
 
 
 ## Un golpe recibido revela la posición del atacante aunque no lo viéramos.
-func reveal() -> void:
-	if is_instance_valid(_target):
-		last_known = _target.global_position
-		has_last_known = true
-		time_since_seen = minf(time_since_seen, 1.0)
+func reveal(point: Vector3) -> void:
+	last_known = point
+	has_last_known = true
+	time_since_seen = minf(time_since_seen, 1.0)
 
 
-func _line_of_sight() -> bool:
+func forget() -> void:
+	has_last_known = false
+	time_since_seen = INF
+
+
+func line_of_sight(other: Tank) -> bool:
 	var from: Vector3 = _owner.global_position + Vector3.UP * 1.6
-	var to: Vector3 = _target.global_position + Vector3.UP * 1.2
+	var to: Vector3 = other.global_position + Vector3.UP * 1.2
 	var query := PhysicsRayQueryParameters3D.create(from, to, WORLD_MASK)
 	return _owner.get_world_3d().direct_space_state.intersect_ray(query).is_empty()

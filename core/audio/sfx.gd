@@ -1,9 +1,10 @@
 class_name Sfx
 ## Efectos de sonido de un solo disparo. Cada sonido crea un reproductor que se borra al terminar.
 
-const CANNON := preload("res://assets/audio/cannon.wav")
-const EXPLOSION := preload("res://assets/audio/explosion.wav")
-const HIT := preload("res://assets/audio/hit.wav")
+const CANNON := preload("res://assets/audio/cannon.ogg")
+const EXPLOSION := preload("res://assets/audio/explosion.ogg")
+const HIT := preload("res://assets/audio/hit.ogg")
+const HIT_TANK := preload("res://assets/audio/hit_tank.ogg")
 const THUNDER := preload("res://assets/audio/thunder.wav")
 
 
@@ -12,8 +13,10 @@ static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: 
 	player.stream = stream
 	player.volume_db = volume_db
 	player.pitch_scale = pitch * randf_range(0.92, 1.08)
-	player.unit_size = 12.0
-	player.max_distance = 400.0
+	# Atenuación suave: las explosiones cercanas suenan fuertes y las lejanas aún se oyen.
+	player.unit_size = 22.0
+	player.max_distance = 500.0
+	player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 	_root(host).add_child(player)
 	player.global_position = point
 	player.finished.connect(player.queue_free)

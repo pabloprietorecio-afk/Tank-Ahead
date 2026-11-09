@@ -33,3 +33,8 @@ func heal(amount: float) -> void:
 	if is_dead:
 		return
 	current = minf(current + amount, max_health)
+
+
+func revive() -> void:
+	is_dead = false
+	current = max_health
