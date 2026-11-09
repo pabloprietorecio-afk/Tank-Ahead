@@ -100,10 +100,10 @@ func _build_settings() -> void:
 	_release.add_theme_font_size_override("font_size", 24)
 	_release.add_theme_color_override("font_color", VectorMaterials.ORANGE)
 	_release.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	_release.offset_left = -300.0
-	_release.offset_top = -380.0
-	_release.offset_right = -110.0
-	_release.offset_bottom = -280.0
+	_release.offset_left = -640.0
+	_release.offset_top = -200.0
+	_release.offset_right = -440.0
+	_release.offset_bottom = -110.0
 	_release.visible = false
 	_release.pressed.connect(func() -> void:
 		if input_source != null:
@@ -191,6 +191,46 @@ func _build_pause_and_history() -> void:
 	_end_panel = _centered_panel()
 	if touch != null:
 		touch.exclusions.append_array([pause, _pause_panel, _history_button, _history_panel, _end_panel])
+	_build_arsenal()
+
+
+var _zoom_button: Button
+var _missile_button: Button
+var _strike_button: Button
+var _binocular_mask: ColorRect
+
+
+## Botones de prismáticos, misil guiado y bombardeo aliado (columna sobre FIRE).
+func _build_arsenal() -> void:
+	_binocular_mask = ColorRect.new()
+	_binocular_mask.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_binocular_mask.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/binoculars.gdshader")
+	_binocular_mask.material = mat
+	_binocular_mask.visible = false
+	add_child(_binocular_mask)
+	move_child(_binocular_mask, 0)
+	var specs: Array = [["ZOOM", -330.0], ["MISIL", -250.0], ["AVIÓN", -170.0]]
+	var buttons: Array[Button] = []
+	for spec in specs:
+		var button := _button(spec[0], 22)
+		button.custom_minimum_size = Vector2.ZERO
+		button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+		button.offset_left = -420.0
+		button.offset_right = -270.0
+		button.offset_top = spec[1]
+		button.offset_bottom = spec[1] + 70.0
+		add_child(button)
+		buttons.append(button)
+	_zoom_button = buttons[0]
+	_missile_button = buttons[1]
+	_strike_button = buttons[2]
+	_zoom_button.pressed.connect(func() -> void: tank.set_binoculars(not tank.binoculars))
+	_missile_button.pressed.connect(func() -> void: director.fire_missile())
+	_strike_button.pressed.connect(func() -> void: director.call_air_strike())
+	if touch != null:
+		touch.exclusions.append_array(buttons)
 
 
 func _set_paused(paused: bool) -> void:
@@ -281,6 +321,14 @@ func _process(delta: float) -> void:
 	_flash = maxf(_flash - delta * 1.5, 0.0)
 	_release.visible = tank.aim_lock != null and not director.is_over
 	_history_button.visible = _release.visible and not get_tree().paused
+	_missile_button.text = "MISIL %d" % director.missiles
+	_missile_button.disabled = director.missiles <= 0
+	_strike_button.text = "AVIÓN %d" % director.strikes
+	_strike_button.disabled = director.strikes <= 0
+	_zoom_button.text = "NORMAL" if tank.binoculars else "ZOOM"
+	_binocular_mask.visible = tank.binoculars
+	if _binocular_mask.visible:
+		(_binocular_mask.material as ShaderMaterial).set_shader_parameter("screen_size", size)
 	var sky: String = weather.display_name() if weather != null else ""
 	_info.text = "v%s  %d FPS   %s   %s\n%s" % [_version, Engine.get_frames_per_second(), Fronts.NAMES[director.front], sky, director.status_text()]
 	queue_redraw()
@@ -324,6 +372,7 @@ func _draw() -> void:
 	draw_rect(Rect2(bar_origin, Vector2(60.0 * ready_fraction, 6.0)), bar_color, true)
 	_draw_armor(center)
 	_draw_objectives()
+	_draw_raid_warning(center)
 	# Icono del tanque visto desde arriba (norte arriba): casco y cañón con su orientación real.
 	_draw_tank_icon(Vector2(center.x, 74.0), green)
 
@@ -405,3 +454,19 @@ func _draw_objectives() -> void:
 		y += 24.0
 		var done: bool = line.begins_with("✔")
 		draw_string(font, Vector2(26.0, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color(0.5, 0.9, 0.5) if done else Color(1.0, 1.0, 1.0))
+
+
+## Aviso grande si el jugador está dentro de una zona de bombardeo enemigo.
+func _draw_raid_warning(center: Vector2) -> void:
+	for node in get_tree().get_nodes_in_group(&"air_strikes"):
+		var strike := node as AirStrike
+		if strike == null or not strike.hostile_to_player or strike.time_left() <= 0.0:
+			continue
+		if not strike.contains(tank.global_position):
+			continue
+		var font: Font = ThemeDB.fallback_font
+		var text: String = "¡BOMBARDEO! SAL DE LA ZONA  %d" % ceili(strike.time_left())
+		var pulse: float = 0.6 + 0.4 * sin(Time.get_ticks_msec() / 80.0)
+		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.0, 0.0, 0.12 * pulse), true)
+		draw_string(font, Vector2(0.0, center.y - 120.0), text, HORIZONTAL_ALIGNMENT_CENTER, size.x, 40, Color(1.0, 0.25, 0.2, pulse))
+		return

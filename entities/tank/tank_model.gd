@@ -129,12 +129,33 @@ func _build(is_player: bool) -> void:
 			_box(tank, track_size, Vector3(x, track_size.y * 0.5, 0.0), DARK_METAL, 3, 0.45 * k, false)
 			# Guardabarros sobre la oruga.
 			_box(tank, Vector3(track_size.x * 1.1, 0.06 * k, track_size.z * 1.02), Vector3(x, track_size.y + 0.04 * k, 0.0), base, 0, 1.0)
+			_running_gear(x + side * (track_size.x * 0.5 + 0.02 * k), track_size, side)
 			if stats.skirts:
 				_box(tank, Vector3(0.06 * k, track_size.y * 0.75, track_size.z * 0.85), Vector3(side * (hull_size.x * 0.5 + track_size.x + 0.02 * k), track_size.y * 0.55, 0.05 * k), base, 4, 0.9 * k)
 
 	_build_turret(base)
 	_build_hull_details(base, is_player, front, rear)
+	_build_extras(base, is_player, front, rear)
 	_build_markings()
+
+
+## Ruedas de rodaje visibles, rodillos de retorno, rueda motriz delante y tensora detrás.
+func _running_gear(x: float, track_size: Vector3, side: float) -> void:
+	var wheels: int = clampi(int(hull_size.z / (0.95 * k)), 4, 7)
+	var span: float = track_size.z * 0.78
+	for i in wheels:
+		var z: float = -span * 0.5 + span * i / float(wheels - 1)
+		var wheel := _cylinder(tank, 0.34 * k, 0.12 * k, Vector3(x, 0.36 * k, z), Color(0.2, 0.2, 0.19), 12, false)
+		wheel.rotation.z = PI * 0.5
+		var hub := _cylinder(tank, 0.12 * k, 0.14 * k, Vector3(x + side * 0.02 * k, 0.36 * k, z), Color(0.35, 0.33, 0.3), 8, false)
+		hub.rotation.z = PI * 0.5
+	for i in 3:
+		var z: float = -span * 0.35 + span * 0.35 * i
+		var roller := _cylinder(tank, 0.12 * k, 0.1 * k, Vector3(x, track_size.y - 0.12 * k, z), Color(0.2, 0.2, 0.19), 8, false)
+		roller.rotation.z = PI * 0.5
+	for end in [-1.0, 1.0]:
+		var big := _cylinder(tank, 0.3 * k, 0.14 * k, Vector3(x, 0.5 * k, end * track_size.z * 0.46), Color(0.25, 0.24, 0.22), 10, false)
+		big.rotation.z = PI * 0.5
 
 
 func _build_turret(base: Color) -> void:
@@ -211,6 +232,45 @@ func _build_hull_details(base: Color, is_player: bool, front: float, rear: float
 		for side in [-1.0, 1.0]:
 			var stripe := _flat(tank, Vector3(0.16 * k, 0.03 * k, hull_size.x * 0.38), Vector3(side * hull_size.x * 0.12, deck + 0.04 * k, front + hull_size.z * 0.12), Color(1.0, 0.85, 0.1))
 			stripe.rotation.y = side * deg_to_rad(-38.0)
+
+
+## Detalles de equipo: eslabones de repuesto, bidones, cajas, periscopios y el comandante.
+func _build_extras(base: Color, is_player: bool, front: float, rear: float) -> void:
+	# Eslabones de oruga de repuesto en el frontal.
+	for side in [-1.0, 1.0]:
+		var links := _box(tank, Vector3(0.55 * k, 0.08 * k, 0.7 * k), Vector3(side * hull_size.x * 0.22, deck - 0.05 * k, front + 0.35 * k), DARK_METAL, 3, 0.18 * k, false)
+		links.rotation.x = deg_to_rad(-35.0)
+	# Bidones en la parte trasera.
+	var can_color: Color = Color(0.3, 0.33, 0.22) if stats.nation != "DE" else Color(0.35, 0.33, 0.28)
+	for side in [-1.0, 1.0]:
+		_box(tank, Vector3(0.22, 0.5, 0.36) * k, Vector3(side * hull_size.x * 0.42, deck + 0.25 * k, rear - 0.25 * k), can_color, 4, 0.25 * k, false)
+	# Caja de herramientas en el guardabarros.
+	_box(tank, Vector3(0.45, 0.35, 1.2) * k, Vector3(-hull_size.x * 0.42, deck + 0.17 * k, -0.4 * k), base.darkened(0.2), 5, 0.3 * k)
+	if stats.casemate or stats.open_top:
+		return
+	var turret_size: Vector3 = TURRET_SIZE * stats.turret_scale * k
+	# Cajas de estiba a los lados de la torreta.
+	if not stats.round_turret:
+		for side in [-1.0, 1.0]:
+			_box(turret, Vector3(0.25 * k, turret_size.y * 0.5, turret_size.z * 0.4), Vector3(side * (turret_size.x * 0.5 + 0.13 * k), 0.0, turret_size.z * 0.15), base.darkened(0.15), 5, 0.2 * k)
+	# Periscopios.
+	for i in 2:
+		_box(turret, Vector3(0.18, 0.14, 0.12) * k, Vector3((0.3 - i * 0.6) * turret_size.x * 0.5, turret_size.y * 0.5 + 0.07 * k, -turret_size.z * 0.3), Color(0.1, 0.12, 0.13), 0, 1.0, false)
+	# Comandante asomado por la escotilla (no en el tanque propio, que se ve desde dentro).
+	if not is_player:
+		var hatch_pos := Vector3(turret_size.x * 0.22 if stats.has_dome else -turret_size.x * 0.2, turret_size.y * 0.5, turret_size.z * 0.18)
+		var uniform: Color = Color(0.3, 0.3, 0.22) if stats.nation != "DE" else Color(0.22, 0.22, 0.24)
+		_box(turret, Vector3(0.42, 0.45, 0.32) * k, hatch_pos + Vector3(0.0, 0.3 * k, 0.0), uniform, 0, 1.0, false)
+		var head := MeshInstance3D.new()
+		var head_mesh := SphereMesh.new()
+		head_mesh.radius = 0.14 * k
+		head_mesh.height = 0.28 * k
+		head.mesh = head_mesh
+		head.material_override = VectorMaterials.paint(Color(0.75, 0.58, 0.45))
+		head.position = hatch_pos + Vector3(0.0, 0.66 * k, 0.0)
+		turret.add_child(head)
+		own.append(head)
+		var cap := _box(turret, Vector3(0.34, 0.1, 0.34) * k, hatch_pos + Vector3(0.0, 0.8 * k, 0.0), Color(0.12, 0.12, 0.12), 0, 1.0, false)
 
 
 ## Distintivos nacionales en los laterales y en la cubierta trasera (identificación aérea).

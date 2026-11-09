@@ -17,7 +17,15 @@ var score: int = 0
 ## Callable(Vector2) -> bool: punto libre de obstáculos.
 var is_free_point: Callable = func(_p: Vector2) -> bool: return true
 
+## Arsenal especial por misión/partida.
+var missiles: int = 2
+var strikes: int = 1
+## Bombardeos enemigos sobre la posición del jugador (0 = desactivados).
+var raid_interval: Vector2 = Vector2(55.0, 85.0)
+var raid_first: float = 45.0
+
 var _rosters: Dictionary = {}
+var _raid_timer: float = 45.0
 
 
 func _init() -> void:
@@ -49,6 +57,63 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	world = world_root
 	add_to_group(&"game_mode")
 	player.destroyed.connect(_on_player_destroyed)
+	_raid_timer = raid_first
+
+
+func _physics_process(delta: float) -> void:
+	if is_over or raid_interval == Vector2.ZERO or not raids_active():
+		return
+	_raid_timer -= delta
+	if _raid_timer <= 0.0:
+		_raid_timer = randf_range(raid_interval.x, raid_interval.y)
+		enemy_air_raid()
+
+
+## ¿Hay bombardeos enemigos ahora? (Supervivencia los activa a partir de la oleada 2.)
+func raids_active() -> bool:
+	return true
+
+
+## Bombardeo enemigo sobre la posición actual del jugador: hay 4 s para salir de la zona.
+func enemy_air_raid() -> void:
+	if player == null or player.is_destroyed:
+		return
+	AirStrike.launch(world, player.global_position, true)
+	Sfx.play_2d(player, Sfx.ALARM, -2.0)
+	message.emit("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA", true)
+
+
+## Misil guiado: va a por el objetivo fijado (si lo hay).
+func fire_missile() -> bool:
+	if missiles <= 0 or is_over or player.is_destroyed:
+		return false
+	missiles -= 1
+	Missile.fire(player, player.aim_lock)
+	message.emit("MISIL LANZADO — QUEDAN %d" % missiles, false)
+	return true
+
+
+## Bombardeo aliado sobre el punto al que apunta el cañón (o el objetivo fijado).
+func call_air_strike() -> bool:
+	if strikes <= 0 or is_over or player.is_destroyed:
+		return false
+	var point: Vector3
+	if is_instance_valid(player.aim_lock):
+		point = player.aim_lock.global_position
+	else:
+		var from: Vector3 = player.muzzle.global_position
+		var to: Vector3 = from - player.muzzle.global_transform.basis.z * 300.0
+		to.y = minf(to.y, 0.0)
+		var query := PhysicsRayQueryParameters3D.create(from, to, 1)
+		var hit: Dictionary = player.get_world_3d().direct_space_state.intersect_ray(query)
+		point = hit["position"] if not hit.is_empty() else from - player.muzzle.global_transform.basis.z * 150.0
+	if Vector2(point.x - player.global_position.x, point.z - player.global_position.z).length() < 30.0:
+		message.emit("DEMASIADO CERCA PARA BOMBARDEAR: APUNTA MÁS LEJOS", true)
+		return false
+	strikes -= 1
+	AirStrike.launch(world, point, false, player)
+	message.emit("BOMBARDEO ALIADO EN CAMINO", false)
+	return true
 
 
 ## Llamado por premios y edificios destruidos (vía grupo "game_mode").

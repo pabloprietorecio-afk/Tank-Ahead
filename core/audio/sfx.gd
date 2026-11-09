@@ -7,6 +7,9 @@ const HIT := preload("res://assets/audio/hit.ogg")
 const HIT_TANK := preload("res://assets/audio/hit_tank.ogg")
 const PICKUP := preload("res://assets/audio/pickup.ogg")
 const BELL := preload("res://assets/audio/bell.ogg")
+const ENGINE_PLANE := preload("res://assets/audio/plane.ogg")
+const MISSILE := preload("res://assets/audio/missile.ogg")
+const ALARM := preload("res://assets/audio/alarm.ogg")
 const THUNDER := preload("res://assets/audio/thunder.wav")
 
 

@@ -177,7 +177,7 @@ static func apple_tree(height: float) -> Destructible:
 	var crown_mesh := SphereMesh.new()
 	crown_mesh.radial_segments = 10
 	crown_mesh.rings = 6
-	var crown := VectorMaterials.make_outlined(crown_mesh, Color(0.2, 0.35, 0.12), Color(0.45, 0.15, 0.1), 2, 0.25)
+	var crown := VectorMaterials.make_outlined(crown_mesh, Color(0.2, 0.35, 0.12), Color(0.3, 0.42, 0.14), 2, 0.25)
 	crown.scale = Vector3.ONE * height * 0.7
 	crown.position.y = height * 0.7
 	prop.add_child(crown)

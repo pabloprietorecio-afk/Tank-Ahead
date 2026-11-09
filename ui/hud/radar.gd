@@ -59,6 +59,11 @@ func _draw() -> void:
 				draw_colored_polygon(d, Color(mark_color, 0.85))
 				d.append(d[0])
 				draw_polyline(d, Color.WHITE, 1.5)
+			"zone":
+				# Zona de bombardeo: círculo a escala.
+				var r: float = mark.get_meta("radar_radius", 10.0) / RANGE * (RADIUS - 6.0)
+				draw_circle(pos, r, Color(mark_color, 0.35))
+				draw_arc(pos, r, 0.0, TAU, 24, mark_color, 2.0)
 			"ring":
 				# Edificio con premio: anillo.
 				draw_arc(pos, 5.0, 0.0, TAU, 12, mark_color, 2.5)

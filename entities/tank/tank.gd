@@ -44,6 +44,10 @@ var _view: int = 0
 var _meshes: Array[MeshInstance3D] = []
 ## Mejoras temporales activas: nombre → segundos restantes.
 var buffs: Dictionary = {}
+var _exhaust: GPUParticles3D
+var _dust: GPUParticles3D
+var _flash_light: OmniLight3D
+var _flash_time: float = 0.0
 var _materials: Array[Material] = []
 
 
@@ -58,6 +62,7 @@ func _ready() -> void:
 	collision_mask = LAYER_WORLD | LAYER_TANK
 	_build_body()
 	_build_components()
+	_build_effects()
 	health.damaged.connect(_on_damaged)
 	health.died.connect(_on_died)
 
@@ -90,6 +95,25 @@ func _apply_buffs() -> void:
 	hurtbox.damage_multiplier = 0.5 if buffs.has("shield") else 1.0
 
 
+const ZOOM_FOV: float = 16.0
+const NORMAL_FOV: float = 75.0
+var binoculars: bool = false
+var _view_before_zoom: int = 0
+
+
+## Prismáticos: vista desde la cabina con mucho aumento.
+func set_binoculars(on: bool) -> void:
+	if camera == null or on == binoculars:
+		return
+	binoculars = on
+	if on:
+		_view_before_zoom = _view
+		set_view(0)
+	camera.fov = ZOOM_FOV if on else NORMAL_FOV
+	if not on:
+		set_view(_view_before_zoom)
+
+
 ## 0 = cabina, 1 = detrás cerca, 2 = detrás lejos.
 func set_view(view: int) -> void:
 	if camera == null:
@@ -115,6 +139,15 @@ func _chase_transform() -> Transform3D:
 
 
 func _process(delta: float) -> void:
+	if _flash_time > 0.0:
+		_flash_time -= delta
+		if _flash_time <= 0.0:
+			_flash_light.light_energy = 0.0
+	if _dust != null:
+		var moving: bool = not is_destroyed and velocity.length() > 3.0
+		_dust.emitting = moving
+		_exhaust.amount_ratio = 1.0 if moving else 0.4
+		_exhaust.emitting = not is_destroyed
 	if camera != null and _view > 0:
 		var target: Transform3D = _chase_transform()
 		var t: float = 1.0 - exp(-8.0 * delta)
@@ -125,7 +158,55 @@ func _process(delta: float) -> void:
 		camera.v_offset = randf_range(-1.0, 1.0) * _shake * 0.25
 
 
+func _build_effects() -> void:
+	var rear: float = TankModel.HULL_SIZE.z * stats.hull_proportions.z * _scale_factor * 0.5
+	_exhaust = _puffs(Color(0.2, 0.2, 0.2, 0.45), 14, 1.6, Vector3(0.0, 1.4 * _scale_factor, rear), Vector3(0.0, 1.0, 0.6))
+	_dust = _puffs(Color(0.45, 0.38, 0.28, 0.4), 18, 1.2, Vector3(0.0, 0.3, rear * 0.9), Vector3(0.0, 0.6, 1.0))
+	_dust.emitting = false
+	_flash_light = OmniLight3D.new()
+	_flash_light.light_color = Color(1.0, 0.75, 0.4)
+	_flash_light.omni_range = 9.0
+	_flash_light.light_energy = 0.0
+	muzzle.add_child(_flash_light)
+
+
+func _puffs(color: Color, amount: int, lifetime: float, pos: Vector3, direction: Vector3) -> GPUParticles3D:
+	var particles := GPUParticles3D.new()
+	particles.amount = amount
+	particles.lifetime = lifetime
+	particles.local_coords = false
+	particles.position = pos
+	particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var process := ParticleProcessMaterial.new()
+	process.direction = direction
+	process.spread = 25.0
+	process.initial_velocity_min = 0.8
+	process.initial_velocity_max = 1.8
+	process.gravity = Vector3(0.0, 0.5, 0.0)
+	process.scale_min = 0.6
+	process.scale_max = 1.6 * _scale_factor
+	particles.process_material = process
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.35
+	mesh.height = 0.7
+	mesh.radial_segments = 6
+	mesh.rings = 3
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mat
+	particles.draw_pass_1 = mesh
+	if is_player:
+		particles.layers = VISUAL_LAYER_OWN
+	add_child(particles)
+	return particles
+
+
 func _on_fired() -> void:
+	_flash_time = 0.08
+	_flash_light.light_energy = 6.0
+	Explosion.spawn(self, muzzle.global_position, 0.3, Color(1.0, 0.85, 0.5), true)
 	if is_player:
 		Sfx.play_2d(self, Sfx.CANNON, 2.0)
 		_shake = maxf(_shake, 0.35)

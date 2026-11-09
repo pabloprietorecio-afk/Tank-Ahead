@@ -42,6 +42,8 @@ func _ready() -> void:
 	_flash.scale = Vector3.ONE * 0.5 * _strength
 	add_child(_flash)
 
+	if _strength >= 0.8 and global_position.y < 3.0:
+		_scorch()
 	if _strength >= 0.8:
 		_light = OmniLight3D.new()
 		_light.light_color = Color(1.0, 0.6, 0.25)
@@ -76,3 +78,31 @@ func _process(delta: float) -> void:
 		_velocities[i].y -= GRAVITY * delta
 		_fragments[i].position += _velocities[i] * delta
 		_fragments[i].scale = Vector3.ONE * shrink
+
+
+const MAX_SCORCH: int = 40
+
+
+## Mancha de quemado en el suelo que dura un rato.
+func _scorch() -> void:
+	var marks: Array[Node] = get_tree().get_nodes_in_group(&"scorch")
+	if marks.size() >= MAX_SCORCH:
+		marks[0].queue_free()
+	var mark := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 2.2 * _strength
+	disc.bottom_radius = 2.2 * _strength
+	disc.height = 0.02
+	disc.radial_segments = 12
+	mark.mesh = disc
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.03, 0.03, 0.03, 0.75)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mark.material_override = mat
+	mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mark.add_to_group(&"scorch")
+	get_parent().add_child(mark)
+	mark.global_position = Vector3(global_position.x, 0.03, global_position.z)
+	mark.rotation.y = randf() * TAU
+	get_tree().create_timer(40.0).timeout.connect(mark.queue_free)

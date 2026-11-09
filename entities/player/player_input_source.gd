@@ -40,6 +40,9 @@ func _process(delta: float) -> void:
 	tank.trigger_held = touch.fire_held
 
 	var look: Vector2 = touch.consume_look_delta()
+	# Con prismáticos, el dedo mueve la mira mucho más fino.
+	if tank.binoculars:
+		look *= Tank.ZOOM_FOV / Tank.NORMAL_FOV
 	_relock_cooldown = maxf(_relock_cooldown - delta, 0.0)
 	if GameSettings.aim_assist:
 		_update_lock()

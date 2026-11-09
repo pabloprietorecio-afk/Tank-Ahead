@@ -25,6 +25,10 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	message.emit("%s — PREPÁRATE" % Fronts.NAMES[front], false)
 
 
+func raids_active() -> bool:
+	return wave >= 2
+
+
 func status_text() -> String:
 	return "PUNTOS %d   OLEADA %d   ENEMIGOS %d" % [score, wave, alive]
 
@@ -114,6 +118,11 @@ func _end_wave() -> void:
 	player.health.heal(REPAIR_PER_WAVE)
 	GameSession.record_wave(wave)
 	message.emit("OLEADA %d SUPERADA  +%d  BLINDAJE REPARADO" % [wave, WAVE_BONUS], false)
+	# Cada 4 oleadas se repone el arsenal especial.
+	if wave % 4 == 0:
+		missiles = 2
+		strikes = 1
+		message.emit("ARSENAL REPUESTO: 2 MISILES Y 1 BOMBARDEO", false)
 
 
 func _spawn(stats: TankStats) -> void:

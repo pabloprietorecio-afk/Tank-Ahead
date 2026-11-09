@@ -21,6 +21,12 @@ var _roles: Dictionary = {}
 var _order_timer: float = 0.0
 
 
+func _init() -> void:
+	super._init()
+	raid_interval = Vector2(80.0, 110.0)
+	raid_first = 90.0
+
+
 func base_pos(team: int) -> Vector3:
 	return Vector3(0.0, 0.0, BASE_Z if team == PLAYER_TEAM else -BASE_Z)
 

@@ -24,6 +24,9 @@ var _objective_names: Array[String] = []
 var _depot_points: Array[Vector2] = []
 var _reinforce_timer: float = 40.0
 var _penalty_cooldown: float = 0.0
+## Objetivos secundarios repartidos lejos del complejo principal (alargan la misión).
+var _outposts: Array[Vector2] = []
+const MAX_ALIVE: int = 6
 
 
 func _init() -> void:
@@ -44,11 +47,18 @@ func reserved_zones() -> Array[Rect2]:
 		"defend":
 			zones.append(Rect2(Vector2(-ZONE_RADIUS - 8.0, -ZONE_RADIUS - 8.0), Vector2.ONE * (ZONE_RADIUS + 8.0) * 2.0))
 		"destroy":
-			_depot_points = [Vector2(-110.0, -120.0), Vector2(0.0, -150.0), Vector2(110.0, -110.0)]
+			_depot_points = [Vector2(-140.0, -130.0), Vector2(0.0, -160.0), Vector2(140.0, -120.0), Vector2(-160.0, 20.0), Vector2(160.0, 40.0)]
 			for p in _depot_points:
 				zones.append(Rect2(p - Vector2(15.0, 15.0), Vector2(30.0, 30.0)))
 		"sabotage", "liberate":
 			zones.append(Rect2(Vector2(TARGET_CENTER.x, TARGET_CENTER.z) - Vector2(55.0, 50.0), Vector2(110.0, 100.0)))
+			# Tres puestos secundarios en otras zonas del mapa.
+			var candidates: Array[Vector2] = [Vector2(-150.0, -10.0), Vector2(150.0, 20.0), Vector2(-120.0, 90.0), Vector2(130.0, 100.0), Vector2(-160.0, -150.0), Vector2(160.0, -150.0)]
+			candidates.shuffle()
+			for i in 3:
+				var p: Vector2 = candidates[i] + Vector2(randf_range(-15.0, 15.0), randf_range(-15.0, 15.0))
+				_outposts.append(p)
+				zones.append(Rect2(p - Vector2(14.0, 14.0), Vector2(28.0, 28.0)))
 	return zones
 
 
@@ -61,7 +71,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		spawn_tank(stats, PLAYER_TEAM, Vector2(spawn.x + (i + 1) * 9.0 * (1 if i % 2 == 0 else -1), spawn.z + 6.0))
 	match kind:
 		"assault":
-			remaining = mission["count"]
+			remaining = mission["count"] * 2
 			_to_spawn = remaining
 		"destroy":
 			for n in _depot_points.size():
@@ -72,15 +82,17 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 				depot.position = Vector3(point.x, 0.0, point.y)
 				world.add_child(depot)
 				_track(depot)
-				_guards(point, 2)
+				_guards(point, 2 if n < 3 else 1)
 		"sabotage":
 			for part in StructureFactory.build(mission["target"], world, TARGET_CENTER, 0.0):
 				_track(part)
-			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 4)
+			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 6)
+			_build_outposts()
 		"liberate":
 			for part in StructureFactory.camp(world, TARGET_CENTER, mission["count"]):
 				_track(part)
-			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 3)
+			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 5)
+			_build_outposts()
 		"defend":
 			time_left = mission["time"]
 			_build_zone()
@@ -97,8 +109,22 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			_commander.add_to_group(&"radar_marks")
 			_commander.set_meta("radar_color", Color(0.85, 0.3, 1.0))
 			_commander.set_meta("radar_shape", "diamond")
-			_to_spawn = mission["count"]
+			_to_spawn = mission["count"] * 2
 	remaining = _objectives.size() if not _objectives.is_empty() else remaining
+
+
+## Puestos secundarios: antiaéreo, antena de radio y puesto de mando, cada uno con guardia.
+func _build_outposts() -> void:
+	var builders: Array = [[StructureFactory.flak_gun, "ANTIAÉREO"], [StructureFactory.radio_mast, "ANTENA"], [StructureFactory.command_tent, "PUESTO AVANZADO"]]
+	for i in _outposts.size():
+		var point: Vector2 = _outposts[i]
+		var prop: Destructible = builders[i % builders.size()][0].call()
+		prop.prize_points = 0
+		StructureFactory._objective(prop, "%s (SECUNDARIO)" % builders[i % builders.size()][1])
+		prop.position = Vector3(point.x, 0.0, point.y)
+		world.add_child(prop)
+		_track(prop)
+		_guards(point, 2)
 
 
 func _track(part: Destructible) -> void:
@@ -172,8 +198,8 @@ func _process(delta: float) -> void:
 	_spawn_timer -= delta
 	match kind:
 		"assault", "boss":
-			if _to_spawn > 0 and alive < 3 and _spawn_timer <= 0.0:
-				_spawn_timer = 4.0
+			if _to_spawn > 0 and alive < 5 and _spawn_timer <= 0.0:
+				_spawn_timer = 3.0
 				_to_spawn -= 1
 				var center := Vector2(0.0, -120.0)
 				if kind == "boss" and is_instance_valid(_commander):
@@ -181,17 +207,20 @@ func _process(delta: float) -> void:
 				_spawn_enemy(free_point_near(center, 10.0, 60.0))
 		"destroy", "sabotage", "liberate":
 			_reinforce_timer -= delta
-			if _reinforce_timer <= 0.0 and alive < 4:
-				_reinforce_timer = 40.0
-				_spawn_enemy(free_point_near(Vector2(0.0, -160.0), 5.0, 40.0))
+			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 2:
+				_reinforce_timer = 25.0
+				# Los refuerzos salen a por el jugador desde lejos.
+				var origin := Vector2(player.global_position.x, player.global_position.z)
+				_spawn_enemy(free_point_near(origin, 90.0, 150.0))
+				_spawn_enemy(free_point_near(origin, 90.0, 150.0))
 		"defend":
 			time_left -= delta
 			if time_left <= 0.0:
 				_win("POSICIÓN DEFENDIDA")
 				return
 			var elapsed: float = mission["time"] - time_left
-			if alive < 2 + int(elapsed / 50.0) and _spawn_timer <= 0.0:
-				_spawn_timer = 6.0
+			if alive < 4 + int(elapsed / 40.0) and _spawn_timer <= 0.0:
+				_spawn_timer = 4.0
 				var angle: float = randf_range(-PI * 0.8, -PI * 0.2)
 				var tank: Tank = _spawn_enemy(free_point_near(Vector2.from_angle(angle) * 150.0, 0.0, 20.0))
 				var brain: AIBrain = tank.get_node("AIBrain")
@@ -204,7 +233,7 @@ func _spawn_enemy(point: Vector2) -> Tank:
 	var pool: Array[TankStats] = roster(ENEMY_TEAM)
 	var index: int = GameSession.mission_index
 	# Cuanto más avanzada la misión, más pesados pueden salir.
-	var max_tier: int = 1 if index < 2 else (2 if index < 7 else 3)
+	var max_tier: int = 2 if index < 2 else 3
 	var options: Array[TankStats] = pool.filter(func(s: TankStats) -> bool: return s.tier <= max_tier)
 	alive += 1
 	return spawn_tank(options.pick_random(), ENEMY_TEAM, point, PI)
