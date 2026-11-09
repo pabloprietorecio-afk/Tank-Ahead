@@ -15,7 +15,7 @@ const WORLD_MASK: int = 1
 @export var look_sensitivity: float = 0.004
 
 ## Modo clásico: máximo desvío del cañón respecto al casco y su recentrado.
-const FINE_AIM_LIMIT: float = deg_to_rad(45.0)
+const FINE_AIM_LIMIT: float = PI
 const FINE_RECENTER_DELAY: float = 2.0
 const FINE_RECENTER_SPEED: float = 0.5
 ## Suavizado del giro del casco (unidades de joystick por segundo).
@@ -31,9 +31,8 @@ func _process(delta: float) -> void:
 	if tank == null or touch == null or tank.is_destroyed:
 		return
 	var stick: Vector2 = touch.move_vector
-	if not GameSettings.turret_free:
-		_turn = move_toward(_turn, stick.x, TURN_SMOOTHING * delta)
-		stick.x = _turn
+	_turn = move_toward(_turn, stick.x, TURN_SMOOTHING * delta)
+	stick.x = _turn
 	tank.drive_input = stick
 	tank.trigger_held = touch.fire_held
 
@@ -45,7 +44,7 @@ func _process(delta: float) -> void:
 		release_lock()
 	if tank.aim_lock != null:
 		tank.turret_controller.aim_at(_lock_point(tank.aim_lock))
-	elif not GameSettings.turret_free:
+	elif GameSettings.auto_recenter:
 		_classic_aim(look, delta)
 	elif look != Vector2.ZERO:
 		tank.turret_controller.add_aim(-look.x * look_sensitivity, -look.y * look_sensitivity)
@@ -110,7 +109,7 @@ func _lock_point(enemy: Tank) -> Vector3:
 func _classic_aim(look: Vector2, delta: float) -> void:
 	if look != Vector2.ZERO:
 		_idle_time = 0.0
-		_fine_yaw = clampf(_fine_yaw - look.x * look_sensitivity, -FINE_AIM_LIMIT, FINE_AIM_LIMIT)
+		_fine_yaw = wrapf(_fine_yaw - look.x * look_sensitivity, -FINE_AIM_LIMIT, FINE_AIM_LIMIT)
 		tank.turret_controller.aim_local(_fine_yaw, -look.y * look_sensitivity)
 		return
 	_idle_time += delta

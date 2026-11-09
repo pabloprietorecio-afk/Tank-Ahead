@@ -62,8 +62,8 @@ func _build_settings() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	_panel.add_child(box)
-	box.add_child(_make_toggle("Torreta libre (gira 360º)", GameSettings.turret_free, func(on: bool) -> void:
-		GameSettings.turret_free = on
+	box.add_child(_make_toggle("Recentrar el cañón al frente", GameSettings.auto_recenter, func(on: bool) -> void:
+		GameSettings.auto_recenter = on
 		GameSettings.save()))
 	box.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
@@ -168,12 +168,26 @@ func _draw() -> void:
 	var armor_origin := Vector2(center.x - 120.0, size.y - 46.0)
 	draw_rect(Rect2(armor_origin, Vector2(240.0, 14.0)), Color(armor_color, 0.3), false, 2.0)
 	draw_rect(Rect2(armor_origin, Vector2(240.0 * armor, 14.0)), armor_color, true)
-	# Brújula: la marca fija es el norte del mapa; la aguja gira con el rumbo del tanque.
-	var gauge_center := Vector2(center.x, 70.0)
-	draw_arc(gauge_center, 34.0, 0.0, TAU, 32, Color(green, 0.4), 2.0)
-	draw_line(gauge_center + Vector2(0.0, -34.0), gauge_center + Vector2(0.0, -42.0), Color(green, 0.7), 2.0)
-	draw_string(ThemeDB.fallback_font, gauge_center + Vector2(-6.0, -46.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, Color(green, 0.7))
-	var heading: float = tank.global_rotation.y
-	var direction := Vector2(-sin(heading), -cos(heading))
-	draw_line(gauge_center, gauge_center + direction * 34.0, green, 4.0)
-	draw_line(gauge_center, gauge_center - direction * 12.0, Color(green, 0.35), 2.0)
+	# Icono del tanque visto desde arriba (norte arriba): casco y cañón con su orientación real.
+	_draw_tank_icon(Vector2(center.x, 74.0), green)
+
+
+func _draw_tank_icon(origin: Vector2, green: Color) -> void:
+	draw_string(ThemeDB.fallback_font, origin + Vector2(-6.0, -46.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, Color(green, 0.6))
+	draw_line(origin + Vector2(0.0, -40.0), origin + Vector2(0.0, -34.0), Color(green, 0.6), 2.0)
+	# Casco: rumbo del tanque (yaw 0 = mira al norte, hacia -Z).
+	var hull_yaw: float = -tank.global_rotation.y
+	draw_set_transform(origin, hull_yaw, Vector2.ONE)
+	draw_rect(Rect2(-14.0, -20.0, 28.0, 40.0), Color(green, 0.15), true)
+	draw_rect(Rect2(-14.0, -20.0, 28.0, 40.0), green, false, 2.0)
+	for side in [-1.0, 1.0]:
+		draw_rect(Rect2(side * 17.0 - 3.0, -22.0, 6.0, 44.0), Color(green, 0.7), false, 1.5)
+	draw_line(Vector2(-6.0, -20.0), Vector2(0.0, -26.0), green, 2.0)
+	draw_line(Vector2(6.0, -20.0), Vector2(0.0, -26.0), green, 2.0)
+	# Torreta y cañón: rumbo real de la torreta en el mundo.
+	var turret_yaw: float = -tank.turret_controller.world_yaw
+	draw_set_transform(origin, turret_yaw, Vector2.ONE)
+	draw_circle(Vector2.ZERO, 9.0, Color(0.0, 0.0, 0.0, 0.8))
+	draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 16, VectorMaterials.ORANGE, 2.0)
+	draw_line(Vector2.ZERO, Vector2(0.0, -34.0), VectorMaterials.ORANGE, 4.0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

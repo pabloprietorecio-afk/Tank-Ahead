@@ -6,8 +6,8 @@ const PATH: String = "user://settings.cfg"
 
 ## Fija la torreta sobre el enemigo una vez que la mira lo ha encontrado.
 static var aim_assist: bool = false
-## Torreta libre: gira 360º independiente del casco. Desactivada = control clásico (cañón al frente).
-static var turret_free: bool = false
+## La torreta gira 360º siempre. Si está activo, vuelve sola al frente al dejar de moverla.
+static var auto_recenter: bool = false
 
 static var _loaded: bool = false
 
@@ -19,11 +19,11 @@ static func ensure_loaded() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) == OK:
 		aim_assist = cfg.get_value("controls", "aim_assist", aim_assist)
-		turret_free = cfg.get_value("controls", "turret_free", turret_free)
+		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 
 
 static func save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("controls", "aim_assist", aim_assist)
-	cfg.set_value("controls", "turret_free", turret_free)
+	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.save(PATH)

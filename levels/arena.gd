@@ -225,6 +225,9 @@ func _build_ui() -> void:
 
 	var radar := Radar.new()
 	radar.player = _player
-	radar.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	radar.position = Vector2(get_viewport().get_visible_rect().size.x - 204.0, 110.0)
+	radar.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	radar.offset_left = -206.0
+	radar.offset_right = -18.0
+	radar.offset_top = 104.0
+	radar.offset_bottom = 292.0
 	layer.add_child(radar)

@@ -44,7 +44,6 @@ func setup(env: Environment, target: Node3D, ground: ShaderMaterial, forced: int
 			_rain_loop = AudioStreamPlayer.new()
 			_rain_loop.stream = load("res://assets/audio/rain.wav")
 			_rain_loop.volume_db = -12.0
-			_rain_loop.finished.connect(_rain_loop.play)
 			add_child(_rain_loop)
 			_rain_loop.play()
 		Kind.SNOW:
