@@ -78,6 +78,12 @@ func _build_settings() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	_panel.add_child(box)
+	box.add_child(_make_toggle("Sombras (desactivar si va lento)", GameSettings.shadows, func(on: bool) -> void:
+		GameSettings.shadows = on
+		GameSettings.save()
+		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
+		if sun != null:
+			sun.shadow_enabled = on))
 	box.add_child(_make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
 		GameSettings.easy_drive = on
 		GameSettings.save()))

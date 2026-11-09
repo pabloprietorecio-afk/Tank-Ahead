@@ -134,7 +134,7 @@ func _on_died(source: Node) -> void:
 
 func _build_body() -> void:
 	var k: float = _scale_factor
-	var color: Color = stats.color
+	var color: Color = stats.color.darkened(0.3)
 	var hull_size: Vector3 = HULL_SIZE * stats.hull_proportions * k
 	var own_meshes: Array[MeshInstance3D] = []
 	var shape := CollisionShape3D.new()
@@ -144,7 +144,7 @@ func _build_body() -> void:
 	shape.position.y = 0.6 * k
 	add_child(shape)
 
-	var hull := VectorMaterials.make_box(hull_size, color, 4, 1.2 * k)
+	var hull := VectorMaterials.make_box(hull_size, color, 4, 2.0 * k)
 	hull.position.y = 0.2 * k + hull_size.y * 0.5
 	add_child(hull)
 	own_meshes.append(hull)
@@ -158,14 +158,26 @@ func _build_body() -> void:
 			add_child(track)
 			own_meshes.append(track)
 
+	_add_hull_details(hull_size, top, color, k, own_meshes)
+
 	var turret_size: Vector3 = TURRET_SIZE * stats.turret_scale * k
 	turret = Node3D.new()
 	turret.name = "Turret"
 	turret.position = Vector3(0.0, top + turret_size.y * 0.5, 0.2 * k)
 	add_child(turret)
-	var turret_mesh := VectorMaterials.make_box(turret_size, color, 4, 0.8 * k)
+	var turret_mesh := VectorMaterials.make_box(turret_size, color, 4, 1.4 * k)
 	turret.add_child(turret_mesh)
 	own_meshes.append(turret_mesh)
+
+	var hatch := VectorMaterials.make_box(Vector3(0.6, 0.12, 0.6) * k, color.darkened(0.25), 4, 0.3 * k)
+	hatch.position = Vector3(-turret_size.x * 0.2, turret_size.y * 0.5 + 0.06 * k, turret_size.z * 0.15)
+	turret.add_child(hatch)
+	own_meshes.append(hatch)
+	# Cesta trasera de la torreta: marca la parte de atrás.
+	var bustle := VectorMaterials.make_box(Vector3(turret_size.x * 0.8, turret_size.y * 0.55, 0.5 * k), color.darkened(0.35), 6, 0.15 * k)
+	bustle.position = Vector3(0.0, -turret_size.y * 0.1, turret_size.z * 0.5 + 0.25 * k)
+	turret.add_child(bustle)
+	own_meshes.append(bustle)
 
 	if stats.has_dome:
 		var dome := VectorMaterials.make_box(Vector3(0.7, 0.35, 0.7) * k, color.lightened(0.3))
@@ -184,12 +196,20 @@ func _build_body() -> void:
 	turret.add_child(gun_pivot)
 	var barrel_size := Vector3(BARREL_SIZE.x * stats.barrel_thickness, BARREL_SIZE.y * stats.barrel_thickness, BARREL_SIZE.z * stats.barrel_length) * k
 	var barrels: int = maxi(stats.barrel_count, 1)
+	var mantlet := VectorMaterials.make_box(Vector3(turret_size.x * 0.55, turret_size.y * 0.7, 0.35 * k), color.darkened(0.15), 4, 0.4 * k)
+	mantlet.position = Vector3(0.0, 0.0, -turret_size.z * 0.5 - 0.1 * k)
+	gun_pivot.add_child(mantlet)
+	own_meshes.append(mantlet)
 	for b in barrels:
 		var x: float = 0.0 if barrels == 1 else (b - (barrels - 1) * 0.5) * barrel_size.x * 1.8
-		var barrel := VectorMaterials.make_box(barrel_size, color)
+		var barrel := VectorMaterials.make_box(barrel_size, color.darkened(0.2), 4, 0.6 * k)
 		barrel.position = Vector3(x, 0.0, -turret_size.z * 0.5 - barrel_size.z * 0.5 + 0.2 * k)
 		gun_pivot.add_child(barrel)
 		own_meshes.append(barrel)
+		var brake := VectorMaterials.make_box(Vector3(barrel_size.x * 1.6, barrel_size.y * 1.6, 0.4 * k), Color(0.15, 0.15, 0.15), 6, 0.2 * k)
+		brake.position = Vector3(x, 0.0, -turret_size.z * 0.5 - barrel_size.z + 0.15 * k)
+		gun_pivot.add_child(brake)
+		own_meshes.append(brake)
 
 	muzzle = Marker3D.new()
 	muzzle.name = "Muzzle"
@@ -208,6 +228,60 @@ func _build_body() -> void:
 		camera.position = Vector3(0.0, 0.3, 0.2)
 		gun_pivot.add_child(camera)
 		camera.current = true
+
+
+## Detalles que dejan claro dónde está el frente (faros, frontal inclinado, chevrón)
+## y la cola (pilotos rojos, escapes, rejilla del motor).
+func _add_hull_details(hull_size: Vector3, top: float, color: Color, k: float, own: Array[MeshInstance3D]) -> void:
+	var front: float = -hull_size.z * 0.5
+	var rear: float = hull_size.z * 0.5
+	var mid_y: float = 0.2 * k + hull_size.y * 0.5
+	# Frontal inclinado.
+	var glacis := VectorMaterials.make_box(Vector3(hull_size.x * 0.96, hull_size.y * 1.1, 0.18 * k), color.lightened(0.05), 4, 0.6 * k)
+	glacis.position = Vector3(0.0, mid_y + 0.05 * k, front - 0.25 * k)
+	glacis.rotation.x = deg_to_rad(-40.0)
+	add_child(glacis)
+	own.append(glacis)
+	# Faros delanteros (luz propia) y pilotos traseros rojos.
+	for side in [-1.0, 1.0]:
+		var light := MeshInstance3D.new()
+		var lamp := BoxMesh.new()
+		lamp.size = Vector3(0.42, 0.22, 0.1) * k
+		light.mesh = lamp
+		light.material_override = VectorMaterials.flat(Color(1.0, 0.95, 0.75))
+		light.position = Vector3(side * hull_size.x * 0.36, top - 0.12 * k, front - 0.42 * k)
+		add_child(light)
+		own.append(light)
+		var tail := MeshInstance3D.new()
+		var tail_mesh := BoxMesh.new()
+		tail_mesh.size = Vector3(0.35, 0.18, 0.08) * k
+		tail.mesh = tail_mesh
+		tail.material_override = VectorMaterials.flat(Color(1.0, 0.08, 0.05))
+		tail.position = Vector3(side * hull_size.x * 0.4, top - 0.15 * k, rear + 0.04 * k)
+		add_child(tail)
+		own.append(tail)
+		# Tubos de escape.
+		var exhaust := VectorMaterials.make_box(Vector3(0.22, 0.22, 0.5) * k, Color(0.12, 0.11, 0.1), 4, 0.15 * k)
+		exhaust.position = Vector3(side * hull_size.x * 0.22, top + 0.1 * k, rear - 0.1 * k)
+		add_child(exhaust)
+		own.append(exhaust)
+	# Rejilla del motor en la cubierta trasera.
+	var grille := VectorMaterials.make_box(Vector3(hull_size.x * 0.6, 0.06 * k, hull_size.z * 0.22), Color(0.1, 0.1, 0.1), 6, 0.12 * k)
+	grille.position = Vector3(0.0, top + 0.03 * k, rear - hull_size.z * 0.18)
+	add_child(grille)
+	own.append(grille)
+	# Chevrón pintado en la cubierta delantera apuntando hacia delante.
+	var marking: Color = Color(1.0, 0.85, 0.1) if is_player else Color(0.95, 0.95, 0.95)
+	for side in [-1.0, 1.0]:
+		var stripe := MeshInstance3D.new()
+		var stripe_mesh := BoxMesh.new()
+		stripe_mesh.size = Vector3(0.18 * k, 0.04 * k, hull_size.x * 0.42)
+		stripe.mesh = stripe_mesh
+		stripe.material_override = VectorMaterials.flat(marking)
+		stripe.position = Vector3(side * hull_size.x * 0.13, top + 0.02 * k, front + hull_size.z * 0.2)
+		stripe.rotation.y = side * deg_to_rad(-38.0)
+		add_child(stripe)
+		own.append(stripe)
 
 
 func _build_components() -> void:

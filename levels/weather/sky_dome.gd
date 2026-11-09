@@ -35,9 +35,9 @@ func _ready() -> void:
 	stars.custom_aabb = AABB(Vector3.ONE * -DISTANCE, Vector3.ONE * DISTANCE * 2.0)
 	add_child(stars)
 
-	# Luna creciente: dos discos, el oscuro tapa parte del claro.
+	# Luna llena sobre el atardecer.
 	var moon_dir := Vector3(-0.55, 0.32, -0.77).normalized()
-	for part in [[Color(0.85, 1.0, 0.8), 28.0, Vector3.ZERO], [Color(0.0, 0.0, 0.0), 27.0, Vector3(9.0, 4.0, 0.0)]]:
+	for part in [[Color(1.0, 0.97, 0.85), 16.0, Vector3.ZERO]]:
 		var disc := MeshInstance3D.new()
 		var mesh := SphereMesh.new()
 		mesh.radius = part[1]

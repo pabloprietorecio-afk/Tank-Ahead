@@ -6,7 +6,7 @@
 script = ExtResource("1")
 display_name = "ACORAZADO"
 tier = 3
-color = Color(0.92, 0.95, 1, 1)
+color = Color(0.85, 0.87, 0.9, 1)
 body_scale = 1.7
 score_value = 600
 description = "Fortaleza móvil. Tres cañones y blindaje enorme."

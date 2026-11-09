@@ -9,6 +9,8 @@ var _player: Tank
 var _hud: Hud
 var _director: MatchDirector
 var _env: Environment
+var _sky_material: ProceduralSkyMaterial
+var _sun: DirectionalLight3D
 var _obstacle_rects: Array[Rect2] = []
 var _rng := RandomNumberGenerator.new()
 
@@ -26,15 +28,32 @@ func _ready() -> void:
 
 
 func _build_environment() -> void:
+	_sky_material = ProceduralSkyMaterial.new()
+	var sky := Sky.new()
+	sky.sky_material = _sky_material
 	_env = Environment.new()
-	_env.background_mode = Environment.BG_COLOR
-	_env.background_color = Color.BLACK
+	_env.background_mode = Environment.BG_SKY
+	_env.sky = sky
+	_env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	_env.ambient_light_energy = 0.6
+	_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	_env.fog_enabled = true
-	_env.fog_light_color = Color(0.0, 0.06, 0.02)
-	_env.fog_density = 0.008
+	_env.fog_sky_affect = 0.6
+	_env.glow_enabled = true
+	_env.glow_intensity = 0.6
+	_env.glow_bloom = 0.05
 	var world_env := WorldEnvironment.new()
 	world_env.environment = _env
 	add_child(world_env)
+
+	_sun = DirectionalLight3D.new()
+	_sun.name = "Sun"
+	_sun.rotation = Vector3(deg_to_rad(-28.0), deg_to_rad(-35.0), 0.0)
+	_sun.shadow_enabled = GameSettings.shadows
+	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	_sun.directional_shadow_max_distance = 120.0
+	_sun.shadow_blur = 1.5
+	add_child(_sun)
 
 
 func _build_ground() -> void:
@@ -65,7 +84,7 @@ func _add_wall(center: Vector3, size: Vector3) -> void:
 	box.size = size
 	shape.shape = box
 	body.add_child(shape)
-	body.add_child(VectorMaterials.make_box(size, Color(0.2, 1.0, 0.33, 0.6), 4, 3.0))
+	body.add_child(VectorMaterials.make_box(size, Color(0.45, 0.45, 0.43), 4, 3.0))
 	add_child(body)
 
 
@@ -199,7 +218,7 @@ func _build_weather() -> void:
 	var weather := Weather.new()
 	weather.name = "Weather"
 	add_child(weather)
-	weather.setup(_env, _player, VectorMaterials.ground())
+	weather.setup(_env, _sky_material, _sun, _player, VectorMaterials.ground())
 
 
 func _build_ui() -> void:

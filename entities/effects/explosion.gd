@@ -11,6 +11,7 @@ var _color: Color = VectorMaterials.ORANGE
 var _time: float = 0.0
 var _flash: MeshInstance3D
 var _fragments: Array[MeshInstance3D] = []
+var _light: OmniLight3D
 var _velocities: Array[Vector3] = []
 
 
@@ -41,6 +42,13 @@ func _ready() -> void:
 	_flash.scale = Vector3.ONE * 0.5 * _strength
 	add_child(_flash)
 
+	if _strength >= 0.8:
+		_light = OmniLight3D.new()
+		_light.light_color = Color(1.0, 0.6, 0.25)
+		_light.omni_range = 14.0 * _strength
+		_light.light_energy = 4.0
+		_light.position.y = 1.0
+		add_child(_light)
 	var count: int = 4 if _strength < 0.8 else 10
 	var box := BoxMesh.new()
 	box.size = Vector3(0.35, 0.35, 0.35) * maxf(_strength, 0.5)
@@ -60,6 +68,8 @@ func _process(delta: float) -> void:
 		return
 	var flash_t: float = clampf(_time / FLASH_TIME, 0.0, 1.0)
 	_flash.visible = _time < FLASH_TIME
+	if _light != null:
+		_light.light_energy = 4.0 * maxf(1.0 - _time / 0.5, 0.0)
 	_flash.scale = Vector3.ONE * lerpf(0.5, 3.5, flash_t) * _strength
 	var shrink: float = 1.0 - _time / DURATION
 	for i in _fragments.size():

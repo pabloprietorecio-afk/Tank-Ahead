@@ -15,15 +15,17 @@ static func ground() -> ShaderMaterial:
 	return _ground
 
 
-## Material de aristas para una caja de tamaño `size`. Cada tamaño necesita su instancia.
+## Material iluminado y texturizado para una caja de tamaño `size`.
 static func box_edges(size: Vector3, color: Color = GREEN, pattern: int = 0, pattern_scale: float = 2.0) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
-	mat.shader = load("res://shaders/vector_edges.gdshader")
+	mat.shader = load("res://shaders/surface_box.gdshader")
 	mat.set_shader_parameter("half_size", size * 0.5)
-	mat.set_shader_parameter("line_color", color)
-	mat.set_shader_parameter("fill_color", Color(color.r, color.g, color.b) * 0.04)
+	mat.set_shader_parameter("base_color", color)
 	mat.set_shader_parameter("pattern", pattern)
 	mat.set_shader_parameter("pattern_scale", pattern_scale)
+	if pattern == 3 or pattern == 4:
+		mat.set_shader_parameter("metallic_value", 0.35)
+		mat.set_shader_parameter("roughness_value", 0.6)
 	return mat
 
 
@@ -54,13 +56,13 @@ static var _edge_cache: Dictionary = {}
 static var _textured: Dictionary = {}
 
 
-## Relleno texturizado (ver textured_fill.gdshader para los patrones).
-static func textured(fill: Color, detail: Color, pattern: int, scale: float = 1.0) -> ShaderMaterial:
-	var key: String = "%s|%s|%d|%.2f" % [fill.to_html(), detail.to_html(), pattern, scale]
+## Superficie iluminada y texturizada (ver textured_fill.gdshader para los patrones).
+static func textured(base: Color, detail: Color, pattern: int, scale: float = 1.0) -> ShaderMaterial:
+	var key: String = "%s|%s|%d|%.2f" % [base.to_html(), detail.to_html(), pattern, scale]
 	if not _textured.has(key):
 		var mat := ShaderMaterial.new()
 		mat.shader = load("res://shaders/textured_fill.gdshader")
-		mat.set_shader_parameter("fill_color", fill)
+		mat.set_shader_parameter("base_color", base)
 		mat.set_shader_parameter("detail_color", detail)
 		mat.set_shader_parameter("pattern", pattern)
 		mat.set_shader_parameter("scale", scale)
@@ -68,15 +70,11 @@ static func textured(fill: Color, detail: Color, pattern: int, scale: float = 1.
 	return _textured[key]
 
 
-static func make_outlined(mesh: Mesh, color: Color = GREEN, fill: Color = Color(0.0, 0.03, 0.01), pattern: int = 0, pattern_scale: float = 1.0) -> MeshInstance3D:
+## Malla iluminada con textura: `color` es el color base y `detail` el de las vetas/grietas.
+static func make_outlined(mesh: Mesh, color: Color = GREEN, detail: Color = Color(0.1, 0.1, 0.1), pattern: int = 0, pattern_scale: float = 1.0) -> MeshInstance3D:
 	var body := MeshInstance3D.new()
 	body.mesh = mesh
-	body.material_override = textured(fill, color, pattern, pattern_scale) if pattern > 0 else flat(fill)
-	var lines := MeshInstance3D.new()
-	lines.mesh = _feature_edges(mesh)
-	lines.material_override = flat(color)
-	lines.scale = Vector3.ONE * 1.01
-	body.add_child(lines)
+	body.material_override = textured(color, detail, pattern, pattern_scale)
 	return body
 
 
