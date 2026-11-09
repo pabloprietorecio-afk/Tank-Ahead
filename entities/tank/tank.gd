@@ -60,7 +60,41 @@ func _physics_process(_delta: float) -> void:
 		weapon.fire()
 
 
+## Distancia hacia atrás y altura de las vistas exteriores [cerca, lejos].
+const CHASE_OFFSETS: Array[Vector2] = [Vector2(10.0, 4.5), Vector2(20.0, 9.0)]
+
+var _view: int = 0
+
+
+## 0 = cabina, 1 = detrás cerca, 2 = detrás lejos.
+func set_view(view: int) -> void:
+	if camera == null:
+		return
+	_view = view
+	if view == 0:
+		camera.top_level = false
+		camera.transform = Transform3D(Basis(), Vector3(0.0, 0.3, 0.2))
+		camera.cull_mask = 1
+	else:
+		camera.top_level = true
+		camera.cull_mask = 1 | VISUAL_LAYER_OWN
+		camera.global_transform = _chase_transform()
+
+
+func _chase_transform() -> Transform3D:
+	var offset: Vector2 = CHASE_OFFSETS[clampi(_view - 1, 0, 1)]
+	var yaw: float = turret_controller.world_yaw
+	var forward := Vector3(-sin(yaw), 0.0, -cos(yaw))
+	var eye: Vector3 = global_position - forward * offset.x + Vector3.UP * offset.y
+	var look: Vector3 = global_position + forward * 25.0 + Vector3.UP * 1.5
+	return Transform3D(Basis.looking_at(look - eye, Vector3.UP), eye)
+
+
 func _process(delta: float) -> void:
+	if camera != null and _view > 0:
+		var target: Transform3D = _chase_transform()
+		var t: float = 1.0 - exp(-8.0 * delta)
+		camera.global_transform = Transform3D(camera.global_basis.slerp(target.basis, t).orthonormalized(), camera.global_position.lerp(target.origin, t))
 	if camera != null:
 		_shake = maxf(_shake - delta * 2.5, 0.0)
 		camera.h_offset = randf_range(-1.0, 1.0) * _shake * 0.25

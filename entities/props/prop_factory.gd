@@ -38,11 +38,11 @@ static func tree(height: float) -> Destructible:
 		_crown.rings = 0
 	var prop := _base(20.0, WOOD, 1.2)
 	prop.crushable = true
-	var trunk := VectorMaterials.make_outlined(_trunk, WOOD)
+	var trunk := VectorMaterials.make_outlined(_trunk, WOOD, Color(0.03, 0.02, 0.0), 1, 0.5)
 	trunk.scale = Vector3(1.0, height * 0.35, 1.0)
 	trunk.position.y = height * 0.175
 	prop.add_child(trunk)
-	var crown := VectorMaterials.make_outlined(_crown, TREE_GREEN)
+	var crown := VectorMaterials.make_outlined(_crown, TREE_GREEN, Color(0.0, 0.04, 0.01), 2, 0.4)
 	crown.scale = Vector3(height * 0.3, height * 0.75, height * 0.3)
 	crown.position.y = height * 0.35 + height * 0.375
 	prop.add_child(crown)
@@ -59,16 +59,16 @@ static func house(size: Vector3) -> Destructible:
 	var walls := VectorMaterials.make_box(size, HOUSE_CYAN, 2, 1.2)
 	walls.position.y = size.y * 0.5
 	prop.add_child(walls)
-	var roof := VectorMaterials.make_outlined(_roof, HOUSE_CYAN)
+	var roof := VectorMaterials.make_outlined(_roof, HOUSE_CYAN, Color(0.0, 0.03, 0.04), 5, 0.6)
 	roof.scale = Vector3(size.x * 1.1, size.y * 0.6, size.z * 1.05)
 	roof.position.y = size.y + size.y * 0.3
 	prop.add_child(roof)
 	# Puerta y ventanas como pequeñas cajas en la fachada.
-	var door := VectorMaterials.make_box(Vector3(1.2, 2.0, 0.1), HOUSE_CYAN)
+	var door := VectorMaterials.make_box(Vector3(1.2, 2.0, 0.1), HOUSE_CYAN, 4, 0.5)
 	door.position = Vector3(0.0, 1.0, size.z * 0.5 + 0.06)
 	prop.add_child(door)
 	for side in [-1.0, 1.0]:
-		var window := VectorMaterials.make_box(Vector3(1.0, 0.9, 0.1), HOUSE_CYAN)
+		var window := VectorMaterials.make_box(Vector3(1.0, 0.9, 0.1), HOUSE_CYAN, 4, 0.45)
 		window.position = Vector3(side * size.x * 0.3, size.y * 0.62, size.z * 0.5 + 0.06)
 		prop.add_child(window)
 	return prop
@@ -79,11 +79,11 @@ static func fence(length: float) -> Destructible:
 	prop.crushable = true
 	var posts: int = int(length / 2.0) + 1
 	for i in posts:
-		var post := VectorMaterials.make_box(Vector3(0.15, 1.3, 0.15), FENCE_COLOR)
+		var post := VectorMaterials.make_box(Vector3(0.15, 1.3, 0.15), FENCE_COLOR, 3, 0.3)
 		post.position = Vector3(-length * 0.5 + i * length / float(posts - 1), 0.65, 0.0)
 		prop.add_child(post)
 	for y in [0.45, 1.0]:
-		var rail := VectorMaterials.make_box(Vector3(length, 0.1, 0.08), FENCE_COLOR)
+		var rail := VectorMaterials.make_box(Vector3(length, 0.1, 0.08), FENCE_COLOR, 3, 0.6)
 		rail.position.y = y
 		prop.add_child(rail)
 	_add_box_shape(prop, Vector3(length, 1.3, 0.3), Vector3(0.0, 0.65, 0.0))
@@ -97,7 +97,7 @@ static func rock(radius: float) -> Destructible:
 	mesh.height = radius * randf_range(1.0, 1.5)
 	mesh.radial_segments = 6
 	mesh.rings = 3
-	var visual := VectorMaterials.make_outlined(mesh, ROCK_COLOR.lightened(0.2))
+	var visual := VectorMaterials.make_outlined(mesh, ROCK_COLOR.lightened(0.2), Color(0.02, 0.03, 0.02), 3, 0.5)
 	visual.position.y = mesh.height * 0.35
 	visual.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
 	prop.add_child(visual)
@@ -118,7 +118,7 @@ static func barrel() -> Destructible:
 	mesh.height = 1.3
 	mesh.radial_segments = 8
 	mesh.rings = 2
-	var visual := VectorMaterials.make_outlined(mesh, Color(1.0, 0.25, 0.15), Color(0.08, 0.0, 0.0))
+	var visual := VectorMaterials.make_outlined(mesh, Color(1.0, 0.25, 0.15), Color(0.08, 0.0, 0.0), 4, 0.5)
 	visual.position.y = 0.65
 	prop.add_child(visual)
 	_add_box_shape(prop, Vector3(1.0, 1.3, 1.0), Vector3(0.0, 0.65, 0.0))
@@ -142,7 +142,7 @@ static func ruin(length: float) -> Destructible:
 static func lamp_post() -> Destructible:
 	var prop := _base(10.0, Color(0.7, 0.7, 0.6), 0.6)
 	prop.crushable = true
-	var pole := VectorMaterials.make_box(Vector3(0.18, 5.0, 0.18), Color(0.8, 0.9, 0.6))
+	var pole := VectorMaterials.make_box(Vector3(0.18, 5.0, 0.18), Color(0.8, 0.9, 0.6), 4, 0.8)
 	pole.position.y = 2.5
 	prop.add_child(pole)
 	var arm := VectorMaterials.make_box(Vector3(1.4, 0.12, 0.12), Color(0.8, 0.9, 0.6))
@@ -168,7 +168,7 @@ static func mountain(radius: float, height: float, segments: int = 7) -> Destruc
 	mesh.height = height
 	mesh.radial_segments = segments
 	mesh.rings = 1
-	var visual := VectorMaterials.make_outlined(mesh, Color(0.25, 0.8, 0.35))
+	var visual := VectorMaterials.make_outlined(mesh, Color(0.25, 0.8, 0.35), Color(0.0, 0.025, 0.01), 3, 3.0)
 	visual.position.y = height * 0.5
 	prop.add_child(visual)
 	var shape := CollisionShape3D.new()

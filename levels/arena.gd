@@ -65,7 +65,7 @@ func _add_wall(center: Vector3, size: Vector3) -> void:
 	box.size = size
 	shape.shape = box
 	body.add_child(shape)
-	body.add_child(VectorMaterials.make_box(size, Color(0.2, 1.0, 0.33, 0.6)))
+	body.add_child(VectorMaterials.make_box(size, Color(0.2, 1.0, 0.33, 0.6), 4, 3.0))
 	add_child(body)
 
 

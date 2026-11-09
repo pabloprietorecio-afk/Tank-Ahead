@@ -51,10 +51,27 @@ static var _edge_cache: Dictionary = {}
 
 
 ## Malla sólida oscura con sus aristas marcadas (cualquier forma: árboles, montañas, tejados).
-static func make_outlined(mesh: Mesh, color: Color = GREEN, fill: Color = Color(0.0, 0.03, 0.01)) -> MeshInstance3D:
+static var _textured: Dictionary = {}
+
+
+## Relleno texturizado (ver textured_fill.gdshader para los patrones).
+static func textured(fill: Color, detail: Color, pattern: int, scale: float = 1.0) -> ShaderMaterial:
+	var key: String = "%s|%s|%d|%.2f" % [fill.to_html(), detail.to_html(), pattern, scale]
+	if not _textured.has(key):
+		var mat := ShaderMaterial.new()
+		mat.shader = load("res://shaders/textured_fill.gdshader")
+		mat.set_shader_parameter("fill_color", fill)
+		mat.set_shader_parameter("detail_color", detail)
+		mat.set_shader_parameter("pattern", pattern)
+		mat.set_shader_parameter("scale", scale)
+		_textured[key] = mat
+	return _textured[key]
+
+
+static func make_outlined(mesh: Mesh, color: Color = GREEN, fill: Color = Color(0.0, 0.03, 0.01), pattern: int = 0, pattern_scale: float = 1.0) -> MeshInstance3D:
 	var body := MeshInstance3D.new()
 	body.mesh = mesh
-	body.material_override = flat(fill)
+	body.material_override = textured(fill, color, pattern, pattern_scale) if pattern > 0 else flat(fill)
 	var lines := MeshInstance3D.new()
 	lines.mesh = _feature_edges(mesh)
 	lines.material_override = flat(color)

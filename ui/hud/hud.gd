@@ -54,6 +54,22 @@ func _build_settings() -> void:
 	gear.pressed.connect(func() -> void: _panel.visible = not _panel.visible)
 	add_child(gear)
 
+	var view_button := Button.new()
+	view_button.text = "CÁM"
+	view_button.add_theme_font_size_override("font_size", 22)
+	view_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	view_button.offset_left = -180.0
+	view_button.offset_right = -100.0
+	view_button.offset_top = 14.0
+	view_button.offset_bottom = 90.0
+	view_button.pressed.connect(func() -> void:
+		GameSettings.camera_view = (GameSettings.camera_view + 1) % 3
+		GameSettings.save()
+		tank.set_view(GameSettings.camera_view)
+		_show_message(["VISTA CABINA", "VISTA TRASERA", "VISTA TRASERA LEJANA"][GameSettings.camera_view], false))
+	add_child(view_button)
+	tank.set_view.call_deferred(GameSettings.camera_view)
+
 	_panel = PanelContainer.new()
 	_panel.visible = false
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
@@ -88,7 +104,7 @@ func _build_settings() -> void:
 			input_source.release_lock())
 	add_child(_release)
 	if touch != null:
-		touch.exclusions.append_array([gear, _panel, _release])
+		touch.exclusions.append_array([gear, view_button, _panel, _release])
 
 
 func _make_toggle(text: String, value: bool, on_change: Callable) -> CheckButton:
@@ -142,13 +158,14 @@ func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var green: Color = VectorMaterials.GREEN
 	var reticle: Color = VectorMaterials.ORANGE if (tank != null and tank.aim_lock != null) else green
+	var aim: Vector2 = _aim_screen_point(center)
 	if _flash > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.1, 0.05, _flash * 0.5), true)
 	# Retícula
-	draw_line(center + Vector2(-18.0, 0.0), center + Vector2(-6.0, 0.0), reticle, 2.0)
-	draw_line(center + Vector2(6.0, 0.0), center + Vector2(18.0, 0.0), reticle, 2.0)
-	draw_line(center + Vector2(0.0, -18.0), center + Vector2(0.0, -6.0), reticle, 2.0)
-	draw_line(center + Vector2(0.0, 6.0), center + Vector2(0.0, 18.0), reticle, 2.0)
+	draw_line(aim + Vector2(-18.0, 0.0), aim + Vector2(-6.0, 0.0), reticle, 2.0)
+	draw_line(aim + Vector2(6.0, 0.0), aim + Vector2(18.0, 0.0), reticle, 2.0)
+	draw_line(aim + Vector2(0.0, -18.0), aim + Vector2(0.0, -6.0), reticle, 2.0)
+	draw_line(aim + Vector2(0.0, 6.0), aim + Vector2(0.0, 18.0), reticle, 2.0)
 	if tank == null:
 		return
 	if tank.aim_lock != null and is_instance_valid(tank.aim_lock):
@@ -194,3 +211,17 @@ func _draw_tank_icon(origin: Vector2, green: Color) -> void:
 	draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 16, VectorMaterials.ORANGE, 2.0)
 	draw_line(Vector2.ZERO, Vector2(0.0, -34.0), VectorMaterials.ORANGE, 4.0)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## En las vistas exteriores la retícula marca dónde caerá el disparo (proyectado en pantalla).
+func _aim_screen_point(center: Vector2) -> Vector2:
+	if tank == null or GameSettings.camera_view == 0 or tank.camera == null:
+		return center
+	var from: Vector3 = tank.muzzle.global_position
+	var to: Vector3 = from - tank.muzzle.global_transform.basis.z * 250.0
+	var query := PhysicsRayQueryParameters3D.create(from, to, 1)
+	var hit: Dictionary = tank.get_world_3d().direct_space_state.intersect_ray(query)
+	var point: Vector3 = hit["position"] if not hit.is_empty() else to
+	if tank.camera.is_position_behind(point):
+		return center
+	return tank.camera.unproject_position(point)

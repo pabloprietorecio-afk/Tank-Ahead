@@ -12,6 +12,9 @@ static var auto_recenter: bool = false
 ## Movimiento fácil: el cañón se apunta libre en el mundo y el casco se alinea con él al avanzar.
 static var easy_drive: bool = true
 
+## Vista: 0 = cabina, 1 = detrás cerca, 2 = detrás lejos.
+static var camera_view: int = 0
+
 static var _loaded: bool = false
 
 
@@ -22,6 +25,7 @@ static func ensure_loaded() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) == OK:
 		aim_assist = cfg.get_value("controls", "aim_assist", aim_assist)
+		camera_view = cfg.get_value("controls", "camera_view", camera_view)
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 
@@ -29,6 +33,7 @@ static func ensure_loaded() -> void:
 static func save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("controls", "aim_assist", aim_assist)
+	cfg.set_value("controls", "camera_view", camera_view)
 	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.save(PATH)
