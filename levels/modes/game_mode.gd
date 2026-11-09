@@ -83,6 +83,22 @@ func enemy_air_raid() -> void:
 	message.emit("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA", true)
 
 
+## Premio por derribar un avión o helicóptero: blindaje, misil o bombardeo.
+func air_reward(_where: Vector3) -> void:
+	score += 200
+	get_tree().call_group(&"voice", &"say", "shot_down", VoiceManager.Priority.HIGH)
+	match randi() % 3:
+		0:
+			player.health.heal(40.0)
+			message.emit("¡DERRIBADO! +40 DE BLINDAJE", false)
+		1:
+			missiles += 1
+			message.emit("¡DERRIBADO! +1 MISIL", false)
+		_:
+			strikes += 1
+			message.emit("¡DERRIBADO! +1 BOMBARDEO", false)
+
+
 ## Misil guiado: va a por el objetivo fijado (si lo hay).
 func fire_missile() -> bool:
 	if missiles <= 0 or is_over or player.is_destroyed:

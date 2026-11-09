@@ -19,6 +19,14 @@ var _seen_types: Dictionary = {}
 var _intro_queue: Array[TankStats] = []
 var _intro_timer: float = 0.0
 
+## Fase aérea entre oleadas (desde la oleada 3): cámara lenta y zoom durante 20 s.
+const AIR_PHASE_TIME: float = 20.0
+const SLOW_MOTION: float = 0.45
+var air_phase: bool = false
+var _air_end_msec: int = 0
+var _air_spawn_timer: float = 0.0
+var _air_spawned: int = 0
+
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
@@ -26,15 +34,20 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 
 
 func raids_active() -> bool:
-	return wave >= 2
+	return wave >= 2 and not air_phase
 
 
-func status_text() -> String:
+func _status_normal() -> String:
 	return "PUNTOS %d   OLEADA %d   ENEMIGOS %d" % [score, wave, alive]
 
 
 func _process(delta: float) -> void:
 	if is_over:
+		if air_phase:
+			_end_air_phase()
+		return
+	if air_phase:
+		_update_air_phase(delta)
 		return
 	if not _wave_active:
 		_pause -= delta
@@ -120,11 +133,62 @@ func _end_wave() -> void:
 	GameSession.record_wave(wave)
 	message.emit("OLEADA %d SUPERADA  +%d  BLINDAJE REPARADO" % [wave, WAVE_BONUS], false)
 	get_tree().call_group(&"voice", &"say", "wave_clear", VoiceManager.Priority.HIGH)
+	if wave >= 3:
+		_start_air_phase()
 	# Cada 4 oleadas se repone el arsenal especial.
 	if wave % 4 == 0:
 		missiles = 2
 		strikes = 1
 		message.emit("ARSENAL REPUESTO: 2 MISILES Y 1 BOMBARDEO", false)
+
+
+func _start_air_phase() -> void:
+	air_phase = true
+	_air_end_msec = Time.get_ticks_msec() + int(AIR_PHASE_TIME * 1000.0)
+	_air_spawn_timer = 0.0
+	_air_spawned = 0
+	Engine.time_scale = SLOW_MOTION
+	player.set_air_mode(true)
+	message.emit("¡ATAQUE AÉREO! DERRIBA AVIONES, HELICÓPTEROS Y DIRIGIBLES", true)
+	get_tree().call_group(&"voice", &"say", "air_phase", VoiceManager.Priority.CRITICAL)
+
+
+func _update_air_phase(delta: float) -> void:
+	# El tiempo de la fase se mide en segundos reales (la cámara lenta no la alarga).
+	if Time.get_ticks_msec() >= _air_end_msec:
+		_end_air_phase()
+		return
+	_air_spawn_timer -= delta
+	if _air_spawn_timer <= 0.0 and _air_spawned < 4 + wave / 2:
+		_air_spawn_timer = 1.6
+		_air_spawned += 1
+		var kind: int = AirTarget.Kind.PLANE
+		if _air_spawned % 3 == 0:
+			kind = AirTarget.Kind.HELICOPTER
+		elif _air_spawned == 2:
+			kind = AirTarget.Kind.AIRSHIP
+		AirTarget.spawn(world, kind, player.global_position)
+
+
+func air_seconds_left() -> float:
+	return maxf((_air_end_msec - Time.get_ticks_msec()) / 1000.0, 0.0)
+
+
+func _end_air_phase() -> void:
+	air_phase = false
+	Engine.time_scale = 1.0
+	player.set_air_mode(false)
+	for node in get_tree().get_nodes_in_group(&"air_targets"):
+		(node as AirTarget).leave()
+	if not is_over:
+		message.emit("CIELO DESPEJADO — PREPÁRATE", false)
+		get_tree().call_group(&"voice", &"say", "air_clear", VoiceManager.Priority.NORMAL)
+
+
+func status_text() -> String:
+	if air_phase:
+		return "PUNTOS %d   OLEADA %d   ATAQUE AÉREO %d s" % [score, wave, ceili(air_seconds_left())]
+	return _status_normal()
 
 
 func _spawn(stats: TankStats) -> void:

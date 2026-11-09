@@ -101,6 +101,26 @@ var binoculars: bool = false
 var _view_before_zoom: int = 0
 
 
+const AIR_FOV: float = 45.0
+var air_mode: bool = false
+
+
+## Modo antiaéreo: vista de cabina con zoom moderado y el cañón puede alzarse 60º.
+func set_air_mode(on: bool) -> void:
+	if camera == null or on == air_mode:
+		return
+	air_mode = on
+	set_binoculars(false)
+	turret_controller.max_pitch = deg_to_rad(60.0) if on else TurretController.MAX_PITCH
+	if on:
+		_view_before_zoom = _view
+		set_view(0)
+		camera.fov = AIR_FOV
+	else:
+		camera.fov = NORMAL_FOV
+		set_view(_view_before_zoom)
+
+
 ## Prismáticos: vista desde la cabina con mucho aumento.
 func set_binoculars(on: bool) -> void:
 	if camera == null or on == binoculars:

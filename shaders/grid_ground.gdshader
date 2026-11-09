@@ -10,7 +10,7 @@ uniform vec3 dry_grass : source_color = vec3(0.36, 0.33, 0.18);
 uniform vec3 dirt : source_color = vec3(0.30, 0.23, 0.15);
 uniform vec3 gravel : source_color = vec3(0.38, 0.37, 0.34);
 uniform vec3 line_color : source_color = vec3(0.2, 1.0, 0.33);
-uniform float grid_strength = 0.06;
+uniform float grid_strength = 0.0;
 uniform float cell_size = 20.0;
 uniform float tint = 0.0;
 

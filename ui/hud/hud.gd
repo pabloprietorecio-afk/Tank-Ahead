@@ -15,6 +15,7 @@ var _end_panel: PanelContainer
 var _pause_panel: PanelContainer
 var _history_panel: PanelContainer
 var _history_text: Label
+var _history_viewer: TankViewer
 var _history_button: Button
 var _version: String = ""
 var _message_time: float = 0.0
@@ -123,6 +124,13 @@ func _button(text: String, font_size: int = 26) -> Button:
 
 func _centered_panel() -> PanelContainer:
 	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.07, 0.08, 0.07, 0.97)
+	style.border_color = Color(0.6, 0.5, 0.3)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(18)
+	panel.add_theme_stylebox_override("panel", style)
 	panel.visible = false
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -177,11 +185,16 @@ func _build_pause_and_history() -> void:
 	var hbox := VBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 14)
 	_history_panel.add_child(hbox)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 20)
+	hbox.add_child(row)
+	_history_viewer = TankViewer.new()
+	row.add_child(_history_viewer)
 	_history_text = Label.new()
 	_history_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_history_text.custom_minimum_size = Vector2(760.0, 0.0)
-	_history_text.add_theme_font_size_override("font_size", 24)
-	hbox.add_child(_history_text)
+	_history_text.custom_minimum_size = Vector2(560.0, 0.0)
+	_history_text.add_theme_font_size_override("font_size", 22)
+	row.add_child(_history_text)
 	var close := _button("CERRAR")
 	close.pressed.connect(func() -> void:
 		_history_panel.visible = false
@@ -237,6 +250,7 @@ func _set_paused(paused: bool) -> void:
 	if director.is_over:
 		return
 	get_tree().paused = paused
+	move_child(_pause_panel, -1)
 	_pause_panel.visible = paused
 
 
@@ -246,17 +260,21 @@ func _show_history() -> void:
 		return
 	var stats: TankStats = target.stats
 	_history_text.text = "%s\n\n%s\n\nBLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h" % [stats.display_name, stats.history if stats.history != "" else stats.description, roundi(stats.max_armor), roundi(stats.damage), roundi(stats.max_speed * 3.6)]
+	_history_viewer.show_tank(stats, target.paint)
+	move_child(_history_panel, -1)
 	_history_panel.visible = true
 	get_tree().paused = true
 
 
 func _restart() -> void:
 	get_tree().paused = false
+	Engine.time_scale = 1.0
 	get_tree().reload_current_scene()
 
 
 func _to_menu() -> void:
 	get_tree().paused = false
+	Engine.time_scale = 1.0
 	get_tree().change_scene_to_file("res://levels/main_menu.tscn")
 
 
@@ -288,7 +306,9 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 	menu.pressed.connect(_to_menu)
 	box.add_child(menu)
 	# Deja ver la escena unos instantes antes de mostrar el panel.
-	get_tree().create_timer(1.2).timeout.connect(func() -> void: _end_panel.visible = true)
+	get_tree().create_timer(1.2).timeout.connect(func() -> void:
+		move_child(_end_panel, -1)
+		_end_panel.visible = true)
 
 
 func _make_toggle(text: String, value: bool, on_change: Callable) -> CheckButton:

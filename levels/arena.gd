@@ -18,6 +18,7 @@ var _spawn_point: Vector2
 
 func _ready() -> void:
 	_rng.randomize()
+	Engine.time_scale = 1.0
 	GameSettings.ensure_loaded()
 	AudioSetup.ensure()
 	GameSession.resolve_front()
@@ -355,14 +356,6 @@ func _build_ui() -> void:
 	input_source.touch = touch
 	add_child(input_source)
 
-	_hud = Hud.new()
-	_hud.tank = _player
-	_hud.director = _mode
-	_hud.touch = touch
-	_hud.input_source = input_source
-	_hud.weather = get_node("Weather")
-	layer.add_child(_hud)
-
 	var radar := Radar.new()
 	radar.player = _player
 	radar.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -371,3 +364,12 @@ func _build_ui() -> void:
 	radar.offset_top = 104.0
 	radar.offset_bottom = 292.0
 	layer.add_child(radar)
+
+	_hud = Hud.new()
+	_hud.tank = _player
+	_hud.director = _mode
+	_hud.touch = touch
+	_hud.input_source = input_source
+	_hud.weather = get_node("Weather")
+	layer.add_child(_hud)
+

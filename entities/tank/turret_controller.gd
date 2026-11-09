@@ -7,6 +7,8 @@ extends Node
 const MAX_LEAD: float = 1.0
 const MIN_PITCH: float = deg_to_rad(-6.0)
 const MAX_PITCH: float = deg_to_rad(18.0)
+## Elevación máxima actual (sube en la fase antiaérea).
+var max_pitch: float = MAX_PITCH
 ## Suavizado: cuanto mayor, más rápido alcanza la torreta su objetivo.
 const SMOOTHING: float = 9.0
 
@@ -40,14 +42,14 @@ func add_aim(delta_yaw: float, delta_pitch: float) -> void:
 	hold_relative()
 	var lead: float = clampf(angle_difference(local_yaw, _target_local + delta_yaw), -MAX_LEAD, MAX_LEAD)
 	_target_local = wrapf(local_yaw + lead, -PI, PI)
-	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, MAX_PITCH)
+	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, max_pitch)
 
 
 ## Fija el rumbo de la torreta respecto al casco (modo clásico: ajuste fino alrededor de 0).
 func aim_local(yaw: float, delta_pitch: float = 0.0) -> void:
 	_world_mode = false
 	_target_local = wrapf(yaw, -PI, PI)
-	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, MAX_PITCH)
+	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, max_pitch)
 
 
 ## Deja de seguir un punto del mundo y mantiene la orientación actual respecto al casco.
@@ -63,14 +65,14 @@ func aim_at(point: Vector3) -> void:
 	_target_world = atan2(-to.x, -to.z)
 	_world_mode = true
 	var horizontal: float = Vector2(to.x, to.z).length()
-	_target_pitch = clampf(atan2(to.y, horizontal), MIN_PITCH, MAX_PITCH)
+	_target_pitch = clampf(atan2(to.y, horizontal), MIN_PITCH, max_pitch)
 
 
 ## Mantiene la torreta en un rumbo fijo del mundo (no gira con el casco) y ajusta la elevación.
 func aim_world_yaw(yaw: float, delta_pitch: float = 0.0) -> void:
 	_target_world = yaw
 	_world_mode = true
-	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, MAX_PITCH)
+	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, max_pitch)
 
 
 ## Apunta hacia un rumbo del mundo sin cambiar la elevación (para escanear).

@@ -62,6 +62,18 @@ func _physics_process(delta: float) -> void:
 		return
 	var from: Vector3 = global_position
 	var to: Vector3 = from + velocity * delta
+	# Espoleta de proximidad contra aviones (como la artillería antiaérea real).
+	if team == 0:
+		for node in get_tree().get_nodes_in_group(&"air_targets"):
+			var air := node as AirTarget
+			if air == null or air.is_destroyed:
+				continue
+			var closest: Vector3 = Geometry3D.get_closest_point_to_segment(air.global_position, from, to)
+			if closest.distance_to(air.global_position) <= AirTarget.PROXIMITY:
+				air.hurtbox.take_hit(damage, shooter, closest)
+				Explosion.spawn(self, closest, 0.8, Color(0.4, 0.4, 0.4))
+				_release()
+				return
 	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	for attempt in MAX_SKIPS:
 		var query := PhysicsRayQueryParameters3D.create(from, to, MASK_WORLD | MASK_HURTBOX)
