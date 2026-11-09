@@ -6,6 +6,7 @@ const SPEED: float = 70.0
 
 var direction: Vector3 = Vector3.FORWARD
 var _life: float = 9.0
+var _sound: FlybySound
 
 
 static func fly_over(host: Node, target: Vector3, color: Color, height: float = 55.0) -> Aircraft:
@@ -16,14 +17,10 @@ static func fly_over(host: Node, target: Vector3, color: Color, height: float = 
 	plane.global_position = target - dir * SPEED * 3.0 + Vector3.UP * height
 	plane.look_at(plane.global_position + dir, Vector3.UP)
 	plane._build(color)
-	var sound := AudioStreamPlayer3D.new()
-	sound.stream = Sfx.ENGINE_PLANE
-	sound.bus = AudioSetup.SFX
-	sound.unit_size = 40.0
-	sound.max_distance = 600.0
-	sound.volume_db = 6.0
-	plane.add_child(sound)
-	sound.play()
+	# Zumbido de varios motores que se acerca, pasa por encima y se aleja.
+	var sound := FlybySound.attach(plane, Sfx.PLANE_BOMBER, 9.0, 45.0, 700.0)
+	sound.source_velocity = dir * SPEED
+	plane._sound = sound
 	return plane
 
 
@@ -59,5 +56,7 @@ func _build(color: Color) -> void:
 func _process(delta: float) -> void:
 	global_position += direction * SPEED * delta
 	_life -= delta
+	if _sound != null and _life < 1.5:
+		_sound.fade_out()
 	if _life <= 0.0:
 		queue_free()

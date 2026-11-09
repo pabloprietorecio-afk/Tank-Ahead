@@ -53,6 +53,12 @@ var _materials: Array[Material] = []
 var _track_material: ShaderMaterial
 var _track_scroll: Vector2 = Vector2.ZERO
 var _last_yaw: float = 0.0
+## Sonido: motor (sube de vueltas al acelerar) y golpeteo de las orugas al moverse.
+var _engine_sound: AudioStreamPlayer3D
+var _tracks_sound: AudioStreamPlayer3D
+var _engine_pitch: float = 1.0
+var _engine_level: float = 0.0
+var _tracks_level: float = 0.0
 
 
 func _ready() -> void:
@@ -67,6 +73,7 @@ func _ready() -> void:
 	_build_body()
 	_build_components()
 	_build_effects()
+	_build_sound()
 	health.damaged.connect(_on_damaged)
 	health.died.connect(_on_died)
 
@@ -173,6 +180,7 @@ func _process(delta: float) -> void:
 		_exhaust.amount_ratio = 1.0 if moving else 0.4
 		_exhaust.emitting = not is_destroyed
 	_animate_tracks(delta)
+	_update_sound(delta)
 	if camera != null and _view > 0:
 		var target: Transform3D = _chase_transform()
 		var t: float = 1.0 - exp(-8.0 * delta)
@@ -198,6 +206,59 @@ func _animate_tracks(delta: float) -> void:
 	_track_scroll.x = fposmod(_track_scroll.x - (forward - turn * half_width) * delta / link, 1.0)
 	_track_scroll.y = fposmod(_track_scroll.y - (forward + turn * half_width) * delta / link, 1.0)
 	_track_material.set_shader_parameter("track_offset", _track_scroll)
+
+
+## Motor y orugas. El tanque propio suena más bajo y sin apagarse al alejar la cámara; los
+## demás se oyen según la distancia, así que se les oye llegar. Los pesados usan un motor más
+## grave y los blindados de ruedas uno más agudo y sin orugas.
+func _build_sound() -> void:
+	var heavy: bool = _scale_factor >= 1.2 or stats.tier >= 3
+	_engine_pitch = clampf(1.0 / sqrt(maxf(_scale_factor, 0.5)), 0.8, 1.2) * randf_range(0.96, 1.04)
+	if stats.wheels > 0:
+		_engine_pitch *= 1.2
+	var reach: float = 60.0 if is_player else 170.0
+	_engine_sound = Sfx.loop_player(Sfx.ENGINE_HEAVY if heavy else Sfx.ENGINE_TANK, 40.0 if is_player else 9.0, reach)
+	_engine_sound.position.y = 1.2 * _scale_factor
+	add_child(_engine_sound)
+	if stats.wheels == 0:
+		_tracks_sound = Sfx.loop_player(Sfx.TRACKS, 40.0 if is_player else 7.0, reach)
+		_tracks_sound.position.y = 0.4
+		_tracks_sound.volume_db = -60.0
+		add_child(_tracks_sound)
+	_update_sound(0.0)
+
+
+func _update_sound(delta: float) -> void:
+	if _engine_sound == null or is_destroyed:
+		return
+	var speed: float = clampf(velocity.length() / maxf(stats.max_speed, 1.0), 0.0, 1.0)
+	var turning: float = clampf(absf(drive_input.x), 0.0, 1.0)
+	# El motor sube de vueltas en cuanto se pisa el acelerador, antes de ganar velocidad.
+	var throttle: float = clampf(maxf(absf(drive_input.y), turning * 0.6), 0.0, 1.0)
+	_engine_level = move_toward(_engine_level, maxf(speed, throttle * 0.75), delta * 1.3)
+	_engine_sound.pitch_scale = _engine_pitch * (0.8 + 0.7 * _engine_level)
+	_engine_sound.volume_db = lerpf(-15.0, -8.0, _engine_level) if is_player else lerpf(-4.0, 3.0, _engine_level)
+	if _tracks_sound == null:
+		return
+	_tracks_level = move_toward(_tracks_level, maxf(speed, turning * 0.45), delta * 2.5)
+	var rolling: bool = _tracks_level > 0.04
+	if _tracks_sound.stream_paused == rolling:
+		_tracks_sound.stream_paused = not rolling
+	if rolling:
+		_tracks_sound.pitch_scale = 0.65 + 0.75 * _tracks_level
+		_tracks_sound.volume_db = lerpf(-22.0, -9.0, _tracks_level) if is_player else lerpf(-14.0, 0.0, _tracks_level)
+
+
+func _set_sound_running(running: bool) -> void:
+	for sound: AudioStreamPlayer3D in [_engine_sound, _tracks_sound]:
+		if sound == null:
+			continue
+		if running and not sound.playing:
+			sound.play(randf() * 1.5)
+		elif not running:
+			sound.stop()
+	_engine_level = 0.0
+	_tracks_level = 0.0
 
 
 func _build_effects() -> void:
@@ -269,6 +330,7 @@ func _on_died(source: Node) -> void:
 	drive_input = Vector2.ZERO
 	trigger_held = false
 	remove_from_group(&"tanks")
+	_set_sound_running(false)
 	hurtbox.set_deferred("monitorable", false)
 	hurtbox.collision_layer = 0
 	Explosion.spawn(self, global_position + Vector3.UP * 1.0, 1.0 * _scale_factor + 0.5)
@@ -289,6 +351,7 @@ func _on_died(source: Node) -> void:
 func revive(spawn: Transform3D) -> void:
 	health.revive()
 	is_destroyed = false
+	_set_sound_running(true)
 	add_to_group(&"tanks")
 	hurtbox.collision_layer = LAYER_HURTBOX
 	hurtbox.set_deferred("monitorable", true)

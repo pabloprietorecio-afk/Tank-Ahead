@@ -168,6 +168,8 @@ func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> 
 	brain.name = "AIBrain"
 	tank.add_child(brain)
 	brain.setup(tank)
+	# Los tanques de nuestro bando rodean los obstáculos y se desatascan solos.
+	brain.smart_nav = team == PLAYER_TEAM
 	tank.destroyed.connect(_on_tank_destroyed)
 	return tank
 

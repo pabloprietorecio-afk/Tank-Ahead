@@ -20,6 +20,7 @@ var _rotor: Node3D
 var _life: float = 40.0
 var _falling: bool = false
 var _wobble: float = randf() * TAU
+var _sound: FlybySound
 
 
 static func spawn(host: Node, aircraft_kind: Kind, center: Vector3) -> AirTarget:
@@ -64,13 +65,14 @@ func _ready() -> void:
 			_build_helicopter()
 		_:
 			_build_airship()
-	var engine := AudioStreamPlayer3D.new()
-	engine.stream = Sfx.ENGINE_PLANE
-	engine.bus = AudioSetup.SFX
-	engine.unit_size = 30.0
-	engine.max_distance = 400.0
-	add_child(engine)
-	engine.play()
+	match kind:
+		Kind.PLANE:
+			_sound = FlybySound.attach(self, Sfx.PLANE_FIGHTER, 6.0, 32.0, 450.0)
+		Kind.HELICOPTER:
+			_sound = FlybySound.attach(self, Sfx.HELICOPTER, 6.0, 28.0, 380.0)
+		_:
+			# Dirigible: motores lentos y graves.
+			_sound = FlybySound.attach(self, Sfx.PLANE_BOMBER, 2.0, 30.0, 350.0, 0.62)
 
 
 func _build_plane() -> void:
@@ -157,6 +159,11 @@ func _build_airship() -> void:
 
 func _process(delta: float) -> void:
 	_life -= delta
+	if _sound != null:
+		_sound.source_velocity = _velocity
+		if _falling:
+			# Al caer derribado, el motor se embala.
+			_sound.base_pitch = move_toward(_sound.base_pitch, 1.7, delta * 0.5)
 	if _rotor != null:
 		if kind != Kind.HELICOPTER:
 			_rotor.rotation.z += delta * 40.0

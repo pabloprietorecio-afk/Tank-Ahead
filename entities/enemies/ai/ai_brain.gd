@@ -20,9 +20,43 @@ var hunt: bool = true
 ## Distancia a la que se queda del objetivo al llegar (defensores: patrullan alrededor).
 var objective_radius: float = 6.0
 
+## Navegación con rodeo de obstáculos (la usan los tanques del bando del jugador): palpa el
+## terreno en abanico, toma el rumbo libre más cercano al destino, bordea el obstáculo siempre
+## por el mismo lado y, si aun así se queda clavado, da marcha atrás y prueba por el otro.
+var smart_nav: bool = false
+
+const NAV_INTERVAL: float = 0.12
+const NAV_REACH: float = 14.0
+## Desvíos que se prueban respecto al rumbo directo (radianes; positivo = izquierda).
+const NAV_ANGLES: Array[float] = [0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.65, -1.65, 2.2, -2.2]
+const NAV_SIDE_PENALTY: float = 1.5
+const STUCK_CHECK: float = 1.2
+const STUCK_DISTANCE: float = 0.7
+
 var _avoid_sign: float = 1.0
 var _avoid_timer: float = 0.0
 var _retarget_timer: float = 0.0
+var _nav_timer: float = 0.0
+var _nav_heading: Vector3 = Vector3.ZERO
+## Rumbo directo al destino real (sin contar rodeos).
+var _nav_goal_dir: Vector3 = Vector3.ZERO
+var _nav_blocked: bool = false
+var _nav_blocked_time: float = 0.0
+## Lado por el que está rodeando: +1 izquierda, -1 derecha, 0 ninguno.
+var _nav_side: float = 0.0
+var _nav_side_time: float = 0.0
+var _nav_driving: bool = false
+var _nav_aligned: bool = false
+var _stuck_time: float = 0.0
+var _stuck_origin: Vector3 = Vector3.ZERO
+var _stuck_count: int = 0
+var _stuck_calm: float = 0.0
+var _reverse_time: float = 0.0
+var _reverse_turn: float = 0.0
+var _detour: Vector3 = Vector3.INF
+var _detour_time: float = 0.0
+## Veces que ha tenido que desatascarse (para pruebas).
+var unstuck_total: int = 0
 
 
 func setup(tank_ref: Tank, initial_target: Tank = null) -> void:
@@ -50,6 +84,8 @@ func _physics_process(delta: float) -> void:
 		_choose_target()
 	perception.update(delta)
 	_avoid_timer = maxf(_avoid_timer - delta, 0.0)
+	if smart_nav:
+		_nav_tick(delta)
 
 
 func has_target() -> bool:
@@ -114,6 +150,9 @@ func drive_to(point: Vector3, speed: float = 1.0, arrive: float = 4.0) -> bool:
 	if dist <= arrive:
 		tank.drive_input = Vector2.ZERO
 		return true
+	if smart_nav:
+		_drive_smart(point, speed)
+		return false
 	var forward: Vector3 = -tank.global_transform.basis.z
 	var angle: float = forward.signed_angle_to(to, Vector3.UP)
 	var turn: float = clampf(-angle * 2.0, -1.0, 1.0)
@@ -165,6 +204,208 @@ func aim_with_error() -> void:
 	var error: float = dist * tan(deg_to_rad(stats.aim_error_deg))
 	point += Vector3(randf_range(-error, error), randf_range(-error, error) * 0.3, randf_range(-error, error))
 	tank.turret_controller.aim_at(point)
+
+
+## Relojes de la navegación y vigilancia de atascos. Se considera atascado si lleva un rato
+## queriendo avanzar, ya encarado a su rumbo, y apenas se ha movido del sitio.
+func _nav_tick(delta: float) -> void:
+	_nav_timer -= delta
+	_nav_side_time = maxf(_nav_side_time - delta, 0.0)
+	_detour_time = maxf(_detour_time - delta, 0.0)
+	if _nav_side_time <= 0.0 and not _nav_blocked:
+		_nav_side = 0.0
+	_stuck_calm += delta
+	if _stuck_calm > 8.0:
+		_stuck_count = 0
+	if _reverse_time > 0.0:
+		_reverse_time -= delta
+		_stuck_time = 0.0
+		_stuck_origin = tank.global_position
+		return
+	if not _nav_driving:
+		_stuck_time = 0.0
+		_stuck_origin = tank.global_position
+		return
+	_nav_driving = false
+	# Tiempo acumulado con el paso cortado (se descuenta despacio cuando lo tiene libre, para
+	# notar también cuando entra y sale una y otra vez del mismo callejón).
+	if _nav_blocked:
+		_nav_blocked_time += delta
+		if _nav_blocked_time > 9.0:
+			_nav_blocked_time = 0.0
+			_pick_lateral_detour()
+	else:
+		_nav_blocked_time = maxf(_nav_blocked_time - delta * 0.5, 0.0)
+	if not _nav_aligned:
+		# Girando sobre sí mismo hacia su rumbo: es normal que no se desplace.
+		_stuck_time = 0.0
+		_stuck_origin = tank.global_position
+		return
+	_stuck_time += delta
+	if _stuck_time < STUCK_CHECK:
+		return
+	var moved: float = tank.global_position.distance_to(_stuck_origin)
+	_stuck_time = 0.0
+	_stuck_origin = tank.global_position
+	if moved < STUCK_DISTANCE:
+		_unstick()
+
+
+## Atascado: marcha atrás girando el morro hacia el lado del rodeo. Cada segundo intento
+## cambia de lado, y al tercero busca un punto despejado por el que dar un rodeo amplio.
+func _unstick() -> void:
+	unstuck_total += 1
+	_stuck_count += 1
+	_stuck_calm = 0.0
+	if _nav_side == 0.0:
+		_nav_side = 1.0 if randf() < 0.5 else -1.0
+	elif _stuck_count % 2 == 0:
+		_nav_side = -_nav_side
+	_nav_side_time = 5.0
+	_reverse_time = randf_range(1.0, 1.6)
+	# drive_input.x > 0 gira a la derecha; para llevar el morro a la izquierda (+1), negativo.
+	_reverse_turn = -_nav_side * 0.9
+	_nav_timer = 0.0
+	if _stuck_count >= 3:
+		_stuck_count = 0
+		_pick_detour()
+
+
+## Rodeo amplio: el rumbo con más espacio libre alrededor, y hacia allí durante unos segundos.
+func _pick_detour() -> void:
+	var best_free: float = 0.0
+	var best_dir: Vector3 = Vector3.ZERO
+	var start: float = randf() * TAU
+	for i in 10:
+		var dir: Vector3 = Vector3.FORWARD.rotated(Vector3.UP, start + TAU * i / 10.0)
+		var free: float = _clearance(dir, 30.0)
+		if free > best_free:
+			best_free = free
+			best_dir = dir
+	if best_free < 8.0:
+		return
+	_detour = tank.global_position + best_dir * (best_free - 4.0)
+	_detour.x = clampf(_detour.x, -ARENA_LIMIT, ARENA_LIMIT)
+	_detour.z = clampf(_detour.z, -ARENA_LIMIT, ARENA_LIMIT)
+	_detour_time = 7.0
+
+
+## Lleva demasiado rato sin encontrar paso (un callejón, un recinto): se aparta de lado un buen
+## trecho, por donde haya más sitio, para volver a intentarlo desde otro ángulo.
+func _pick_lateral_detour() -> void:
+	if _nav_goal_dir == Vector3.ZERO:
+		return
+	var best_free: float = 0.0
+	var best_dir: Vector3 = Vector3.ZERO
+	for offset: float in [PI * 0.5, -PI * 0.5, 2.1, -2.1, 1.0, -1.0]:
+		var dir: Vector3 = _nav_goal_dir.rotated(Vector3.UP, offset)
+		var free: float = _clearance(dir, 38.0)
+		# Mejor por el lado por el que ya venía rodeando.
+		var value: float = free + (5.0 if signf(offset) == _nav_side else 0.0)
+		if value > best_free:
+			best_free = value
+			best_dir = dir
+			_nav_side = signf(offset)
+	if best_free < 12.0:
+		_pick_detour()
+		return
+	_detour = tank.global_position + best_dir * (minf(best_free, 38.0) - 4.0)
+	_detour.x = clampf(_detour.x, -ARENA_LIMIT, ARENA_LIMIT)
+	_detour.z = clampf(_detour.z, -ARENA_LIMIT, ARENA_LIMIT)
+	_detour_time = 10.0
+	_nav_side_time = 6.0
+	_nav_timer = 0.0
+
+
+func _drive_smart(point: Vector3, speed: float) -> void:
+	_nav_driving = true
+	if _reverse_time > 0.0:
+		tank.drive_input = Vector2(_reverse_turn, -0.8)
+		return
+	var goal: Vector3 = point
+	var direct: Vector3 = point - tank.global_position
+	direct.y = 0.0
+	if direct.length() > 0.5:
+		_nav_goal_dir = direct.normalized()
+	if _detour != Vector3.INF:
+		var left: Vector3 = _detour - tank.global_position
+		left.y = 0.0
+		if _detour_time <= 0.0 or left.length() < 5.0:
+			_detour = Vector3.INF
+		else:
+			goal = _detour
+	var to: Vector3 = goal - tank.global_position
+	to.y = 0.0
+	var dist: float = to.length()
+	if dist < 0.5:
+		tank.drive_input = Vector2.ZERO
+		return
+	if _nav_timer <= 0.0 or _nav_heading == Vector3.ZERO:
+		_nav_timer = NAV_INTERVAL
+		_choose_heading(to / dist, dist)
+	var forward: Vector3 = -tank.global_transform.basis.z
+	var angle: float = forward.signed_angle_to(_nav_heading, Vector3.UP)
+	var turn: float = clampf(-angle * 2.5, -1.0, 1.0)
+	var advance: float = speed * clampf(1.0 - absf(angle) / 0.9, 0.0, 1.0)
+	if _nav_blocked and absf(angle) > 0.45:
+		# Rodeando: primero gira en el sitio hacia el hueco y luego avanza.
+		advance = 0.0
+	_nav_aligned = absf(angle) < 0.5
+	tank.drive_input = Vector2(turn, advance)
+
+
+## Elige el rumbo: el directo si está libre; si no, el desvío más pequeño con paso, con
+## preferencia por seguir rodeando por el mismo lado (para no dudar entre los dos).
+func _choose_heading(goal_dir: Vector3, dist: float) -> void:
+	var reach: float = NAV_REACH * maxf(tank.stats.body_scale, 1.0)
+	var need: float = minf(reach, dist)
+	if _clearance(goal_dir, need) >= need - 0.3:
+		_nav_heading = goal_dir
+		_nav_blocked = false
+		return
+	_nav_blocked = true
+	var open: float = minf(reach, 10.0)
+	var best_score: float = -INF
+	var best_angle: float = 0.0
+	for offset in NAV_ANGLES:
+		var free: float = _clearance(goal_dir.rotated(Vector3.UP, offset), reach)
+		var score: float = minf(free / open, 1.0) * 3.0 - absf(offset) * 0.8
+		if free < 3.0:
+			score -= 3.0
+		if _nav_side != 0.0 and signf(offset) != _nav_side:
+			score -= NAV_SIDE_PENALTY
+		if score > best_score:
+			best_score = score
+			best_angle = offset
+	_nav_heading = goal_dir.rotated(Vector3.UP, best_angle)
+	_nav_side = signf(best_angle)
+	_nav_side_time = 2.5
+
+
+## Metros libres en una dirección: tres rayos a media altura (centro y los dos bordes del
+## casco) y uno más alto. No cuentan lo que el tanque puede aplastar ni su propio objetivo.
+func _clearance(dir: Vector3, reach: float) -> float:
+	var k: float = tank.stats.body_scale
+	var half_width: float = (TankModel.HULL_SIZE.x * tank.stats.hull_proportions.x + 1.0) * k * 0.5 + 0.35
+	var right: Vector3 = dir.cross(Vector3.UP) * half_width
+	var base: Vector3 = tank.global_position
+	var space: PhysicsDirectSpaceState3D = tank.get_world_3d().direct_space_state
+	var exclude: Array[RID] = [tank.get_rid()]
+	if has_target():
+		exclude.append(target.get_rid())
+	var free: float = reach
+	for probe: Vector2 in [Vector2(0.0, 0.5), Vector2(1.0, 0.5), Vector2(-1.0, 0.5), Vector2(0.0, 1.2)]:
+		var from: Vector3 = base + right * probe.x + Vector3.UP * probe.y * k
+		var query := PhysicsRayQueryParameters3D.create(from, from + dir * reach, WORLD_MASK | Tank.LAYER_TANK)
+		query.exclude = exclude
+		var hit: Dictionary = space.intersect_ray(query)
+		if hit.is_empty():
+			continue
+		var collider: Object = hit["collider"]
+		if collider is Destructible and (collider as Destructible).crushable:
+			continue
+		free = minf(free, from.distance_to(hit["position"]))
+	return free
 
 
 func _avoidance() -> float:

@@ -36,6 +36,14 @@ class Runner extends Node:
 				await _arena(front)
 		if only == "" or only.contains("menu"):
 			await _menu()
+		if only.contains("story"):
+			_campaign()
+			await _story(Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 6)
+			await _story(Fronts.Faction.AXIS, Fronts.Id.KURSK, 6)
+			await _story(Fronts.Faction.ALLIES, Fronts.Id.AFRICA, 5)
+			await _story(Fronts.Faction.AXIS, Fronts.Id.AFRICA, 7)
+		if only.contains("nav"):
+			await _nav()
 		print("SHOTS DONE")
 		get_tree().quit()
 
@@ -45,6 +53,8 @@ class Runner extends Node:
 
 	func _snap(shot: String) -> void:
 		await _frames(3)
+		if DisplayServer.get_name() == "headless":
+			return
 		await RenderingServer.frame_post_draw
 		var image: Image = get_viewport().get_texture().get_image()
 		image.save_jpg(_dir.path_join(shot + ".jpg"), 0.88)
@@ -244,3 +254,125 @@ class Runner extends Node:
 		await _frames(3)
 		await get_tree().create_timer(2.0).timeout
 		await _snap("menu")
+
+	## Datos de la campaña: todas las listas completas y con sus campos.
+	func _campaign() -> void:
+		var total: int = 0
+		for faction in 2:
+			for choice in 4:
+				var list: Array[Dictionary] = Campaign.missions(faction, choice)
+				var expected: int = Campaign.PER_CAMPAIGN * (3 if choice == GameSession.FRONT_MIXED else 1)
+				if list.size() != expected:
+					push_error("Campaña %d/%d: %d misiones, se esperaban %d" % [faction, choice, list.size(), expected])
+				for mission in list:
+					total += 1
+					for key in ["title", "type", "briefing", "front"]:
+						if not mission.has(key):
+							push_error("Misión sin «%s»: %s" % [key, mission])
+					if not mission["type"] in ["assault", "destroy", "sabotage", "defend", "boss", "liberate", "breakthrough"]:
+						push_error("Tipo de misión desconocido: %s" % mission["type"])
+		print("CAMPAIGN OK ", total)
+
+	## Arranca una misión de la campaña y la deja correr unos segundos.
+	func _story(faction: int, front: int, index: int) -> void:
+		GameSession.mode = GameSession.Mode.STORY
+		GameSession.faction = faction
+		GameSession.front_choice = front
+		GameSession.mission_index = index
+		GameSettings.ensure_loaded()
+		get_tree().change_scene_to_file("res://levels/arena.tscn")
+		await _frames(3)
+		await get_tree().create_timer(6.0).timeout
+		var mode: GameMode = get_tree().current_scene.get_node("GameMode")
+		var allies: int = 0
+		var enemies: int = 0
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team == GameMode.PLAYER_TEAM:
+				allies += 1
+			else:
+				enemies += 1
+		print("STORY ", GameSession.current_mission()["title"], " | ", mode.status_text(), " | ", mode.objective_lines(), " | bando propio ", allies, " enemigos ", enemies)
+		await _snap("story_%d_%d_%d" % [faction, front, index])
+
+	## Prueba de navegación (sin gráficos): tanques que deben llegar al otro lado de un muro
+	## largo, de un recinto en U y de un grupo de bloques. Compara la navegación con rodeo
+	## (la de los aliados) con la antigua.
+	func _nav() -> void:
+		var old_scene: Node = get_tree().current_scene
+		if old_scene != null:
+			old_scene.queue_free()
+		await _frames(2)
+		var stage := Node3D.new()
+		stage.name = "NavStage"
+		get_tree().root.add_child(stage)
+		var floor_body := StaticBody3D.new()
+		floor_body.collision_layer = 1
+		var floor_shape := CollisionShape3D.new()
+		var floor_box := BoxShape3D.new()
+		floor_box.size = Vector3(1200.0, 2.0, 1200.0)
+		floor_shape.shape = floor_box
+		floor_shape.position.y = -1.0
+		floor_body.add_child(floor_shape)
+		stage.add_child(floor_body)
+		GameSession.mode = GameSession.Mode.SURVIVAL
+		GameSession.front = Fronts.Id.NORMANDY
+		GameSession.faction = Fronts.Faction.ALLIES
+		var mode := GameMode.new()
+		mode.set_physics_process(false)
+		stage.add_child(mode)
+		mode.world = stage
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 7
+		var cases: Array[String] = ["muro", "recinto en U", "bloques"]
+		var runs: Array[Dictionary] = []
+		for c in cases.size():
+			for smart in [true, false]:
+				var origin := Vector3(c * 130.0 - 130.0, 0.0, 0.0 if smart else 220.0)
+				match c:
+					0:
+						_wall(stage, origin, Vector3(44.0, 3.0, 2.0))
+					1:
+						_wall(stage, origin + Vector3(0.0, 0.0, -6.0), Vector3(26.0, 3.0, 2.0))
+						_wall(stage, origin + Vector3(-12.0, 0.0, 4.0), Vector3(2.0, 3.0, 18.0))
+						_wall(stage, origin + Vector3(12.0, 0.0, 4.0), Vector3(2.0, 3.0, 18.0))
+					_:
+						rng.seed = 7
+						for i in 14:
+							_wall(stage, origin + Vector3(rng.randf_range(-16.0, 16.0), 0.0, rng.randf_range(-18.0, 18.0)), Vector3(4.0, 3.0, 4.0))
+				for stats_id: String in ["m4_sherman", "churchill"]:
+					var start: Vector3 = origin + Vector3(-4.0 if stats_id == "m4_sherman" else 5.0, 0.0, 34.0)
+					var tank: Tank = mode.spawn_tank(Fronts.tank(stats_id), GameMode.PLAYER_TEAM, Vector2(start.x, start.z), 0.0)
+					var brain: AIBrain = tank.get_node("AIBrain")
+					brain.smart_nav = smart
+					brain.hunt = false
+					brain.objective = origin + Vector3(0.0, 0.0, -34.0)
+					brain.objective_radius = 2.0
+					runs.append({"case": cases[c], "smart": smart, "tank": tank, "brain": brain, "id": stats_id, "best": INF, "time": -1.0})
+		Engine.time_scale = 4.0
+		var clock: float = 0.0
+		while clock < 60.0:
+			await get_tree().physics_frame
+			clock += get_physics_process_delta_time()
+			for run in runs:
+				var tank: Tank = run["tank"]
+				var brain: AIBrain = run["brain"]
+				var gap: Vector3 = brain.objective - tank.global_position
+				gap.y = 0.0
+				run["best"] = minf(run["best"], gap.length())
+				if run["time"] < 0.0 and gap.length() <= 8.0:
+					run["time"] = clock
+		Engine.time_scale = 1.0
+		var failures: int = 0
+		for run in runs:
+			var ok: bool = run["time"] >= 0.0
+			if run["smart"] and not ok:
+				failures += 1
+			print("NAV %-13s %-10s %s  %s  mínima distancia %.1f m  desatascos %d" % [run["case"], run["id"], "CON RODEO" if run["smart"] else "ANTIGUA  ", ("llega en %.1f s" % run["time"]) if ok else "NO LLEGA", run["best"], run["brain"].unstuck_total])
+		print("NAV RESULT fallos de la navegación con rodeo: ", failures)
+		stage.queue_free()
+		await _frames(2)
+
+	func _wall(stage: Node3D, pos: Vector3, size: Vector3) -> void:
+		var block := PropFactory.block(size)
+		block.position = pos
+		stage.add_child(block)

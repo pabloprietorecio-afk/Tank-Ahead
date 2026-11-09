@@ -3,7 +3,8 @@ extends GameMode
 ## Modo historia: una misión de la campaña. Si destruyen al jugador, la misión fracasa.
 ## assault: destruir una fuerza enemiga · destroy: volar depósitos · sabotage: destruir un
 ## complejo (aeródromo, puerto, central, fábrica, cuartel general) · defend: resistir en la
-## posición · boss: abatir al comandante · liberate: derribar las alambradas de un campo.
+## posición · boss: abatir al comandante · liberate: derribar las alambradas de un campo ·
+## breakthrough: cruzar las líneas enemigas hasta la salida, en el extremo norte del mapa.
 
 const ZONE_RADIUS: float = 22.0
 const TARGET_CENTER := Vector3(0.0, 0.0, -110.0)
@@ -27,6 +28,10 @@ var _penalty_cooldown: float = 0.0
 ## Objetivos secundarios repartidos lejos del complejo principal (alargan la misión).
 var _outposts: Array[Vector2] = []
 const MAX_ALIVE: int = 6
+## Ruptura: salida al norte y líneas de defensa que hay que cruzar por el camino.
+const EXIT_POINT := Vector3(0.0, 0.0, -165.0)
+const EXIT_RADIUS: float = 14.0
+const DEFENCE_LINES: Array[Vector2] = [Vector2(-55.0, 75.0), Vector2(60.0, 55.0), Vector2(0.0, -10.0), Vector2(-75.0, -70.0), Vector2(70.0, -85.0)]
 
 
 func _init() -> void:
@@ -50,6 +55,8 @@ func reserved_zones() -> Array[Rect2]:
 			_depot_points = [Vector2(-140.0, -130.0), Vector2(0.0, -160.0), Vector2(140.0, -120.0), Vector2(-160.0, 20.0), Vector2(160.0, 40.0)]
 			for p in _depot_points:
 				zones.append(Rect2(p - Vector2(15.0, 15.0), Vector2(30.0, 30.0)))
+		"breakthrough":
+			zones.append(Rect2(Vector2(EXIT_POINT.x, EXIT_POINT.z) - Vector2.ONE * (EXIT_RADIUS + 8.0), Vector2.ONE * (EXIT_RADIUS + 8.0) * 2.0))
 		"sabotage", "liberate":
 			zones.append(Rect2(Vector2(TARGET_CENTER.x, TARGET_CENTER.z) - Vector2(55.0, 50.0), Vector2(110.0, 100.0)))
 			# Tres puestos secundarios en otras zonas del mapa.
@@ -97,6 +104,11 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		"defend":
 			time_left = mission["time"]
 			_build_zone()
+		"breakthrough":
+			_build_exit()
+			for point in DEFENCE_LINES:
+				_guards(point, 2)
+			_guards(Vector2(EXIT_POINT.x, EXIT_POINT.z), 2)
 		"boss":
 			var heaviest: TankStats = roster(ENEMY_TEAM)[0]
 			for stats in roster(ENEMY_TEAM):
@@ -155,6 +167,8 @@ func _objective_line() -> String:
 			return "DERRIBA LAS ALAMBRADAS. NO DISPARES A LOS BARRACONES"
 		"defend":
 			return "RESISTE EN LA POSICIÓN %d s" % int(mission["time"])
+		"breakthrough":
+			return "CRUZA LAS LÍNEAS ENEMIGAS HASTA LA SALIDA (ROMBO AZUL EN EL RADAR)"
 		_:
 			return "DESTRUYE AL COMANDANTE (ROMBO VIOLETA EN EL RADAR)"
 
@@ -167,6 +181,8 @@ func status_text() -> String:
 			return "%s   OBJETIVOS %d / %d" % [mission["title"], _objectives.size() - remaining, _objectives.size()]
 		"defend":
 			return "%s   RESISTE %d s" % [mission["title"], ceili(time_left)]
+		"breakthrough":
+			return "%s   SALIDA A %d m" % [mission["title"], roundi(_exit_distance())]
 		_:
 			return "%s   COMANDANTE %d%%" % [mission["title"], roundi(_commander.health.fraction() * 100.0) if is_instance_valid(_commander) else 0]
 
@@ -177,6 +193,8 @@ func objective_lines() -> Array[String]:
 	for i in _objectives.size():
 		var done: bool = not is_instance_valid(_objectives[i]) or _objectives[i].is_destroyed
 		lines.append("%s %s" % ["✔" if done else "▢", _objective_names[i]])
+	if kind == "breakthrough":
+		lines.append("%s ALCANZAR LA SALIDA (NORTE)" % ("✔" if is_over and _exit_distance() <= EXIT_RADIUS else "▢"))
 	if kind == "boss":
 		lines.append("%s %s" % ["▢" if is_instance_valid(_commander) and not _commander.is_destroyed else "✔", "COMANDANTE"])
 	return lines
@@ -212,6 +230,16 @@ func _process(delta: float) -> void:
 				get_tree().call_group(&"voice", &"say", "reinforcements", VoiceManager.Priority.NORMAL)
 				_spawn_enemy(edge_point())
 				_spawn_enemy(edge_point())
+		"breakthrough":
+			if _exit_distance() <= EXIT_RADIUS:
+				_win("LÍNEAS ENEMIGAS ATRAVESADAS")
+				return
+			_reinforce_timer -= delta
+			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 6:
+				_reinforce_timer = 35.0
+				# Perseguidores que entran por los límites del mapa.
+				get_tree().call_group(&"voice", &"say", "reinforcements", VoiceManager.Priority.NORMAL)
+				_spawn_enemy(edge_point())
 		"defend":
 			time_left -= delta
 			if time_left <= 0.0:
@@ -238,6 +266,28 @@ func _spawn_enemy(point: Vector2) -> Tank:
 	if is_instance_valid(player):
 		yaw = yaw_towards(point, Vector2(player.global_position.x, player.global_position.z))
 	return spawn_tank(options.pick_random(), ENEMY_TEAM, point, yaw)
+
+
+## Distancia del jugador a la salida (misiones de ruptura).
+func _exit_distance() -> float:
+	if not is_instance_valid(player):
+		return INF
+	return Vector2(player.global_position.x - EXIT_POINT.x, player.global_position.z - EXIT_POINT.z).length()
+
+
+## Salida de las misiones de ruptura: un círculo de postes azules y un rombo en el radar.
+func _build_exit() -> void:
+	for i in 16:
+		var angle: float = TAU * i / 16.0
+		var post := VectorMaterials.make_box(Vector3(0.3, 2.2, 0.3), Color(0.3, 0.9, 1.0), 0, 1.0)
+		post.position = EXIT_POINT + Vector3(cos(angle) * EXIT_RADIUS, 1.1, sin(angle) * EXIT_RADIUS)
+		world.add_child(post)
+	var marker := Node3D.new()
+	marker.add_to_group(&"radar_marks")
+	marker.set_meta("radar_color", Color(0.3, 0.9, 1.0))
+	marker.set_meta("radar_shape", "diamond")
+	world.add_child(marker)
+	marker.position = EXIT_POINT
 
 
 func _build_zone() -> void:

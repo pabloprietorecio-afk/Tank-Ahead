@@ -33,6 +33,13 @@ jobs:
       - name: Importar recursos
         run: godot --headless --import 2>&1 | tee import.log || true
 
+      - name: Misiones nuevas y navegación de los aliados (sin gráficos)
+        env:
+          SHOTS_ONLY: "story nav"
+        run: |
+          timeout 600 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN)" logic.log || true
+
       - name: Capturas
         run: |
           timeout 1500 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --audio-driver Dummy --rendering-driver vulkan --resolution 1280x720 res://tools/verify/shots.tscn 2>&1 | tee run.log || true
@@ -40,16 +47,18 @@ jobs:
 
       - name: Errores de scripts y shaders
         run: |
-          grep -nE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error|Failed to load script|Invalid (call|access|assignment|operands|get index)|^ERROR" run.log import.log | head -150 > errors.txt || true
+          grep -nE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error|Failed to load script|Invalid (call|access|assignment|operands|get index)|^ERROR" run.log import.log logic.log | head -150 > errors.txt || true
           cat errors.txt
           grep -q "SHOTS DONE" run.log || { echo "Las capturas no terminaron"; tail -60 run.log; exit 1; }
+          grep -q "SHOTS DONE" logic.log || { echo "La prueba de misiones y navegación no terminó"; tail -60 logic.log; exit 1; }
+          grep -q "NAV RESULT fallos de la navegación con rodeo: 0" logic.log || { echo "Algún tanque con rodeo no llegó a su destino"; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
 
       - name: Publicar capturas en la rama verify-shots
         if: always()
         run: |
           mkdir -p shots_out
-          cp run.log import.log errors.txt shots_out/ 2>/dev/null || true
+          cp run.log import.log logic.log errors.txt shots_out/ 2>/dev/null || true
           cd shots_out
           git init -q
           git checkout -q -b verify-shots
