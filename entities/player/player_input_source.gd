@@ -3,7 +3,7 @@ extends Node
 ## Traduce los controles táctiles en órdenes para el tanque.
 ## Incluye la ayuda de apuntado opcional.
 
-const LOCK_CONE: float = deg_to_rad(4.0)
+const LOCK_CONE: float = deg_to_rad(6.0)
 const LOCK_RANGE: float = 140.0
 ## Arrastre (px en un frame) a partir del cual el jugador recupera el control de la torreta.
 const BREAK_LOCK_PIXELS: float = 5.0

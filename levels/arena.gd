@@ -123,6 +123,12 @@ func _build_ui() -> void:
 	_hud.director = _director
 	layer.add_child(_hud)
 
+	var radar := Radar.new()
+	radar.player = _player
+	radar.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	radar.position = Vector2(get_viewport().get_visible_rect().size.x - 204.0, 110.0)
+	layer.add_child(radar)
+
 	var input_source := PlayerInputSource.new()
 	input_source.tank = _player
 	input_source.touch = touch

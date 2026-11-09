@@ -58,7 +58,7 @@ func _build_settings() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	_panel.add_child(box)
-	box.add_child(_make_toggle("Ayuda de apuntado (fija al enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
+	box.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
 		GameSettings.save()))
 	add_child(_panel)
@@ -122,6 +122,8 @@ func _draw() -> void:
 	draw_line(center + Vector2(0.0, 6.0), center + Vector2(0.0, 18.0), reticle, 2.0)
 	if tank == null:
 		return
+	if tank.aim_lock != null:
+		draw_string(ThemeDB.fallback_font, center + Vector2(-52.0, -34.0), "BLANCO FIJADO", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16, VectorMaterials.ORANGE)
 	# Barra de recarga bajo la retícula
 	var ready_fraction: float = tank.weapon.ready_fraction()
 	var bar_color: Color = green if ready_fraction >= 1.0 else VectorMaterials.ORANGE
