@@ -42,6 +42,8 @@ var _scale_factor: float = 1.0
 var _shake: float = 0.0
 var _view: int = 0
 var _meshes: Array[MeshInstance3D] = []
+## Mejoras temporales activas: nombre → segundos restantes.
+var buffs: Dictionary = {}
 var _materials: Array[Material] = []
 
 
@@ -65,9 +67,27 @@ func is_hostile_to(other: Tank) -> bool:
 	return other != null and other.team != team
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if trigger_held and not is_destroyed:
 		weapon.fire()
+	if not buffs.is_empty():
+		for kind in buffs.keys():
+			buffs[kind] -= delta
+			if buffs[kind] <= 0.0:
+				buffs.erase(kind)
+		_apply_buffs()
+
+
+## Mejora temporal: "reload" (recarga x2), "damage" (daño x2), "shield" (daño recibido /2).
+func add_buff(kind: String, duration: float) -> void:
+	buffs[kind] = maxf(buffs.get(kind, 0.0), duration)
+	_apply_buffs()
+
+
+func _apply_buffs() -> void:
+	weapon.reload_mult = 0.5 if buffs.has("reload") else 1.0
+	weapon.damage_mult = 2.0 if buffs.has("damage") else 1.0
+	hurtbox.damage_multiplier = 0.5 if buffs.has("shield") else 1.0
 
 
 ## 0 = cabina, 1 = detrás cerca, 2 = detrás lejos.

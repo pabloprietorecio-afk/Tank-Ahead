@@ -38,6 +38,11 @@ func _ready() -> void:
 		return true
 	add_child(_mode)
 	_build_weather()
+	var spawner := PickupSpawner.new()
+	spawner.name = "PickupSpawner"
+	spawner.player = _player
+	spawner.is_free_point = _mode.is_free_point
+	add_child(spawner)
 	_build_ui()
 	var music := AudioSetup.music_player("res://assets/music/battle_theme.ogg")
 	music.volume_db = -6.0
@@ -203,6 +208,12 @@ func _build_scenery() -> void:
 			var barrel := PropFactory.barrel()
 			barrel.position = Vector3(pos.x + _rng.randf_range(-5.0, 5.0), 0.0, pos.y + _rng.randf_range(2.0, 5.0))
 			add_child(barrel)
+	# Edificios con premio (anillo verde en el radar).
+	var prizes: Array[Callable] = [StructureFactory.radio_mast, StructureFactory.water_tower, StructureFactory.flak_gun, StructureFactory.flak_gun, StructureFactory.command_tent]
+	for factory in prizes:
+		var pos := _free_spot(6.0)
+		if pos != Vector2.INF:
+			_place(factory.call(), pos, 6.0, _rng.randf() * TAU)
 	for i in (25 if desert else 12):
 		var radius: float = _rng.randf_range(0.8, 2.5)
 		var pos := _free_spot(radius)

@@ -13,6 +13,9 @@ signal fired
 ## Hurtboxes que el proyectil debe ignorar (las del propio tanque).
 var ignore_rids: Array[RID] = []
 var team: int = 0
+## Multiplicadores de las mejoras temporales (premios).
+var damage_mult: float = 1.0
+var reload_mult: float = 1.0
 
 var _cooldown: float = 0.0
 
@@ -27,7 +30,8 @@ func can_fire() -> bool:
 
 ## 0 = recién disparado, 1 = listo.
 func ready_fraction() -> float:
-	return 1.0 - clampf(_cooldown / reload_time, 0.0, 1.0) if reload_time > 0.0 else 1.0
+	var total: float = reload_time * reload_mult
+	return 1.0 - clampf(_cooldown / total, 0.0, 1.0) if total > 0.0 else 1.0
 
 
 func fire() -> bool:
@@ -36,7 +40,7 @@ func fire() -> bool:
 	var scene: Node = get_tree().current_scene
 	var shell: Projectile = Projectile.acquire(projectile_scene, scene if scene != null else get_tree().root)
 	var direction: Vector3 = -muzzle.global_transform.basis.z
-	shell.launch(muzzle.global_position, direction * projectile_speed, damage, get_parent(), ignore_rids, team)
-	_cooldown = reload_time
+	shell.launch(muzzle.global_position, direction * projectile_speed, damage * damage_mult, get_parent(), ignore_rids, team)
+	_cooldown = reload_time * reload_mult
 	fired.emit()
 	return true

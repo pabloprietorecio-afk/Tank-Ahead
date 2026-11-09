@@ -322,12 +322,8 @@ func _draw() -> void:
 	var bar_origin: Vector2 = center + Vector2(-30.0, 34.0)
 	draw_rect(Rect2(bar_origin, Vector2(60.0, 6.0)), Color(bar_color, 0.3), false, 1.0)
 	draw_rect(Rect2(bar_origin, Vector2(60.0 * ready_fraction, 6.0)), bar_color, true)
-	# Blindaje (abajo al centro)
-	var armor: float = tank.health.fraction()
-	var armor_color: Color = green if armor > 0.35 else VectorMaterials.ORANGE
-	var armor_origin := Vector2(center.x - 120.0, size.y - 46.0)
-	draw_rect(Rect2(armor_origin, Vector2(240.0, 14.0)), Color(armor_color, 0.3), false, 2.0)
-	draw_rect(Rect2(armor_origin, Vector2(240.0 * armor, 14.0)), armor_color, true)
+	_draw_armor(center)
+	_draw_objectives()
 	# Icono del tanque visto desde arriba (norte arriba): casco y cañón con su orientación real.
 	_draw_tank_icon(Vector2(center.x, 74.0), green)
 
@@ -365,3 +361,47 @@ func _aim_screen_point(center: Vector2) -> Vector2:
 	if tank.camera.is_position_behind(point):
 		return center
 	return tank.camera.unproject_position(point)
+
+
+## Barra de vida grande, con número y aviso cuando queda poco.
+func _draw_armor(center: Vector2) -> void:
+	var font: Font = ThemeDB.fallback_font
+	var armor: float = tank.health.fraction()
+	var color: Color = Color(0.25, 0.95, 0.35)
+	if armor < 0.6:
+		color = Color(1.0, 0.8, 0.2)
+	if armor < 0.3:
+		color = Color(1.0, 0.2, 0.15)
+		if fmod(Time.get_ticks_msec() / 1000.0, 0.6) < 0.3:
+			color = color.lightened(0.4)
+	var bar := Rect2(Vector2(center.x - 230.0, size.y - 64.0), Vector2(460.0, 26.0))
+	draw_rect(Rect2(bar.position - Vector2(4.0, 4.0), bar.size + Vector2(8.0, 8.0)), Color(0.0, 0.0, 0.0, 0.55), true)
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * armor, bar.size.y)), color, true)
+	draw_rect(bar, Color.WHITE, false, 2.0)
+	for i in range(1, 10):
+		var x: float = bar.position.x + bar.size.x * i / 10.0
+		draw_line(Vector2(x, bar.position.y), Vector2(x, bar.position.y + 6.0), Color(1.0, 1.0, 1.0, 0.4), 1.0)
+	var text: String = "BLINDAJE %d / %d" % [roundi(tank.health.current), roundi(tank.health.max_health)]
+	draw_string(font, Vector2(bar.position.x, bar.position.y + 20.0), text, HORIZONTAL_ALIGNMENT_CENTER, bar.size.x, 20, Color.BLACK)
+	# Mejoras activas encima de la barra.
+	var buff_names: Dictionary = {"reload": "RECARGA RÁPIDA", "damage": "CAÑÓN PESADO", "shield": "BLINDAJE EXTRA"}
+	var x0: float = bar.position.x
+	for kind in tank.buffs:
+		var label: String = "%s %d s" % [buff_names.get(kind, kind), ceili(tank.buffs[kind])]
+		draw_string(font, Vector2(x0, bar.position.y - 12.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(0.5, 0.9, 1.0))
+		x0 += font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18).x + 24.0
+
+
+## Lista de objetivos de la misión, bajo el texto de estado.
+func _draw_objectives() -> void:
+	var lines: Array[String] = director.objective_lines()
+	if lines.is_empty():
+		return
+	var font: Font = ThemeDB.fallback_font
+	var y: float = 100.0
+	draw_rect(Rect2(Vector2(18.0, y - 22.0), Vector2(330.0, 26.0 + lines.size() * 24.0)), Color(0.0, 0.0, 0.0, 0.45), true)
+	draw_string(font, Vector2(26.0, y), "OBJETIVOS", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(1.0, 0.85, 0.1))
+	for line in lines:
+		y += 24.0
+		var done: bool = line.begins_with("✔")
+		draw_string(font, Vector2(26.0, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color(0.5, 0.9, 0.5) if done else Color(1.0, 1.0, 1.0))

@@ -1,10 +1,14 @@
 class_name StoryMode
 extends GameMode
 ## Modo historia: una misión de la campaña. Si destruyen al jugador, la misión fracasa.
-## assault: destruir una fuerza enemiga · destroy: volar los depósitos · defend: resistir en
-## la posición hasta que acabe el tiempo · boss: abatir al comandante y su escolta.
+## assault: destruir una fuerza enemiga · destroy: volar depósitos · sabotage: destruir un
+## complejo (aeródromo, puerto, central, fábrica, cuartel general) · defend: resistir en la
+## posición · boss: abatir al comandante · liberate: derribar las alambradas de un campo.
 
 const ZONE_RADIUS: float = 22.0
+const TARGET_CENTER := Vector3(0.0, 0.0, -110.0)
+const PENALTY_ARMOR: float = 10.0
+const PENALTY_POINTS: int = 200
 
 var mission: Dictionary
 var kind: String
@@ -15,8 +19,11 @@ var alive: int = 0
 var _to_spawn: int = 0
 var _spawn_timer: float = 3.0
 var _commander: Tank
+var _objectives: Array[Destructible] = []
+var _objective_names: Array[String] = []
 var _depot_points: Array[Vector2] = []
 var _reinforce_timer: float = 40.0
+var _penalty_cooldown: float = 0.0
 
 
 func _init() -> void:
@@ -33,12 +40,15 @@ func player_spawn() -> Transform3D:
 
 func reserved_zones() -> Array[Rect2]:
 	var zones: Array[Rect2] = [Rect2(Vector2(-25.0, 125.0), Vector2(50.0, 50.0))]
-	if kind == "defend":
-		zones.append(Rect2(Vector2(-ZONE_RADIUS - 8.0, -ZONE_RADIUS - 8.0), Vector2.ONE * (ZONE_RADIUS + 8.0) * 2.0))
-	if kind == "destroy":
-		_depot_points = [Vector2(-110.0, -120.0), Vector2(0.0, -150.0), Vector2(110.0, -110.0)]
-		for p in _depot_points:
-			zones.append(Rect2(p - Vector2(15.0, 15.0), Vector2(30.0, 30.0)))
+	match kind:
+		"defend":
+			zones.append(Rect2(Vector2(-ZONE_RADIUS - 8.0, -ZONE_RADIUS - 8.0), Vector2.ONE * (ZONE_RADIUS + 8.0) * 2.0))
+		"destroy":
+			_depot_points = [Vector2(-110.0, -120.0), Vector2(0.0, -150.0), Vector2(110.0, -110.0)]
+			for p in _depot_points:
+				zones.append(Rect2(p - Vector2(15.0, 15.0), Vector2(30.0, 30.0)))
+		"sabotage", "liberate":
+			zones.append(Rect2(Vector2(TARGET_CENTER.x, TARGET_CENTER.z) - Vector2(55.0, 50.0), Vector2(110.0, 100.0)))
 	return zones
 
 
@@ -54,18 +64,23 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			remaining = mission["count"]
 			_to_spawn = remaining
 		"destroy":
-			for point in _depot_points:
+			for n in _depot_points.size():
+				var point: Vector2 = _depot_points[n]
 				var depot := PropFactory.supply_depot()
+				depot.remove_from_group(&"radar_marks")
+				StructureFactory._objective(depot, "DEPÓSITO %d" % (n + 1))
 				depot.position = Vector3(point.x, 0.0, point.y)
 				world.add_child(depot)
-				depot.destroyed.connect(_on_depot_destroyed)
-				for g in 2:
-					var guard: Tank = _spawn_enemy(free_point_near(point, 10.0, 20.0))
-					var brain: AIBrain = guard.get_node("AIBrain")
-					brain.hunt = false
-					brain.objective = Vector3(point.x, 0.0, point.y)
-					brain.objective_radius = 15.0
-			remaining = _depot_points.size()
+				_track(depot)
+				_guards(point, 2)
+		"sabotage":
+			for part in StructureFactory.build(mission["target"], world, TARGET_CENTER, 0.0):
+				_track(part)
+			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 4)
+		"liberate":
+			for part in StructureFactory.camp(world, TARGET_CENTER, mission["count"]):
+				_track(part)
+			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 3)
 		"defend":
 			time_left = mission["time"]
 			_build_zone()
@@ -81,7 +96,24 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			_commander = spawn_tank(boss_stats, ENEMY_TEAM, Vector2(randf_range(-60.0, 60.0), -150.0), 0.0)
 			_commander.add_to_group(&"radar_marks")
 			_commander.set_meta("radar_color", Color(0.85, 0.3, 1.0))
+			_commander.set_meta("radar_shape", "diamond")
 			_to_spawn = mission["count"]
+	remaining = _objectives.size() if not _objectives.is_empty() else remaining
+
+
+func _track(part: Destructible) -> void:
+	_objectives.append(part)
+	_objective_names.append(part.objective_name)
+	part.destroyed.connect(_on_objective_destroyed)
+
+
+func _guards(point: Vector2, count: int) -> void:
+	for g in count:
+		var guard: Tank = _spawn_enemy(free_point_near(point, 15.0, 45.0))
+		var brain: AIBrain = guard.get_node("AIBrain")
+		brain.hunt = false
+		brain.objective = Vector3(point.x, 0.0, point.y)
+		brain.objective_radius = 30.0
 
 
 func _objective_line() -> String:
@@ -89,46 +121,73 @@ func _objective_line() -> String:
 		"assault":
 			return "DESTRUYE %d BLINDADOS" % mission["count"]
 		"destroy":
-			return "DESTRUYE LOS DEPÓSITOS (MARCADOS EN EL RADAR)"
+			return "DESTRUYE LOS DEPÓSITOS (ROMBOS EN EL RADAR)"
+		"sabotage":
+			return "DESTRUYE EL %s (ROMBOS EN EL RADAR)" % StructureFactory.COMPLEX_NAMES[mission["target"]]
+		"liberate":
+			return "DERRIBA LAS ALAMBRADAS. NO DISPARES A LOS BARRACONES"
 		"defend":
 			return "RESISTE EN LA POSICIÓN %d s" % int(mission["time"])
 		_:
-			return "DESTRUYE AL COMANDANTE (MARCA VIOLETA EN EL RADAR)"
+			return "DESTRUYE AL COMANDANTE (ROMBO VIOLETA EN EL RADAR)"
 
 
 func status_text() -> String:
 	match kind:
 		"assault":
 			return "%s   ENEMIGOS RESTANTES %d" % [mission["title"], remaining]
-		"destroy":
-			return "%s   DEPÓSITOS %d" % [mission["title"], remaining]
+		"destroy", "sabotage", "liberate":
+			return "%s   OBJETIVOS %d / %d" % [mission["title"], _objectives.size() - remaining, _objectives.size()]
 		"defend":
 			return "%s   RESISTE %d s" % [mission["title"], ceili(time_left)]
 		_:
 			return "%s   COMANDANTE %d%%" % [mission["title"], roundi(_commander.health.fraction() * 100.0) if is_instance_valid(_commander) else 0]
 
 
+## Lista de objetivos para el HUD: ✔ cumplido, ▢ pendiente.
+func objective_lines() -> Array[String]:
+	var lines: Array[String] = []
+	for i in _objectives.size():
+		var done: bool = not is_instance_valid(_objectives[i]) or _objectives[i].is_destroyed
+		lines.append("%s %s" % ["✔" if done else "▢", _objective_names[i]])
+	if kind == "boss":
+		lines.append("%s %s" % ["▢" if is_instance_valid(_commander) and not _commander.is_destroyed else "✔", "COMANDANTE"])
+	return lines
+
+
+## Disparo contra zona protegida (barracones con prisioneros).
+func penalize(_source: Node) -> void:
+	if _penalty_cooldown > 0.0 or is_over:
+		return
+	_penalty_cooldown = 1.0
+	player.health.apply_damage(PENALTY_ARMOR, null)
+	score = maxi(score - PENALTY_POINTS, 0)
+	message.emit("¡ALTO EL FUEGO! HAY PRISIONEROS EN LOS BARRACONES  −%d" % PENALTY_POINTS, true)
+
+
 func _process(delta: float) -> void:
 	if is_over:
 		return
+	_penalty_cooldown = maxf(_penalty_cooldown - delta, 0.0)
 	_spawn_timer -= delta
 	match kind:
 		"assault", "boss":
 			if _to_spawn > 0 and alive < 3 and _spawn_timer <= 0.0:
 				_spawn_timer = 4.0
 				_to_spawn -= 1
-				var center := Vector2(0.0, -120.0) if kind == "assault" else Vector2(_commander.global_position.x, _commander.global_position.z) if is_instance_valid(_commander) else Vector2(0.0, -120.0)
+				var center := Vector2(0.0, -120.0)
+				if kind == "boss" and is_instance_valid(_commander):
+					center = Vector2(_commander.global_position.x, _commander.global_position.z)
 				_spawn_enemy(free_point_near(center, 10.0, 60.0))
-		"destroy":
+		"destroy", "sabotage", "liberate":
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < 4:
 				_reinforce_timer = 40.0
-				_spawn_enemy(free_point_near(Vector2(0.0, -150.0), 5.0, 40.0))
+				_spawn_enemy(free_point_near(Vector2(0.0, -160.0), 5.0, 40.0))
 		"defend":
 			time_left -= delta
 			if time_left <= 0.0:
-				finish(true, "¡MISIÓN CUMPLIDA!", "%s — POSICIÓN DEFENDIDA" % mission["title"])
-				_complete()
+				_win("POSICIÓN DEFENDIDA")
 				return
 			var elapsed: float = mission["time"] - time_left
 			if alive < 2 + int(elapsed / 50.0) and _spawn_timer <= 0.0:
@@ -145,7 +204,7 @@ func _spawn_enemy(point: Vector2) -> Tank:
 	var pool: Array[TankStats] = roster(ENEMY_TEAM)
 	var index: int = GameSession.mission_index
 	# Cuanto más avanzada la misión, más pesados pueden salir.
-	var max_tier: int = 1 if index < 2 else (2 if index < 6 else 3)
+	var max_tier: int = 1 if index < 2 else (2 if index < 7 else 3)
 	var options: Array[TankStats] = pool.filter(func(s: TankStats) -> bool: return s.tier <= max_tier)
 	alive += 1
 	return spawn_tank(options.pick_random(), ENEMY_TEAM, point, PI)
@@ -160,6 +219,7 @@ func _build_zone() -> void:
 	var marker := Node3D.new()
 	marker.add_to_group(&"radar_marks")
 	marker.set_meta("radar_color", Color(0.3, 0.9, 1.0))
+	marker.set_meta("radar_shape", "diamond")
 	world.add_child(marker)
 	for side in [-1.0, 1.0]:
 		var bags := PropFactory.sandbags(10.0)
@@ -168,13 +228,12 @@ func _build_zone() -> void:
 		world.add_child(bags)
 
 
-func _on_depot_destroyed(_prop: Destructible) -> void:
+func _on_objective_destroyed(prop: Destructible) -> void:
 	remaining -= 1
-	score += 500
-	message.emit("DEPÓSITO DESTRUIDO — QUEDAN %d" % remaining, true)
+	score += 300
+	message.emit("%s DESTRUIDO — QUEDAN %d" % [prop.objective_name, remaining], true)
 	if remaining <= 0:
-		finish(true, "¡MISIÓN CUMPLIDA!", "%s — DEPÓSITOS DESTRUIDOS" % mission["title"])
-		_complete()
+		_win("LAS ALAMBRADAS HAN CAÍDO. LOS PRISIONEROS SON LIBRES" if kind == "liberate" else "OBJETIVOS CUMPLIDOS")
 
 
 func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
@@ -184,16 +243,15 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 	alive -= 1
 	if tank == _commander:
 		_commander.remove_from_group(&"radar_marks")
-		finish(true, "¡MISIÓN CUMPLIDA!", "%s — COMANDANTE ABATIDO" % mission["title"])
-		_complete()
+		_win("COMANDANTE ABATIDO")
 	elif kind == "assault":
 		remaining -= 1
 		if remaining <= 0:
-			finish(true, "¡MISIÓN CUMPLIDA!", "%s — ZONA DESPEJADA" % mission["title"])
-			_complete()
+			_win("ZONA DESPEJADA")
 
 
-func _complete() -> void:
+func _win(detail: String) -> void:
+	finish(true, "¡MISIÓN CUMPLIDA!", "%s — %s" % [mission["title"], detail])
 	GameSession.mark_mission_completed(GameSession.mission_index)
 
 

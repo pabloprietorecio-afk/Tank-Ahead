@@ -47,7 +47,23 @@ func reserved_zones() -> Array[Rect2]:
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	player = player_tank
 	world = world_root
+	add_to_group(&"game_mode")
 	player.destroyed.connect(_on_player_destroyed)
+
+
+## Llamado por premios y edificios destruidos (vía grupo "game_mode").
+func add_score(points: int) -> void:
+	if not is_over:
+		score += points
+
+
+func announce(text: String, urgent: bool) -> void:
+	message.emit(text, urgent)
+
+
+## Líneas de objetivos para el HUD (vacío si el modo no tiene objetivos concretos).
+func objective_lines() -> Array[String]:
+	return []
 
 
 func status_text() -> String:

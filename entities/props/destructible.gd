@@ -16,8 +16,19 @@ signal destroyed(prop: Destructible)
 @export var blast_radius: float = 0.0
 @export var blast_damage: float = 0.0
 
+## Premio por destruirlo (puntos). 0 = sin premio.
+@export var prize_points: int = 0
+@export var prize_name: String = ""
+## Si es objetivo de misión: nombre que aparece en la lista de objetivos.
+var objective_name: String = ""
+## Zona protegida (barracones con prisioneros): dispararle penaliza al jugador.
+var protected_area: bool = false
+## Sonido especial al destruirlo (p. ej. la campana del campanario).
+var destroy_sound: AudioStream
+
 var health: float
 var is_destroyed: bool = false
+var _last_source: Node
 
 
 func _ready() -> void:
@@ -29,11 +40,14 @@ func _ready() -> void:
 func take_hit(amount: float, _source: Node = null, point: Vector3 = Vector3.ZERO) -> void:
 	if is_destroyed:
 		return
+	if protected_area and _source is Tank and (_source as Tank).is_player:
+		get_tree().call_group(&"game_mode", &"penalize", _source)
 	if point == Vector3.ZERO:
 		point = global_position + Vector3.UP
 	Explosion.spawn(self, point, 0.35, debris_color, true)
 	if indestructible:
 		return
+	_last_source = _source
 	health -= amount
 	if health <= 0.0:
 		_destroy()
@@ -44,6 +58,15 @@ func _destroy() -> void:
 	collision_layer = 0
 	Explosion.spawn(self, global_position + Vector3.UP * size_hint, clampf(size_hint * 0.6, 0.5, 2.0), debris_color)
 	destroyed.emit(self)
+	remove_from_group(&"radar_marks")
+	if destroy_sound != null:
+		Sfx.play_at(self, destroy_sound, global_position + Vector3.UP * size_hint, 8.0)
+	var by_player: bool = _last_source is Tank and (_last_source as Tank).is_player
+	if prize_points > 0 and by_player:
+		get_tree().call_group(&"game_mode", &"add_score", prize_points)
+		get_tree().call_group(&"game_mode", &"announce", "%s DESTRUIDO  +%d" % [prize_name, prize_points], false)
+		# Además suelta un premio en el sitio.
+		get_tree().call_group(&"pickup_spawner", &"spawn", Pickup.random_kind(), Vector2(global_position.x, global_position.z) + Vector2(4.0, 4.0))
 	if blast_radius > 0.0:
 		_blast.call_deferred()
 	# Se derrumba: se aplasta hacia el suelo y desaparece.

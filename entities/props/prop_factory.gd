@@ -283,35 +283,68 @@ static func izba(size: Vector3) -> Destructible:
 	return prop
 
 
-## Iglesia de pueblo normando con campanario.
-static func church() -> Destructible:
+## Iglesia de pueblo normando: nave y campanario (con premio: la campana) por separado.
+static func church() -> Node3D:
 	if _roof == null:
 		_roof = PrismMesh.new()
 		_roof.size = Vector3.ONE
-	var prop := _base(300.0, Color(0.6, 0.58, 0.52), 6.0)
+	var root := Node3D.new()
 	var stone := Color(0.55, 0.53, 0.48)
-	var nave := VectorMaterials.make_box(Vector3(8.0, 7.0, 16.0), stone, 2, 1.8)
-	nave.position.y = 3.5
-	prop.add_child(nave)
+	var nave := _base(250.0, Color(0.6, 0.58, 0.52), 6.0)
+	var walls := VectorMaterials.make_box(Vector3(8.0, 7.0, 16.0), stone, 2, 1.8)
+	walls.position.y = 3.5
+	nave.add_child(walls)
 	var roof := VectorMaterials.make_outlined(_roof, Color(0.25, 0.27, 0.3), Color(0.15, 0.16, 0.18), 5, 0.6)
 	roof.scale = Vector3(8.6, 4.0, 16.4)
 	roof.position.y = 9.0
-	prop.add_child(roof)
-	var tower := VectorMaterials.make_box(Vector3(4.0, 15.0, 4.0), stone, 2, 1.8)
-	tower.position = Vector3(0.0, 7.5, 9.5)
-	prop.add_child(tower)
+	nave.add_child(roof)
+	_add_box_shape(nave, Vector3(8.0, 9.0, 16.0), Vector3(0.0, 4.5, 0.0))
+	root.add_child(nave)
+
+	var tower := _base(160.0, Color(0.6, 0.58, 0.52), 5.0)
+	tower.prize_points = 400
+	tower.prize_name = "CAMPANARIO"
+	tower.destroy_sound = Sfx.BELL
+	tower.position = Vector3(0.0, 0.0, 9.5)
+	var shaft := VectorMaterials.make_box(Vector3(4.0, 12.0, 4.0), stone, 2, 1.8)
+	shaft.position.y = 6.0
+	tower.add_child(shaft)
+	# Campanario abierto con la campana de bronce.
+	for x in [-1.7, 1.7]:
+		for z in [-1.7, 1.7]:
+			var pillar := VectorMaterials.make_box(Vector3(0.6, 3.0, 0.6), stone, 2, 1.0)
+			pillar.position = Vector3(x, 13.5, z)
+			tower.add_child(pillar)
+	var bell_mesh := CylinderMesh.new()
+	bell_mesh.top_radius = 0.45
+	bell_mesh.bottom_radius = 0.9
+	bell_mesh.height = 1.3
+	bell_mesh.radial_segments = 12
+	var bell := VectorMaterials.make_outlined(bell_mesh, Color(0.7, 0.5, 0.2), Color(0.4, 0.3, 0.1), 4, 0.4)
+	bell.position.y = 13.4
+	tower.add_child(bell)
+	var cap := VectorMaterials.make_box(Vector3(4.2, 0.5, 4.2), stone, 0, 1.0)
+	cap.position.y = 15.2
+	tower.add_child(cap)
 	var spire_mesh := CylinderMesh.new()
 	spire_mesh.top_radius = 0.0
 	spire_mesh.bottom_radius = 2.8
-	spire_mesh.height = 7.0
+	spire_mesh.height = 6.0
 	spire_mesh.radial_segments = 4
 	var spire := VectorMaterials.make_outlined(spire_mesh, Color(0.25, 0.27, 0.3), Color(0.15, 0.16, 0.18), 5, 0.6)
-	spire.position = Vector3(0.0, 18.5, 9.5)
+	spire.position.y = 18.4
 	spire.rotation.y = PI * 0.25
-	prop.add_child(spire)
-	_add_box_shape(prop, Vector3(8.0, 9.0, 16.0), Vector3(0.0, 4.5, 0.0))
-	_add_box_shape(prop, Vector3(4.0, 15.0, 4.0), Vector3(0.0, 7.5, 9.5))
-	return prop
+	tower.add_child(spire)
+	_add_box_shape(tower, Vector3(4.0, 16.0, 4.0), Vector3(0.0, 8.0, 0.0))
+	_mark_prize(tower)
+	root.add_child(tower)
+	return root
+
+
+static func _mark_prize(prop: Destructible) -> void:
+	prop.add_to_group(&"radar_marks")
+	prop.set_meta("radar_color", Color(0.4, 1.0, 0.5))
+	prop.set_meta("radar_shape", "ring")
 
 
 ## Almiar de heno (estepa): se atraviesa con el tanque.

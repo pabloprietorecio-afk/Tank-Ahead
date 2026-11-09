@@ -45,8 +45,26 @@ func _draw() -> void:
 			continue
 		var pos: Vector2 = _to_radar(c, mark.global_position - origin, yaw)
 		var mark_color: Color = mark.get_meta("radar_color", Color.WHITE)
-		draw_rect(Rect2(pos - Vector2(5.0, 5.0), Vector2(10.0, 10.0)), mark_color, true)
-		draw_rect(Rect2(pos - Vector2(7.0, 7.0), Vector2(14.0, 14.0)), Color(mark_color, 0.6), false, 1.5)
+		if mark.get_meta("radar_blink", false) and fmod(_time, 0.4) > 0.2:
+			continue
+		match mark.get_meta("radar_shape", "square"):
+			"star":
+				# Premio: cruz brillante.
+				draw_line(pos + Vector2(-6.0, 0.0), pos + Vector2(6.0, 0.0), mark_color, 3.0)
+				draw_line(pos + Vector2(0.0, -6.0), pos + Vector2(0.0, 6.0), mark_color, 3.0)
+				draw_circle(pos, 2.5, Color.WHITE)
+			"diamond":
+				# Objetivo de misión: rombo.
+				var d := PackedVector2Array([pos + Vector2(0.0, -8.0), pos + Vector2(8.0, 0.0), pos + Vector2(0.0, 8.0), pos + Vector2(-8.0, 0.0)])
+				draw_colored_polygon(d, Color(mark_color, 0.85))
+				d.append(d[0])
+				draw_polyline(d, Color.WHITE, 1.5)
+			"ring":
+				# Edificio con premio: anillo.
+				draw_arc(pos, 5.0, 0.0, TAU, 12, mark_color, 2.5)
+			_:
+				draw_rect(Rect2(pos - Vector2(5.0, 5.0), Vector2(10.0, 10.0)), mark_color, true)
+				draw_rect(Rect2(pos - Vector2(7.0, 7.0), Vector2(14.0, 14.0)), Color(mark_color, 0.6), false, 1.5)
 	for node in get_tree().get_nodes_in_group(&"tanks"):
 		var other := node as Tank
 		if other == null or other == player or other.is_destroyed:

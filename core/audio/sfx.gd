@@ -5,6 +5,8 @@ const CANNON := preload("res://assets/audio/cannon.ogg")
 const EXPLOSION := preload("res://assets/audio/explosion.ogg")
 const HIT := preload("res://assets/audio/hit.ogg")
 const HIT_TANK := preload("res://assets/audio/hit_tank.ogg")
+const PICKUP := preload("res://assets/audio/pickup.ogg")
+const BELL := preload("res://assets/audio/bell.ogg")
 const THUNDER := preload("res://assets/audio/thunder.wav")
 
 
