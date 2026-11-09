@@ -27,3 +27,9 @@ func apply_damage(amount: float, source: Node = null) -> void:
 
 func fraction() -> float:
 	return current / max_health if max_health > 0.0 else 0.0
+
+
+func heal(amount: float) -> void:
+	if is_dead:
+		return
+	current = minf(current + amount, max_health)

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/definitions/tank_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "LIGHT TANK"
+color = Color(1, 0.5, 0.1, 1)
+body_scale = 1.0
+score_value = 100
+max_speed = 10.0
+acceleration = 12.0
+hull_turn_speed = 1.0
+turret_turn_speed = 1.6
+max_armor = 60.0
+reload_time = 2.4
+damage = 12.0
+projectile_speed = 90.0
+detect_range = 110.0
+attack_range = 65.0
+fire_cone_deg = 5.0
+aim_error_deg = 4.0
+lead_factor = 0.5
+retreat_fraction = 0.2

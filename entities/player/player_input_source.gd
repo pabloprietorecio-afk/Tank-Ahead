@@ -9,7 +9,7 @@ extends Node
 
 
 func _process(_delta: float) -> void:
-	if tank == null or touch == null:
+	if tank == null or touch == null or tank.is_destroyed:
 		return
 	tank.drive_input = touch.move_vector
 	tank.trigger_held = touch.fire_held

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/definitions/tank_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "SCOUT"
+color = Color(1, 0.9, 0.2, 1)
+body_scale = 0.7
+score_value = 150
+max_speed = 22.0
+acceleration = 25.0
+hull_turn_speed = 2.2
+turret_turn_speed = 2.6
+max_armor = 30.0
+reload_time = 1.2
+damage = 6.0
+projectile_speed = 100.0
+detect_range = 130.0
+attack_range = 40.0
+fire_cone_deg = 7.0
+aim_error_deg = 6.0
+lead_factor = 0.3
+retreat_fraction = 0.0

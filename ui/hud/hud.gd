@@ -1,34 +1,82 @@
 class_name Hud
 extends Control
-## HUD mínimo de la Fase 1: versión, FPS, bajas, retícula, recarga e indicador del casco.
+## HUD de la Fase 2: blindaje, puntuación, oleada, avisos, retícula, recarga,
+## indicador del casco, destello de daño y pantalla de fin de partida.
 
 @export var tank: Tank
+@export var director: MatchDirector
 
-var kills: int = 0
-
-var _label: Label
+var _info: Label
+var _message: Label
+var _over: Label
 var _version: String = ""
+var _message_time: float = 0.0
+var _flash: float = 0.0
+var _over_time: float = 0.0
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_version = str(ProjectSettings.get_setting("application/config/version", "dev"))
-	_label = Label.new()
-	_label.position = Vector2(24.0, 16.0)
-	_label.add_theme_color_override("font_color", VectorMaterials.GREEN)
-	_label.add_theme_font_size_override("font_size", 22)
-	add_child(_label)
+	_info = _make_label(22, Vector2(24.0, 16.0))
+	_message = _make_label(26, Vector2.ZERO)
+	_message.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_message.position.y = 110.0
+	_message.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_over = _make_label(40, Vector2.ZERO)
+	_over.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_over.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_over.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_over.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_over.visible = false
+	tank.damaged.connect(func(amount: float, _s: Node) -> void: _flash = minf(_flash + amount / 40.0, 0.6))
+	director.message.connect(_show_message)
+	director.game_over.connect(_on_game_over)
 
 
-func _process(_delta: float) -> void:
-	_label.text = "v%s   %d FPS\nBAJAS %d" % [_version, Engine.get_frames_per_second(), kills]
+func _make_label(font_size: int, pos: Vector2) -> Label:
+	var label := Label.new()
+	label.position = pos
+	label.add_theme_color_override("font_color", VectorMaterials.GREEN)
+	label.add_theme_font_size_override("font_size", font_size)
+	add_child(label)
+	return label
+
+
+func _show_message(text: String, urgent: bool) -> void:
+	_message.text = text
+	_message.add_theme_color_override("font_color", VectorMaterials.ORANGE if urgent else VectorMaterials.GREEN)
+	_message_time = 3.5
+
+
+func _on_game_over(score: int, wave: int) -> void:
+	_over.text = "TANQUE DESTRUIDO\nPUNTOS %d   OLEADA %d\n\nTOCA PARA REINICIAR" % [score, wave]
+	_over.visible = true
+	_over_time = 0.0
+
+
+func _input(event: InputEvent) -> void:
+	if director.is_over and _over_time > 1.2 and event is InputEventScreenTouch and event.pressed:
+		get_tree().reload_current_scene()
+
+
+func _process(delta: float) -> void:
+	_message_time = maxf(_message_time - delta, 0.0)
+	_message.modulate.a = clampf(_message_time, 0.0, 1.0)
+	_flash = maxf(_flash - delta * 1.5, 0.0)
+	if director.is_over:
+		_over_time += delta
+	_info.text = "v%s  %d FPS\nPUNTOS %d   OLEADA %d   ENEMIGOS %d" % [_version, Engine.get_frames_per_second(), director.score, director.wave, director.alive]
 	queue_redraw()
 
 
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var green: Color = VectorMaterials.GREEN
+	if _flash > 0.0:
+		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.1, 0.05, _flash * 0.5), true)
 	# Retícula
 	draw_line(center + Vector2(-18.0, 0.0), center + Vector2(-6.0, 0.0), green, 2.0)
 	draw_line(center + Vector2(6.0, 0.0), center + Vector2(18.0, 0.0), green, 2.0)
@@ -42,6 +90,12 @@ func _draw() -> void:
 	var bar_origin: Vector2 = center + Vector2(-30.0, 34.0)
 	draw_rect(Rect2(bar_origin, Vector2(60.0, 6.0)), Color(bar_color, 0.3), false, 1.0)
 	draw_rect(Rect2(bar_origin, Vector2(60.0 * ready_fraction, 6.0)), bar_color, true)
+	# Blindaje (abajo al centro)
+	var armor: float = tank.health.fraction()
+	var armor_color: Color = green if armor > 0.35 else VectorMaterials.ORANGE
+	var armor_origin := Vector2(center.x - 120.0, size.y - 46.0)
+	draw_rect(Rect2(armor_origin, Vector2(240.0, 14.0)), Color(armor_color, 0.3), false, 2.0)
+	draw_rect(Rect2(armor_origin, Vector2(240.0 * armor, 14.0)), armor_color, true)
 	# Indicador de orientación del casco (arriba = hacia donde mira la torreta)
 	var gauge_center := Vector2(center.x, 70.0)
 	draw_arc(gauge_center, 34.0, 0.0, TAU, 32, Color(green, 0.4), 2.0)

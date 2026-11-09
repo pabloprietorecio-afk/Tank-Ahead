@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/definitions/tank_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "HEAVY TANK"
+color = Color(1, 0.2, 0.1, 1)
+body_scale = 1.35
+score_value = 300
+max_speed = 6.5
+acceleration = 8.0
+hull_turn_speed = 0.6
+turret_turn_speed = 1.0
+max_armor = 200.0
+reload_time = 3.2
+damage = 25.0
+projectile_speed = 80.0
+detect_range = 120.0
+attack_range = 75.0
+fire_cone_deg = 4.0
+aim_error_deg = 3.0
+lead_factor = 0.7
+retreat_fraction = 0.0

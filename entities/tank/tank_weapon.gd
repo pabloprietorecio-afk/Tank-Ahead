@@ -12,6 +12,7 @@ signal fired
 
 ## Hurtboxes que el proyectil debe ignorar (las del propio tanque).
 var ignore_rids: Array[RID] = []
+var team: int = 0
 
 var _cooldown: float = 0.0
 
@@ -32,15 +33,10 @@ func ready_fraction() -> float:
 func fire() -> bool:
 	if not can_fire():
 		return false
-	var shell: Projectile = projectile_scene.instantiate() as Projectile
-	_world_root().add_child(shell)
+	var scene: Node = get_tree().current_scene
+	var shell: Projectile = Projectile.acquire(projectile_scene, scene if scene != null else get_tree().root)
 	var direction: Vector3 = -muzzle.global_transform.basis.z
-	shell.launch(muzzle.global_position, direction * projectile_speed, damage, get_parent(), ignore_rids)
+	shell.launch(muzzle.global_position, direction * projectile_speed, damage, get_parent(), ignore_rids, team)
 	_cooldown = reload_time
 	fired.emit()
 	return true
-
-
-func _world_root() -> Node:
-	var scene: Node = get_tree().current_scene
-	return scene if scene != null else get_tree().root

@@ -1,13 +1,13 @@
 extends Node3D
-## Arena de pruebas de la Fase 1: suelo con rejilla, obstáculos, tanque y blancos.
+## Arena de la Fase 2: suelo con rejilla, obstáculos, jugador y oleadas de enemigos.
 
 const ARENA_HALF: float = 200.0
 const OBSTACLE_COUNT: int = 14
-const TARGET_COUNT: int = 3
 const SAFE_RADIUS: float = 25.0
 
 var _player: Tank
 var _hud: Hud
+var _director: MatchDirector
 var _obstacle_rects: Array[Rect2] = []
 var _rng := RandomNumberGenerator.new()
 
@@ -19,9 +19,8 @@ func _ready() -> void:
 	_build_walls()
 	_build_obstacles()
 	_spawn_player()
+	_build_director()
 	_build_ui()
-	for i in TARGET_COUNT:
-		_spawn_target()
 
 
 func _build_environment() -> void:
@@ -99,6 +98,18 @@ func _spawn_player() -> void:
 	add_child(_player)
 
 
+func _build_director() -> void:
+	_director = MatchDirector.new()
+	_director.name = "MatchDirector"
+	_director.is_free_point = func(p: Vector2) -> bool:
+		for rect in _obstacle_rects:
+			if rect.has_point(p):
+				return false
+		return true
+	add_child(_director)
+	_director.start(_player, self)
+
+
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
@@ -108,34 +119,10 @@ func _build_ui() -> void:
 
 	_hud = Hud.new()
 	_hud.tank = _player
+	_hud.director = _director
 	layer.add_child(_hud)
 
 	var input_source := PlayerInputSource.new()
 	input_source.tank = _player
 	input_source.touch = touch
 	add_child(input_source)
-
-
-func _spawn_target() -> void:
-	var target := TargetDummy.new()
-	var pos := Vector2.ZERO
-	for attempt in 20:
-		var angle: float = _rng.randf() * TAU
-		var radius: float = _rng.randf_range(40.0, 150.0)
-		pos = Vector2(cos(angle), sin(angle)) * radius
-		var blocked: bool = false
-		for rect in _obstacle_rects:
-			if rect.has_point(pos):
-				blocked = true
-				break
-		if not blocked:
-			break
-	target.position = Vector3(pos.x, 0.0, pos.y)
-	target.rotation.y = _rng.randf() * TAU
-	target.destroyed.connect(_on_target_destroyed)
-	add_child(target)
-
-
-func _on_target_destroyed(_target: TargetDummy) -> void:
-	_hud.kills += 1
-	_spawn_target()

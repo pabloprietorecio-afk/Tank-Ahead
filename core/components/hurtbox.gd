@@ -6,6 +6,8 @@ signal hit(amount: float, source: Node)
 
 @export var health: HealthComponent
 @export var damage_multiplier: float = 1.0
+## Los proyectiles no dañan hurtboxes de su propio equipo.
+@export var team: int = 0
 
 
 func take_hit(amount: float, source: Node = null) -> void:
