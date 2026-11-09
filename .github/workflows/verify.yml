@@ -7,6 +7,9 @@ on:
     branches-ignore: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   GODOT_VERSION: "4.7.2"
   GODOT_CHANNEL: "stable"
@@ -41,6 +44,18 @@ jobs:
           cat errors.txt
           grep -q "SHOTS DONE" run.log || { echo "Las capturas no terminaron"; tail -60 run.log; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
+
+      - name: Publicar capturas en la rama verify-shots
+        if: always()
+        run: |
+          mkdir -p shots_out
+          cp run.log import.log errors.txt shots_out/ 2>/dev/null || true
+          cd shots_out
+          git init -q
+          git checkout -q -b verify-shots
+          git add -A
+          git -c user.name="verify" -c user.email="verify@users.noreply.github.com" commit -q -m "Capturas de ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" verify-shots
 
       - uses: actions/upload-artifact@v4
         if: always()

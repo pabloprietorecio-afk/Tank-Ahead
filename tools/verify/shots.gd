@@ -45,7 +45,7 @@ class Runner extends Node:
 		await _frames(3)
 		await RenderingServer.frame_post_draw
 		var image: Image = get_viewport().get_texture().get_image()
-		image.save_png(_dir.path_join(shot + ".png"))
+		image.save_jpg(_dir.path_join(shot + ".jpg"), 0.88)
 		print("SHOT ", shot)
 
 	func _look(eye: Vector3, target: Vector3, fov: float = 45.0) -> void:
