@@ -6,3 +6,4 @@ android/build/
 .DS_Store
 tools/voice_gen/models/
 tools/voice_gen/out/
+shots_out/

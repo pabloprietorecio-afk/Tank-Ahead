@@ -128,7 +128,7 @@ static func flak_gun() -> Destructible:
 	var prop := _prize(_part(90.0, 2.0, Color(0.55, 0.5, 0.4)), "ANTIAÉREO", 350)
 	for i in 8:
 		var angle: float = TAU * i / 8.0
-		var bag := _box(prop, Vector3(2.4, 1.2, 0.9), Vector3(cos(angle) * 3.4, 0.6, sin(angle) * 3.4), Color(0.6, 0.53, 0.38), 2, 0.9)
+		var bag := _box(prop, Vector3(2.4, 1.2, 0.9), Vector3(cos(angle) * 3.4, 0.6, sin(angle) * 3.4), Color(0.6, 0.53, 0.38), 10, 0.8)
 		bag.rotation.y = -angle + PI * 0.5
 	_cylinder(prop, 1.0, 1.0, Vector3(0.0, 0.6, 0.0), STEEL)
 	var barrel := _cylinder(prop, 0.12, 5.0, Vector3(0.0, 2.6, -1.4), STEEL)
@@ -142,7 +142,7 @@ static func command_tent() -> Destructible:
 	var prop := _prize(_part(60.0, 2.0, Color(0.4, 0.38, 0.28)), "PUESTO DE MANDO", 500)
 	var roof := PrismMesh.new()
 	roof.size = Vector3(6.0, 3.0, 8.0)
-	var tent := VectorMaterials.make_outlined(roof, Color(0.35, 0.36, 0.25), Color(0.25, 0.25, 0.18), 6, 0.6)
+	var tent := VectorMaterials.make_outlined(roof, Color(0.35, 0.36, 0.25), Color(0.25, 0.25, 0.18), 8, 0.6)
 	tent.position.y = 1.5
 	prop.add_child(tent)
 	_box(prop, Vector3(1.6, 0.8, 1.0), Vector3(4.0, 0.4, 0.0), Color(0.3, 0.28, 0.2), 5, 0.5)

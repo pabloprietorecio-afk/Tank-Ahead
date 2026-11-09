@@ -67,6 +67,7 @@ func _create_mode() -> GameMode:
 
 func _build_environment() -> void:
 	_sky_material = ProceduralSkyMaterial.new()
+	_sky_material.sky_cover = VectorMaterials.clouds()
 	var sky := Sky.new()
 	sky.sky_material = _sky_material
 	_env = Environment.new()
@@ -80,6 +81,10 @@ func _build_environment() -> void:
 	_env.glow_enabled = true
 	_env.glow_intensity = 0.6
 	_env.glow_bloom = 0.05
+	_env.fog_aerial_perspective = 0.35
+	_env.adjustment_enabled = true
+	_env.adjustment_contrast = 1.06
+	_env.adjustment_saturation = 1.08
 	var world_env := WorldEnvironment.new()
 	world_env.environment = _env
 	add_child(world_env)
@@ -89,8 +94,10 @@ func _build_environment() -> void:
 	_sun.rotation = Vector3(deg_to_rad(-28.0), deg_to_rad(-35.0), 0.0)
 	_sun.shadow_enabled = GameSettings.shadows
 	_sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	_sun.directional_shadow_max_distance = 120.0
-	_sun.shadow_blur = 1.5
+	_sun.directional_shadow_max_distance = 130.0
+	_sun.directional_shadow_blend_splits = true
+	_sun.shadow_blur = 1.2
+	_sun.light_angular_distance = 0.8
 	add_child(_sun)
 
 

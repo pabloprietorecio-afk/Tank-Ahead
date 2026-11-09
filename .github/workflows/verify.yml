@@ -1,0 +1,53 @@
+name: Verify
+
+# Comprobación visual en ramas de trabajo: ejecuta el juego con un renderizador por software,
+# guarda capturas de tanques, escenarios y partidas, y falla si hay errores de scripts o shaders.
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_CHANNEL: "stable"
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Godot y renderizador por software
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_CHANNEL}"
+          curl -fsSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_linux.x86_64" /usr/local/bin/godot
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb mesa-vulkan-drivers libvulkan1 libgl1-mesa-dri
+
+      - name: Importar recursos
+        run: godot --headless --import 2>&1 | tee import.log || true
+
+      - name: Capturas
+        run: |
+          timeout 1500 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --audio-driver Dummy --rendering-driver vulkan --resolution 1280x720 res://tools/verify/shots.tscn 2>&1 | tee run.log || true
+          ls -la shots_out || true
+
+      - name: Errores de scripts y shaders
+        run: |
+          grep -nE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error|Failed to load script|Invalid (call|access|assignment|operands|get index)|^ERROR" run.log import.log | head -150 > errors.txt || true
+          cat errors.txt
+          grep -q "SHOTS DONE" run.log || { echo "Las capturas no terminaron"; tail -60 run.log; exit 1; }
+          if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shots
+          path: |
+            shots_out
+            run.log
+            import.log
+            errors.txt

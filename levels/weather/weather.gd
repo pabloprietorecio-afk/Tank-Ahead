@@ -32,6 +32,10 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 	ground_material = ground
 	kind = (randi() % 4) as Kind if forced < 0 else forced as Kind
 	ground_material.set_shader_parameter("tint", 0.0)
+	ground_material.set_shader_parameter("wet", 0.0)
+	# Nubes: encendidas por el sol poniente si está despejado, plomizas con mal tiempo.
+	var cloud_tints: Array[Color] = [Color(0.85, 0.5, 0.36), Color(0.22, 0.23, 0.23), Color(0.16, 0.17, 0.19), Color(0.3, 0.31, 0.33)]
+	sky_material.sky_cover_modulate = cloud_tints[kind]
 	sky = SkyDome.new()
 	sky.follow = target
 	add_child(sky)
@@ -50,6 +54,7 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 		Kind.RAIN:
 			_apply(Color(0.08, 0.09, 0.11), Color(0.22, 0.25, 0.28), Color(0.6, 0.7, 0.8), 0.35, 0.012, Color(0.2, 0.23, 0.26))
 			_make_particles(900, Vector3(0.03, 0.9, 0.03), Color(0.6, 0.7, 0.8), Vector3(2.0, -38.0, 0.0), 0.9)
+			ground_material.set_shader_parameter("wet", 1.0)
 			_rain_loop = AudioStreamPlayer.new()
 			_rain_loop.stream = load("res://assets/audio/rain.wav")
 			_rain_loop.volume_db = -12.0

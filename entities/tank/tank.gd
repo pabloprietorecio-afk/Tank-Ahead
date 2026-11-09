@@ -49,6 +49,10 @@ var _dust: GPUParticles3D
 var _flash_light: OmniLight3D
 var _flash_time: float = 0.0
 var _materials: Array[Material] = []
+## Material del modelo: con él se animan las orugas.
+var _track_material: ShaderMaterial
+var _track_scroll: Vector2 = Vector2.ZERO
+var _last_yaw: float = 0.0
 
 
 func _ready() -> void:
@@ -168,6 +172,7 @@ func _process(delta: float) -> void:
 		_dust.emitting = moving
 		_exhaust.amount_ratio = 1.0 if moving else 0.4
 		_exhaust.emitting = not is_destroyed
+	_animate_tracks(delta)
 	if camera != null and _view > 0:
 		var target: Transform3D = _chase_transform()
 		var t: float = 1.0 - exp(-8.0 * delta)
@@ -176,6 +181,23 @@ func _process(delta: float) -> void:
 		_shake = maxf(_shake - delta * 2.5, 0.0)
 		camera.h_offset = randf_range(-1.0, 1.0) * _shake * 0.25
 		camera.v_offset = randf_range(-1.0, 1.0) * _shake * 0.25
+
+
+## Las orugas corren según el avance y el giro del casco (una gira más que la otra al virar).
+func _animate_tracks(delta: float) -> void:
+	if _track_material == null or is_destroyed or delta <= 0.0:
+		return
+	var yaw: float = global_rotation.y
+	var turn: float = angle_difference(_last_yaw, yaw) / delta
+	_last_yaw = yaw
+	var forward: float = velocity.dot(-global_basis.z)
+	if absf(forward) < 0.01 and absf(turn) < 0.001:
+		return
+	var half_width: float = 1.7 * _scale_factor
+	var link: float = 0.17 * _scale_factor
+	_track_scroll.x = fposmod(_track_scroll.x - (forward - turn * half_width) * delta / link, 1.0)
+	_track_scroll.y = fposmod(_track_scroll.y - (forward + turn * half_width) * delta / link, 1.0)
+	_track_material.set_shader_parameter("track_offset", _track_scroll)
 
 
 func _build_effects() -> void:
@@ -254,10 +276,9 @@ func _on_died(source: Node) -> void:
 	if is_player:
 		_shake = 1.5
 	# Queda un casco calcinado unos segundos.
-	var burnt := VectorMaterials.paint(Color(0.06, 0.05, 0.05))
-	for mesh in _meshes:
-		if is_instance_valid(mesh):
-			mesh.material_override = burnt
+	for i in _meshes.size():
+		if is_instance_valid(_meshes[i]):
+			_meshes[i].material_override = VectorMaterials.burnt(_materials[i])
 	if turret != null:
 		turret.rotation += Vector3(randf_range(-0.2, 0.2), randf_range(-0.6, 0.6), randf_range(-0.3, 0.3))
 	if not is_player:
@@ -287,6 +308,8 @@ func _build_body() -> void:
 	gun_pivot = model.gun_pivot
 	muzzle = model.muzzle
 	_meshes = model.own
+	_track_material = model.material
+	_last_yaw = global_rotation.y
 	for mesh in _meshes:
 		_materials.append(mesh.material_override)
 	var k: float = _scale_factor

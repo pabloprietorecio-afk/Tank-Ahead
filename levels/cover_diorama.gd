@@ -7,6 +7,8 @@ var _camera: Camera3D
 var _time: float = 0.0
 var _fire_light: OmniLight3D
 var _boom_timer: float = 2.0
+## Mallas del último tanque creado (para calcinar el que hace de resto).
+var _wreck_meshes: Array[MeshInstance3D] = []
 
 
 func _ready() -> void:
@@ -16,6 +18,8 @@ func _ready() -> void:
 	sky_material.ground_horizon_color = Color(0.6, 0.35, 0.2)
 	sky_material.ground_bottom_color = Color(0.05, 0.05, 0.05)
 	sky_material.sun_angle_max = 25.0
+	sky_material.sky_cover = VectorMaterials.clouds()
+	sky_material.sky_cover_modulate = Color(0.9, 0.5, 0.34)
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	var env := Environment.new()
@@ -59,9 +63,8 @@ func _ready() -> void:
 	_tank("m4_sherman", Fronts.Faction.ALLIES, Vector3(5.0, 0.0, 6.0), deg_to_rad(-65.0), deg_to_rad(5.0))
 	_tank("tiger1", Fronts.Faction.AXIS, Vector3(17.0, 0.0, -6.0), deg_to_rad(125.0), deg_to_rad(-12.0))
 	var wreck := _tank("panzer4", Fronts.Faction.AXIS, Vector3(-14.0, 0.0, -38.0), deg_to_rad(30.0), 0.6)
-	for child in wreck.get_children():
-		if child is MeshInstance3D:
-			child.material_override = VectorMaterials.paint(Color(0.07, 0.06, 0.05))
+	for mesh in _wreck_meshes:
+		mesh.material_override = VectorMaterials.burnt(mesh.material_override)
 	_smoke(Vector3(-14.0, 2.0, -38.0))
 	_fire_light = OmniLight3D.new()
 	_fire_light.light_color = Color(1.0, 0.5, 0.15)
@@ -105,6 +108,7 @@ func _tank(id: String, faction: int, pos: Vector3, yaw: float, turret_yaw: float
 	add_child(holder)
 	var model: TankModel = TankModel.build(holder, stats, Fronts.paint(Fronts.Id.NORMANDY, faction, stats.nation), false)
 	model.turret.rotation.y = turret_yaw
+	_wreck_meshes = model.own
 	return holder
 
 
