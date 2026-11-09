@@ -77,8 +77,9 @@ void fragment() {
 			col = mix(col, col * 0.7, bolt * 0.5);
 		}
 		// Desconchones: más cerca de los cantos.
-		float chip = smoothstep(0.68, 0.76, fine.r + rim * 0.3 * wear + (wear - 0.6) * 0.2);
-		vec3 steel = mix(vec3(0.09, 0.07, 0.06), vec3(0.3, 0.14, 0.06), fine.a);
+		float chip_n = noise4(q * 24.0 + 7.0).r * 0.6 + fine.r * 0.4;
+		float chip = smoothstep(0.74, 0.8, chip_n + rim * 0.22 * wear + (wear - 0.6) * 0.15);
+		vec3 steel = mix(vec3(0.07, 0.06, 0.055), vec3(0.2, 0.1, 0.05), fine.a * 0.7);
 		col = mix(col, steel, chip * 0.85);
 		metal = mix(metal, 0.6, chip);
 		h -= chip * 0.0015 * s;

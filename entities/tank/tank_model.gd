@@ -620,8 +620,8 @@ func _hull_markings() -> void:
 			_marking(side_height * 0.8)
 	# Sobre la cubierta trasera, entre las rejillas.
 	var rear_top: float = _rear - (0.5 * k if stats.sloped else 0.15 * k)
-	var free: float = rear_top - (_turret_pos.z + _turret_size.z * 0.55)
-	if free > 0.55 * k and not stats.casemate:
+	var free: float = rear_top - (_turret_pos.z + _turret_size.z * 0.5 + (0.42 * k if stats.nation == "DE" else 0.2 * k))
+	if free > 0.5 * k and not stats.casemate:
 		g.at(Vector3(0.0, deck + 0.012 * k, rear_top - free * 0.5), Vector3(-PI * 0.5, 0.0, 0.0))
 		_marking(minf(minf(free * 0.85, _top_half * 0.6), 0.9 * k))
 
@@ -744,7 +744,7 @@ func _turret_geometry() -> void:
 			_p(PAINT_DARK, MeshKit.ARMOR)
 			g.at(hatch + Vector3(0.0, (0.5 if stats.has_dome else 0.26) * k, 0.27 * k), Vector3(deg_to_rad(80.0), 0.0, 0.0))
 			g.tube(0.24 * k, 0.24 * k, 0.03 * k, 10)
-		# Asideros para la infantería (soviéticos) o eslabones de repuesto (alemanes pesados).
+		# Asideros para la infantería que viajaba sobre los carros soviéticos.
 		var side_mid: float = (_side_r.x + _side_r.y) * 0.5 * ts.x
 		if stats.nation == "SU":
 			_p(DARK_METAL, MeshKit.STEEL)
@@ -752,12 +752,6 @@ func _turret_geometry() -> void:
 				_tube_z(Vector3(side * (side_mid + 0.06 * k), 0.0, ts.z * 0.05), 0.014 * k, ts.z * 0.4, 4)
 				for end in [-1.0, 1.0]:
 					_tube_x(Vector3(side * (side_mid + 0.02 * k), 0.0, ts.z * 0.05 + end * ts.z * 0.2), 0.014 * k, 0.1 * k, 4)
-		elif stats.nation == "DE" and k >= 1.3:
-			_p(TRACK_METAL, MeshKit.STEEL)
-			for side in [-1.0, 1.0]:
-				for i in 4:
-					g.at(Vector3(side * (side_mid + 0.03 * k), -h * 0.2, ts.z * (-0.12 + i * 0.09)))
-					g.box(Vector3(0.05 * k, 0.3 * k, 0.15 * k))
 		if stats.nation == "US":
 			_roof_mg(Vector3(-ts.x * roof_r * 0.2, roof, ts.z * roof_r * 0.5))
 		_turret_markings()
@@ -838,8 +832,8 @@ func _crewman(base: Vector3) -> void:
 	# Auriculares.
 	_p(Color(0.08, 0.08, 0.08), MeshKit.MATTE)
 	for side in [-1.0, 1.0]:
-		g.at(base + Vector3(side * 0.11 * k, 0.58 * k, 0.0))
-		g.box(Vector3(0.03 * k, 0.07 * k, 0.07 * k))
+		g.at(base + Vector3(side * 0.105 * k, 0.59 * k, 0.015 * k))
+		g.box(Vector3(0.025 * k, 0.05 * k, 0.05 * k))
 
 
 ## Ametralladora pesada sobre afuste en el techo (carros americanos).
@@ -894,8 +888,8 @@ func _gun_geometry() -> void:
 		_p(PAINT_DARK, MeshKit.CAST)
 		var sleeve: float = minf(0.3 * k, length * 0.14)
 		var profile := PackedVector2Array([
-			Vector2(radius * 2.1, 0.03 * k), Vector2(radius * 2.1, sleeve), Vector2(radius * 1.6, sleeve + 0.04 * k),
-			Vector2(radius * 1.6, maxf(length * 0.26, sleeve + 0.08 * k)), Vector2(radius * 1.25, maxf(length * 0.3, sleeve + 0.12 * k)),
+			Vector2(radius * 1.8, 0.03 * k), Vector2(radius * 1.8, sleeve), Vector2(radius * 1.4, sleeve + 0.04 * k),
+			Vector2(radius * 1.4, maxf(length * 0.26, sleeve + 0.08 * k)), Vector2(radius * 1.15, maxf(length * 0.3, sleeve + 0.12 * k)),
 		])
 		if stats.muzzle_brake:
 			var m: float = length

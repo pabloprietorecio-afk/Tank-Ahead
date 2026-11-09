@@ -57,7 +57,7 @@ static func house(size: Vector3) -> Destructible:
 	var walls := VectorMaterials.make_box(size, plaster if plastered else BRICK, 9 if plastered else 2, 1.2)
 	walls.position.y = size.y * 0.5
 	prop.add_child(walls)
-	var plinth := VectorMaterials.make_box(Vector3(size.x + 0.14, 0.55, size.z + 0.14), Color(0.48, 0.46, 0.42), 2, 1.4)
+	var plinth := VectorMaterials.make_box(Vector3(size.x + 0.14, 0.55, size.z + 0.14), Color(0.48, 0.46, 0.42), 2, 2.0)
 	plinth.position.y = 0.275
 	prop.add_child(plinth)
 	var roof_color: Color = ROOF if randf() < 0.7 else Color(0.27, 0.28, 0.31)
@@ -305,7 +305,7 @@ static func izba(size: Vector3) -> Destructible:
 	var walls := VectorMaterials.make_box(size, Color(0.42, 0.3, 0.18), 11, 1.6)
 	walls.position.y = size.y * 0.5
 	prop.add_child(walls)
-	var roof := VectorMaterials.make_outlined(_roof, Color(0.3, 0.3, 0.28), Color(0.2, 0.2, 0.18), 6, 0.5)
+	var roof := VectorMaterials.make_outlined(_roof, Color(0.36, 0.33, 0.28), Color(0.2, 0.18, 0.15), 5, 0.6)
 	roof.scale = Vector3(size.x * 1.18, size.y * 0.7, size.z * 1.12)
 	roof.position.y = size.y + size.y * 0.35
 	prop.add_child(roof)

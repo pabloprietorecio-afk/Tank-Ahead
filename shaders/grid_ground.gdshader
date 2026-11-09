@@ -43,8 +43,8 @@ void fragment() {
 	turf = mix(turf, turf * vec3(1.15, 1.1, 0.75), smoothstep(0.7, 0.9, fine.b) * 0.5 * near);
 	// Tierra: terrones y piedrecillas.
 	vec3 soil = dirt * (0.7 + mid.a * 0.35 + (micro.r - 0.5) * 0.3 * near);
-	float pebble = smoothstep(0.78, 0.86, micro.g) * near;
-	soil = mix(soil, gravel * 1.15, pebble * 0.7);
+	float pebble = smoothstep(0.8, 0.92, noise4(p * 19.0 + 5.0).g) * near;
+	soil = mix(soil, gravel * 0.95, pebble * 0.45);
 	// Grava.
 	vec3 stones = gravel * (0.65 + fine.g * 0.4 + micro.b * 0.3 * near);
 
@@ -67,7 +67,7 @@ void fragment() {
 	// Lluvia: todo más oscuro y charcos brillantes en las zonas de tierra y en las rodadas.
 	if (wet > 0.0) {
 		float puddle = smoothstep(0.52, 0.6, noise4(p * 0.09 + 9.0).a * 0.7 + bare * 0.3 + rut * 0.2) * wet;
-		color *= 1.0 - wet * 0.3;
+		color *= 1.0 - wet * 0.12;
 		color = mix(color, color * 0.45 + vec3(0.02, 0.025, 0.03), puddle);
 		rough = mix(mix(rough, 0.6, wet * 0.6), 0.06, puddle);
 		h *= 1.0 - puddle;

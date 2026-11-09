@@ -111,10 +111,10 @@ void fragment() {
 			color *= 0.8 + fine.r * 0.25;
 		} else {
 			vec2 f;
-			vec2 b = bricks(uv, ps * 0.25, ps * 0.5, f);
+			vec2 b = bricks(uv, ps * 0.14, ps * 0.34, f);
 			vec3 piece = painted * (0.72 + b.y * 0.5) * mix(vec3(1.0), vec3(1.12, 0.9, 0.82), fract(b.y * 7.3) * 0.5);
 			piece *= 0.85 + fine.r * 0.3;
-			vec3 mortar = mix(painted, vec3(0.5, 0.48, 0.44), 0.65) * (0.8 + fine.g * 0.3);
+			vec3 mortar = mix(painted, vec3(0.5, 0.48, 0.44), 0.5) * (0.62 + fine.g * 0.25);
 			color = mix(piece * (0.85 + grime * 0.3), mortar, b.x);
 			h = (1.0 - b.x) * (0.012 + fine.r * 0.006 + b.y * 0.004);
 			rough = 0.94;
@@ -167,10 +167,12 @@ void fragment() {
 		float frame = smoothstep(0.76, 0.8, border);
 		float cross_bar = max(1.0 - smoothstep(0.04, 0.07, abs(p.x)), 1.0 - smoothstep(0.04, 0.07, abs(p.y - 0.15)));
 		float wood = max(frame, cross_bar);
-		float lit = step(0.55, node_seed) * step(fract(node_seed * 13.0), 0.8);
+		float lit = step(0.66, node_seed);
 		vec3 glass_color = mix(vec3(0.02, 0.03, 0.045), base_color * 0.6, p.y * 0.5 + 0.5);
+		// Visillos tras el cristal de las ventanas iluminadas.
+		glass_color = mix(glass_color, vec3(0.5, 0.36, 0.2) * (0.7 + 0.3 * sin(uv.x * 40.0)), lit * 0.8);
 		color = mix(glass_color, vec3(0.78, 0.76, 0.7) * (0.8 + fine.r * 0.25), wood);
-		emission = (1.0 - wood) * lit * vec3(1.0, 0.7, 0.35) * 0.8;
+		emission = (1.0 - wood) * lit * vec3(1.0, 0.7, 0.35) * 0.3;
 		rough = mix(0.1, 0.8, wood);
 		h = wood * 0.03;
 	} else if (pattern == 8) {
@@ -194,10 +196,11 @@ void fragment() {
 		} else {
 			float patch_n = noise4(uv * 0.35 + node_seed * 20.0).r * 0.6 + noise4(uv * 1.1 + 3.0).g * 0.4;
 			float low = 1.0 - smoothstep(-face_half.y, -face_half.y + 1.6, uv.y);
-			float fallen = smoothstep(0.6, 0.66, patch_n + low * 0.18);
+			float fallen = smoothstep(0.66, 0.71, patch_n + low * 0.16);
 			vec2 f;
-			vec2 b = bricks(uv, ps * 0.2, ps * 0.42, f);
-			vec3 under = mix(vec3(0.42, 0.22, 0.15), vec3(0.5, 0.46, 0.4), b.x) * (0.75 + b.y * 0.4);
+			vec2 b = bricks(uv, ps * 0.1, ps * 0.25, f);
+			vec3 under_base = mix(vec3(0.42, 0.22, 0.15), painted * 0.5, 0.45);
+			vec3 under = mix(under_base, vec3(0.42, 0.39, 0.34), b.x) * (0.75 + b.y * 0.4);
 			float crack = (1.0 - smoothstep(0.0, 0.03, abs(noise4(uv * 0.6 + 11.0).b - 0.5))) * step(0.5, noise4(uv * 0.2 + 2.0).a);
 			vec3 plaster = painted * (0.86 + grime * 0.24) * (1.0 - crack * 0.4);
 			float streak = smoothstep(0.55, 0.9, noise4(vec2(uv.x * 2.0, uv.y * 0.12 + 1.0)).b) * smoothstep(-face_half.y, face_half.y, uv.y);
