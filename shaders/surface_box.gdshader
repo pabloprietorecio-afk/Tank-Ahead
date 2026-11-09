@@ -201,8 +201,8 @@ void fragment() {
 			vec2 b = bricks(uv, ps * 0.1, ps * 0.25, f);
 			vec3 under_base = mix(vec3(0.42, 0.22, 0.15), painted * 0.5, 0.45);
 			vec3 under = mix(under_base, vec3(0.42, 0.39, 0.34), b.x) * (0.75 + b.y * 0.4);
-			float crack = (1.0 - smoothstep(0.0, 0.03, abs(noise4(uv * 0.6 + 11.0).b - 0.5))) * step(0.5, noise4(uv * 0.2 + 2.0).a);
-			vec3 plaster = painted * (0.86 + grime * 0.24) * (1.0 - crack * 0.4);
+			float crack = (1.0 - smoothstep(0.0, 0.006, abs(noise4(uv * 0.6 + 11.0).b - 0.5))) * step(0.55, noise4(uv * 0.2 + 2.0).a);
+			vec3 plaster = painted * (0.86 + grime * 0.24) * (1.0 - crack * 0.3);
 			float streak = smoothstep(0.55, 0.9, noise4(vec2(uv.x * 2.0, uv.y * 0.12 + 1.0)).b) * smoothstep(-face_half.y, face_half.y, uv.y);
 			plaster *= 1.0 - streak * 0.22;
 			color = mix(plaster, under, fallen);

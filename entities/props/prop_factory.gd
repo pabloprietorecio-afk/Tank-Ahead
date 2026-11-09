@@ -573,14 +573,15 @@ static func _mound_mesh(radius: float, height: float, top_radius: float, gentle:
 		for j in segments:
 			var a: float = TAU * j / segments
 			# Crestas: el contorno entra y sale según el ángulo, más marcado a media ladera.
-			var ridge: float = sin(a * 3.0 + phases[0]) * 0.14 + sin(a * 5.0 + phases[1]) * 0.09 + sin(a * 9.0 + phases[2]) * 0.05
+			var ridge: float = sin(a * 3.0 + phases[0]) * 0.2 + sin(a * 5.0 + phases[1]) * 0.12 + sin(a * 9.0 + phases[2]) * 0.06
 			var bite: float = 0.3 if gentle else 1.0
 			var r: float = lerpf(radius, top_radius * 0.4, pow(t, 0.75 if gentle else 0.9)) * (1.0 + ridge * bite * (0.35 + sin(t * PI) * 0.9))
 			var crest: float = 1.0 + (sin(a * 2.0 + phases[3]) * 0.12 + ridge * 0.5) * bite * t
-			var y: float = height * (sin(t * PI * 0.5) if gentle else pow(t, 1.15)) * crest
+			# Perfil de campana: falda tendida, ladera empinada y cima redondeada.
+			var y: float = height * (sin(t * PI * 0.5) if gentle else pow(0.5 - 0.5 * cos(t * PI), 0.85)) * crest
 			if i == rings:
 				r = 0.0
-				y = height * (1.0 if gentle else 1.04)
+				y = height
 			st.set_uv(Vector2(float(j) / segments, t))
 			st.add_vertex(Vector3(cos(a) * r, y, sin(a) * r))
 	for i in rings:
@@ -607,7 +608,10 @@ static func mountain(radius: float, height: float, segments: int = 7) -> Destruc
 	mesh.rings = 1
 	var visual := MeshInstance3D.new()
 	visual.mesh = _mound_mesh(radius, height, mesh.top_radius, segments >= 10)
-	visual.material_override = VectorMaterials.textured(mountain_color, mountain_color.lerp(ROCK_COLOR, 0.6).darkened(0.35), 7, 3.0)
+	# Las dunas son todo arena; los montes enseñan la roca en lo escarpado.
+	var gentle: bool = segments >= 10
+	var rock_tone: Color = mountain_color.darkened(0.45) if gentle else mountain_color.lerp(ROCK_COLOR, 0.6).darkened(0.35)
+	visual.material_override = VectorMaterials.textured(mountain_color, rock_tone, 7, 3.0)
 	prop.add_child(visual)
 	var shape := CollisionShape3D.new()
 	shape.shape = mesh.create_convex_shape()

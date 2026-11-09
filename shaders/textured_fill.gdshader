@@ -50,8 +50,10 @@ void fragment() {
 	float h = 0.0;
 	float rough = roughness_value;
 	float metal = metallic_value;
-	vec4 nz = noise4(p.xz * 2.0 + p.y * 1.3);
-	vec4 fine = noise4(p.xz * 9.0 + p.y * 7.0 + 2.0);
+	// A lo lejos el grano fino se funde con su media para que no centellee.
+	float lod = detail_fade(VERTEX, 60.0, 220.0);
+	vec4 nz = mix(vec4(0.5), noise4(p.xz * 2.0 + p.y * 1.3), lod);
+	vec4 fine = mix(vec4(0.5), noise4(p.xz * 9.0 + p.y * 7.0 + 2.0), detail_fade(VERTEX, 30.0, 100.0));
 	float shade = 0.82 + nz.r * 0.2 + nz.g * 0.14;
 	vec3 painted = apply_camo(base_color, camo_mode, camo_a, camo_b, camo_scale, lp);
 	vec3 color = painted * shade;
@@ -77,7 +79,7 @@ void fragment() {
 		color = mix(color, color * vec3(1.25, 1.2, 0.8), smoothstep(0.55, 0.85, leaves) * 0.4);
 		// Tono distinto en cada árbol.
 		color *= mix(vec3(0.9, 0.95, 0.9), vec3(1.12, 1.05, 0.9), node_seed);
-		h = depth * 0.06 + leaves * 0.03;
+		h = clump.r * 0.05;
 		rough = 0.85;
 	} else if (pattern == 3) {
 		// Roca: facetas, estratos, grietas y liquen.
@@ -110,7 +112,7 @@ void fragment() {
 		if (abs(n.y) < 0.1) {
 			// Hastial: tablas verticales oscuras.
 			float boards = groove((abs(n.x) > abs(n.z) ? p.z : p.x) * 6.0, 0.06);
-			color = detail_color * 2.2 * (0.8 + fine.r * 0.3) * (1.0 - boards * 0.5);
+			color = mix(detail_color * 2.2, vec3(0.4, 0.32, 0.23), 0.6) * (0.8 + fine.r * 0.3) * (1.0 - boards * 0.5);
 			h = -boards * 0.01;
 		} else {
 			// Tejas solapadas en hileras.
@@ -119,15 +121,15 @@ void fragment() {
 			float fy = fract(rows);
 			float cols = (abs(n.x) > abs(n.z) ? p.z : p.x) * 9.0 + mod(row, 2.0) * 0.5;
 			float fx = fract(cols);
-			float lod = clamp(1.2 - fwidth(cols) * 2.0, 0.0, 1.0);
+			float tile_lod = clamp(1.2 - fwidth(cols) * 2.0, 0.0, 1.0);
 			float id = hash(vec2(floor(cols), row));
 			float curve = sin(fx * 3.14159);
 			float lap = 1.0 - smoothstep(0.0, 0.2, fy);
-			color = painted * (0.72 + id * 0.45) * (0.7 + curve * 0.35 * lod) * (0.78 + fy * 0.3);
-			color = mix(color, detail_color, lap * 0.7 * lod);
+			color = painted * (0.72 + id * 0.45) * (0.7 + curve * 0.35 * tile_lod) * (0.78 + fy * 0.3);
+			color = mix(color, detail_color, lap * 0.7 * tile_lod);
 			float moss = smoothstep(0.6, 0.75, noise4(p.zy * 1.5 + node_seed * 9.0).r);
 			color = mix(color, vec3(0.2, 0.24, 0.1), moss * 0.35);
-			h = (fy * 0.035 + curve * 0.02) * lod;
+			h = (fy * 0.035 + curve * 0.02) * tile_lod;
 		}
 	} else if (pattern == 6) {
 		float fibre = noise4(vec2(p.x * 1.5 + p.z * 1.1, p.y * 24.0)).r;
@@ -139,9 +141,9 @@ void fragment() {
 		// Ladera: vegetación en lo llano, roca estratificada en lo escarpado.
 		float broad = noise4(lp.xz * 0.045 + 3.0).r * 0.6 + noise4(lp.xz * 0.13 + 8.0).g * 0.4;
 		float steep = 1.0 - smoothstep(0.76, 0.93, n.y + (nz.r - 0.5) * 0.14 + (broad - 0.5) * 0.16);
-		float strata = groove(p.y * 2.2 + nz.g * 1.2, 0.08);
+		float strata = groove(p.y * 2.2 + nz.g * 1.2, 0.08) * lod;
 		vec3 rock = detail_color * 1.9 * (0.75 + nz.b * 0.4);
-		rock = mix(rock, rock * 0.55, strata);
+		rock = mix(rock, rock * 0.72, strata);
 		vec3 veg = painted * (0.5 + broad * 0.7 + nz.r * 0.2 + fine.r * 0.1);
 		veg = mix(veg, veg * vec3(1.15, 1.05, 0.7), smoothstep(0.55, 0.8, nz.a));
 		color = mix(veg, rock, steep);
