@@ -7,7 +7,7 @@ extends Node3D
 
 const GRAVITY: float = 14.0
 const MAX_SCORCH: int = 40
-const SMOKE := Color(0.075, 0.07, 0.065)
+const SMOKE := Color(0.12, 0.115, 0.11)
 
 static var _sphere: SphereMesh
 static var _spark_mesh: BoxMesh
@@ -56,7 +56,7 @@ func _build() -> void:
 		# Bola de fuego: varias bocanadas que salen, suben y se enfrían.
 		for i in 6:
 			var dir := Vector3(randf_range(-1.0, 1.0), randf_range(0.1, 1.0), randf_range(-1.0, 1.0)).normalized()
-			_puff(dir * 0.5 * s, dir * randf_range(2.0, 5.0) * s, 0.6 * s, randf_range(1.5, 2.3) * s, randf_range(0.6, 1.0) if hot else randf_range(1.2, 1.8), randf_range(0.0, 0.08), fire_heat, cloud, 2.5, 2.2)
+			_puff(dir * 0.5 * s, dir * randf_range(2.0, 5.0) * s, 0.6 * s, randf_range(1.5, 2.3) * s, randf_range(0.8, 1.2) if hot else randf_range(1.2, 1.8), randf_range(0.0, 0.08), fire_heat, cloud, 2.5, 2.2)
 		# Columna de humo negro que queda después.
 		for i in 5:
 			var side := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)) * 0.7 * s
@@ -67,7 +67,7 @@ func _build() -> void:
 			for i in 8:
 				var angle: float = TAU * i / 8.0 + randf_range(-0.3, 0.3)
 				var out := Vector3(cos(angle), 0.0, sin(angle))
-				_puff(out * 0.8 * s + Vector3.UP * 0.3, out * randf_range(6.0, 10.0) * s + Vector3.UP * 0.6, 0.5 * s, randf_range(1.5, 2.1) * s, randf_range(1.0, 1.5), 0.03, 0.0, dust, 0.3, 3.0)
+				_puff(out * 0.8 * s + Vector3.UP * 0.3, out * randf_range(6.0, 10.0) * s + Vector3.UP * 0.6, 0.4 * s, randf_range(1.0, 1.5) * s, randf_range(1.0, 1.5), 0.03, 0.0, dust, 0.3, 3.0)
 			if hot:
 				_scorch()
 		if hot:

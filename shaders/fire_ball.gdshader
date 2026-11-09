@@ -27,7 +27,7 @@ void fragment() {
 	uv.y -= life * 0.9;
 	float n = noise4(uv * 2.2).r * 0.6 + noise4(uv * 5.3 + 3.0).g * 0.4;
 	// Temperatura: cae con la vida; el ruido deja vetas más calientes.
-	float temp = clamp(heat * (1.0 - life * 1.5) * (0.55 + n * 0.9), 0.0, 1.6);
+	float temp = clamp(heat * (1.0 - life * 1.25) * (0.55 + n * 0.9), 0.0, 1.6);
 	vec3 fire = mix(vec3(0.75, 0.08, 0.01), vec3(1.0, 0.45, 0.06), smoothstep(0.1, 0.45, temp));
 	fire = mix(fire, vec3(1.0, 0.85, 0.45), smoothstep(0.5, 0.9, temp));
 	fire = mix(fire, vec3(1.0, 0.98, 0.9), smoothstep(1.0, 1.4, temp));
@@ -38,6 +38,6 @@ void fragment() {
 	ROUGHNESS = 1.0;
 	float erode = smoothstep(life - 0.3, life + 0.12, n * 0.85 + 0.12);
 	float fade = 1.0 - smoothstep(0.7, 1.0, life);
-	float density = mix(0.8, 1.0, glow);
+	float density = mix(0.62, 1.0, glow);
 	ALPHA = smoothstep(0.05, 0.75, facing) * erode * fade * density;
 }
