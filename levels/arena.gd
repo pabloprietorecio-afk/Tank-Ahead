@@ -115,6 +115,7 @@ func _build_ui() -> void:
 	add_child(layer)
 
 	var touch := TouchControls.new()
+	touch.exclusion = Rect2(get_viewport().get_visible_rect().size.x - 100.0, 0.0, 100.0, 110.0)
 	layer.add_child(touch)
 
 	_hud = Hud.new()

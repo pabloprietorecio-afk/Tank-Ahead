@@ -13,6 +13,8 @@ var _version: String = ""
 var _message_time: float = 0.0
 var _flash: float = 0.0
 var _over_time: float = 0.0
+var _panel: PanelContainer
+
 
 
 func _ready() -> void:
@@ -34,6 +36,44 @@ func _ready() -> void:
 	tank.damaged.connect(func(amount: float, _s: Node) -> void: _flash = minf(_flash + amount / 40.0, 0.6))
 	director.message.connect(_show_message)
 	director.game_over.connect(_on_game_over)
+	GameSettings.ensure_loaded()
+	_build_settings()
+
+
+func _build_settings() -> void:
+	var gear := Button.new()
+	gear.text = "⚙"
+	gear.add_theme_font_size_override("font_size", 40)
+	gear.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	gear.position = Vector2(-90.0, 14.0)
+	gear.size = Vector2(76.0, 76.0)
+	gear.pressed.connect(func() -> void: _panel.visible = not _panel.visible)
+	add_child(gear)
+
+	_panel = PanelContainer.new()
+	_panel.visible = false
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_panel.position.y = 100.0
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 14)
+	_panel.add_child(box)
+	box.add_child(_make_toggle("Ayuda de apuntado (fija al enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
+		GameSettings.aim_assist = on
+		GameSettings.save()))
+	box.add_child(_make_toggle("Movimiento relativo a la vista", GameSettings.camera_relative, func(on: bool) -> void:
+		GameSettings.camera_relative = on
+		GameSettings.save()))
+	add_child(_panel)
+
+
+func _make_toggle(text: String, value: bool, on_change: Callable) -> CheckButton:
+	var toggle := CheckButton.new()
+	toggle.text = text
+	toggle.button_pressed = value
+	toggle.add_theme_font_size_override("font_size", 24)
+	toggle.toggled.connect(on_change)
+	return toggle
 
 
 func _make_label(font_size: int, pos: Vector2) -> Label:
@@ -75,13 +115,14 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var green: Color = VectorMaterials.GREEN
+	var reticle: Color = VectorMaterials.ORANGE if (tank != null and tank.aim_lock != null) else green
 	if _flash > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.1, 0.05, _flash * 0.5), true)
 	# Retícula
-	draw_line(center + Vector2(-18.0, 0.0), center + Vector2(-6.0, 0.0), green, 2.0)
-	draw_line(center + Vector2(6.0, 0.0), center + Vector2(18.0, 0.0), green, 2.0)
-	draw_line(center + Vector2(0.0, -18.0), center + Vector2(0.0, -6.0), green, 2.0)
-	draw_line(center + Vector2(0.0, 6.0), center + Vector2(0.0, 18.0), green, 2.0)
+	draw_line(center + Vector2(-18.0, 0.0), center + Vector2(-6.0, 0.0), reticle, 2.0)
+	draw_line(center + Vector2(6.0, 0.0), center + Vector2(18.0, 0.0), reticle, 2.0)
+	draw_line(center + Vector2(0.0, -18.0), center + Vector2(0.0, -6.0), reticle, 2.0)
+	draw_line(center + Vector2(0.0, 6.0), center + Vector2(0.0, 18.0), reticle, 2.0)
 	if tank == null:
 		return
 	# Barra de recarga bajo la retícula

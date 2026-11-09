@@ -34,6 +34,8 @@ var health: HealthComponent
 var weapon: TankWeapon
 var turret_controller: TurretController
 var is_destroyed: bool = false
+## Enemigo fijado por la ayuda de apuntado (solo jugador).
+var aim_lock: Tank = null
 
 var _scale_factor: float = 1.0
 var _shake: float = 0.0
@@ -43,6 +45,8 @@ func _ready() -> void:
 	if stats == null:
 		stats = TankStats.new()
 	_scale_factor = stats.body_scale
+	if team == 1:
+		add_to_group(&"enemies")
 	collision_layer = LAYER_TANK
 	collision_mask = LAYER_WORLD | LAYER_TANK
 	_build_body()

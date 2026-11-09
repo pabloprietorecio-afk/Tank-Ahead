@@ -12,6 +12,9 @@ const LEFT_ZONE_FRACTION: float = 0.45
 var move_vector: Vector2 = Vector2.ZERO
 var fire_held: bool = false
 
+## Zona de pantalla que no genera controles (botones de la interfaz).
+var exclusion: Rect2 = Rect2()
+
 var _look_delta: Vector2 = Vector2.ZERO
 var _stick_id: int = -1
 var _stick_origin: Vector2 = Vector2.ZERO
@@ -53,6 +56,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_press(index: int, pos: Vector2) -> void:
+	if exclusion.has_point(pos):
+		return
 	if _fire_id == -1 and pos.distance_to(_fire_center()) <= FIRE_RADIUS * 1.25:
 		_fire_id = index
 		fire_held = true
