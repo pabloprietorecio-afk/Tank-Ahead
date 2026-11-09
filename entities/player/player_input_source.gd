@@ -25,6 +25,10 @@ var _fine_yaw: float = 0.0
 var _idle_time: float = 0.0
 var _turn: float = 0.0
 var _relock_cooldown: float = 0.0
+## Movimiento fácil: rumbo del cañón en el mundo que elige el jugador.
+var _aim_world: float = NAN
+## Fuerza con la que el casco se alinea con el cañón al avanzar.
+const ALIGN_GAIN: float = 2.2
 
 
 func _process(delta: float) -> void:
@@ -33,7 +37,6 @@ func _process(delta: float) -> void:
 	var stick: Vector2 = touch.move_vector
 	_turn = move_toward(_turn, stick.x, TURN_SMOOTHING * delta)
 	stick.x = _turn
-	tank.drive_input = stick
 	tank.trigger_held = touch.fire_held
 
 	var look: Vector2 = touch.consume_look_delta()
@@ -42,8 +45,17 @@ func _process(delta: float) -> void:
 		_update_lock()
 	elif tank.aim_lock != null:
 		release_lock()
+	if is_nan(_aim_world) or tank.aim_lock != null or not GameSettings.easy_drive:
+		_aim_world = tank.turret_controller.world_yaw
+	if GameSettings.easy_drive:
+		stick.x = _easy_turn(touch.move_vector)
+	tank.drive_input = stick
+
 	if tank.aim_lock != null:
 		tank.turret_controller.aim_at(_lock_point(tank.aim_lock))
+	elif GameSettings.easy_drive:
+		_aim_world = wrapf(_aim_world - look.x * look_sensitivity, -PI, PI)
+		tank.turret_controller.aim_world_yaw(_aim_world, -look.y * look_sensitivity)
 	elif GameSettings.auto_recenter:
 		_classic_aim(look, delta)
 	elif look != Vector2.ZERO:
@@ -116,3 +128,17 @@ func _classic_aim(look: Vector2, delta: float) -> void:
 	if _idle_time > FINE_RECENTER_DELAY:
 		_fine_yaw = move_toward(_fine_yaw, 0.0, FINE_RECENTER_SPEED * delta)
 	tank.turret_controller.aim_local(_fine_yaw)
+
+
+## Movimiento fácil: si el jugador no gira a mano, el casco gira hacia donde apunta el cañón
+## mientras el tanque avanza o retrocede, hasta quedar alineados.
+func _easy_turn(raw: Vector2) -> float:
+	if absf(raw.x) > 0.35:
+		# Giro manual: el cañón mantiene su rumbo en el mundo.
+		return _turn
+	if absf(raw.y) < 0.1:
+		return 0.0
+	var diff: float = angle_difference(tank.global_rotation.y, tank.turret_controller.world_yaw)
+	if absf(diff) < deg_to_rad(1.5):
+		return 0.0
+	return clampf(-diff * ALIGN_GAIN, -1.0, 1.0)

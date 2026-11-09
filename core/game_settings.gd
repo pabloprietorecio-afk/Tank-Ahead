@@ -9,6 +9,9 @@ static var aim_assist: bool = false
 ## La torreta gira 360º siempre. Si está activo, vuelve sola al frente al dejar de moverla.
 static var auto_recenter: bool = false
 
+## Movimiento fácil: el cañón se apunta libre en el mundo y el casco se alinea con él al avanzar.
+static var easy_drive: bool = true
+
 static var _loaded: bool = false
 
 
@@ -19,11 +22,13 @@ static func ensure_loaded() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) == OK:
 		aim_assist = cfg.get_value("controls", "aim_assist", aim_assist)
+		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 
 
 static func save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("controls", "aim_assist", aim_assist)
+	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.save(PATH)

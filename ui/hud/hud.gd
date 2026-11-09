@@ -62,7 +62,10 @@ func _build_settings() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	_panel.add_child(box)
-	box.add_child(_make_toggle("Recentrar el cañón al frente", GameSettings.auto_recenter, func(on: bool) -> void:
+	box.add_child(_make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
+		GameSettings.easy_drive = on
+		GameSettings.save()))
+	box.add_child(_make_toggle("Recentrar el cañón al frente (sin movimiento fácil)", GameSettings.auto_recenter, func(on: bool) -> void:
 		GameSettings.auto_recenter = on
 		GameSettings.save()))
 	box.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:

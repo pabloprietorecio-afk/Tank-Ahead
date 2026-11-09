@@ -23,10 +23,12 @@ var _target_local: float = 0.0
 var _target_world: float = 0.0
 var _world_mode: bool = false
 var _target_pitch: float = 0.0
+var _prev_hull_yaw: float = 0.0
 
 
 func setup(tank: Tank) -> void:
 	_tank = tank
+	_prev_hull_yaw = tank.global_rotation.y
 
 
 ## Desplazamiento deseado en radianes (jugador). La torreta se queda donde la dejes,
@@ -61,6 +63,13 @@ func aim_at(point: Vector3) -> void:
 	_target_pitch = clampf(atan2(to.y, horizontal), MIN_PITCH, MAX_PITCH)
 
 
+## Mantiene la torreta en un rumbo fijo del mundo (no gira con el casco) y ajusta la elevación.
+func aim_world_yaw(yaw: float, delta_pitch: float = 0.0) -> void:
+	_target_world = yaw
+	_world_mode = true
+	_target_pitch = clampf(_target_pitch + delta_pitch, MIN_PITCH, MAX_PITCH)
+
+
 ## Apunta hacia un rumbo del mundo sin cambiar la elevación (para escanear).
 func aim_yaw(yaw: float) -> void:
 	_target_world = yaw
@@ -84,6 +93,11 @@ func _desired_world() -> float:
 func _process(delta: float) -> void:
 	if _tank == null:
 		return
+	# Al seguir un rumbo del mundo, el giro del casco se compensa al instante.
+	var hull_yaw: float = _tank.global_rotation.y
+	if _world_mode:
+		local_yaw = wrapf(local_yaw - angle_difference(_prev_hull_yaw, hull_yaw), -PI, PI)
+	_prev_hull_yaw = hull_yaw
 	var max_step: float = _tank.stats.turret_turn_speed * delta
 	var ease: float = 1.0 - exp(-SMOOTHING * delta)
 	var diff: float = angle_difference(world_yaw, _desired_world())
