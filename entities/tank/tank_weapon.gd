@@ -1,0 +1,46 @@
+class_name TankWeapon
+extends Node
+## Arma del tanque: cadencia y disparo de proyectiles.
+
+signal fired
+
+@export var projectile_scene: PackedScene
+@export var projectile_speed: float = 150.0
+@export var damage: float = 25.0
+@export var reload_time: float = 1.2
+@export var muzzle: Node3D
+
+## Hurtboxes que el proyectil debe ignorar (las del propio tanque).
+var ignore_rids: Array[RID] = []
+
+var _cooldown: float = 0.0
+
+
+func _process(delta: float) -> void:
+	_cooldown = maxf(_cooldown - delta, 0.0)
+
+
+func can_fire() -> bool:
+	return _cooldown <= 0.0 and projectile_scene != null and muzzle != null
+
+
+## 0 = recién disparado, 1 = listo.
+func ready_fraction() -> float:
+	return 1.0 - clampf(_cooldown / reload_time, 0.0, 1.0) if reload_time > 0.0 else 1.0
+
+
+func fire() -> bool:
+	if not can_fire():
+		return false
+	var shell: Projectile = projectile_scene.instantiate() as Projectile
+	_world_root().add_child(shell)
+	var direction: Vector3 = -muzzle.global_transform.basis.z
+	shell.launch(muzzle.global_position, direction * projectile_speed, damage, get_parent(), ignore_rids)
+	_cooldown = reload_time
+	fired.emit()
+	return true
+
+
+func _world_root() -> Node:
+	var scene: Node = get_tree().current_scene
+	return scene if scene != null else get_tree().root
