@@ -3,8 +3,8 @@ extends Node
 ## Traduce los controles táctiles en órdenes para el tanque.
 ## Incluye la ayuda de apuntado opcional.
 
-const LOCK_CONE: float = deg_to_rad(7.0)
-const LOCK_RANGE: float = 260.0
+const LOCK_CONE: float = deg_to_rad(5.0)
+const LOCK_RANGE: float = 150.0
 ## Tras liberar un objetivo, segundos sin volver a fijar automáticamente.
 const RELOCK_DELAY: float = 2.0
 const WORLD_MASK: int = 1

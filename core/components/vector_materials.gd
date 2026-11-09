@@ -16,11 +16,14 @@ static func ground() -> ShaderMaterial:
 
 
 ## Material de aristas para una caja de tamaño `size`. Cada tamaño necesita su instancia.
-static func box_edges(size: Vector3, color: Color = GREEN) -> ShaderMaterial:
+static func box_edges(size: Vector3, color: Color = GREEN, pattern: int = 0, pattern_scale: float = 2.0) -> ShaderMaterial:
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/vector_edges.gdshader")
 	mat.set_shader_parameter("half_size", size * 0.5)
 	mat.set_shader_parameter("line_color", color)
+	mat.set_shader_parameter("fill_color", Color(color.r, color.g, color.b) * 0.04)
+	mat.set_shader_parameter("pattern", pattern)
+	mat.set_shader_parameter("pattern_scale", pattern_scale)
 	return mat
 
 
@@ -35,12 +38,12 @@ static func flat(color: Color) -> ShaderMaterial:
 
 
 ## Crea una caja visible con aristas luminosas.
-static func make_box(size: Vector3, color: Color = GREEN) -> MeshInstance3D:
+static func make_box(size: Vector3, color: Color = GREEN, pattern: int = 0, pattern_scale: float = 2.0) -> MeshInstance3D:
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
-	instance.material_override = box_edges(size, color)
+	instance.material_override = box_edges(size, color, pattern, pattern_scale)
 	return instance
 
 

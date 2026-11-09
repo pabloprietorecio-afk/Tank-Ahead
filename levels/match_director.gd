@@ -8,16 +8,22 @@ signal wave_changed(wave: int)
 signal message(text: String, urgent: bool)
 signal game_over(score: int, wave: int)
 
-const MAX_ALIVE: int = 5
+const MAX_ALIVE_LIMIT: int = 5
 const WAVE_PAUSE: float = 4.0
 const SPAWN_MIN: float = 80.0
 const SPAWN_MAX: float = 150.0
-const REPAIR_PER_WAVE: float = 30.0
+const REPAIR_PER_WAVE: float = 40.0
 const WAVE_BONUS: int = 250
 
-const LIGHT := preload("res://data/tanks/light_tank.tres")
-const HEAVY := preload("res://data/tanks/heavy_tank.tres")
-const SCOUT := preload("res://data/tanks/scout.tres")
+## Catálogo de enemigos: [ficha, coste en el presupuesto de la oleada, primera oleada en que aparece].
+const ROSTER: Array = [
+	[preload("res://data/tanks/scout.tres"), 1, 1],
+	[preload("res://data/tanks/light_tank.tres"), 1, 1],
+	[preload("res://data/tanks/sniper.tres"), 2, 3],
+	[preload("res://data/tanks/heavy_tank.tres"), 3, 4],
+	[preload("res://data/tanks/hunter.tres"), 2, 6],
+	[preload("res://data/tanks/juggernaut.tres"), 5, 8],
+]
 
 var player: Tank
 var world: Node
@@ -32,6 +38,9 @@ var alive: int = 0
 var _pending: Array[TankStats] = []
 var _pause: float = 2.0
 var _wave_active: bool = false
+var _seen_types: Dictionary = {}
+var _intro_queue: Array[TankStats] = []
+var _intro_timer: float = 0.0
 
 
 func start(player_tank: Tank, world_root: Node) -> void:
@@ -50,27 +59,72 @@ func _process(delta: float) -> void:
 		if _pause <= 0.0:
 			_begin_wave()
 		return
-	while alive < MAX_ALIVE and not _pending.is_empty():
+	_intro_timer -= delta
+	if _intro_timer <= 0.0 and not _intro_queue.is_empty():
+		var stats: TankStats = _intro_queue.pop_front()
+		message.emit("NUEVO ENEMIGO: %s — %s" % [stats.display_name, stats.description], true)
+		_intro_timer = 4.0
+	while alive < max_alive() and not _pending.is_empty():
 		_spawn(_pending.pop_back())
 	if alive == 0 and _pending.is_empty():
 		_end_wave()
 
 
+## Enemigos simultáneos: 2 al principio, sube de uno en uno cada 3 oleadas.
+func max_alive() -> int:
+	return mini(2 + (wave - 1) / 3, MAX_ALIVE_LIMIT)
+
+
+## Presupuesto de amenaza que crece despacio: 2, 3, 3, 4, 4, 5...
+func wave_budget(n: int) -> int:
+	return 2 + n / 2
+
+
 func wave_composition(n: int) -> Array[TankStats]:
 	var list: Array[TankStats] = []
-	for i in 1 + n:
-		list.append(LIGHT)
-	for i in n / 2:
-		list.append(SCOUT)
-	for i in (n - 1) / 2:
-		list.append(HEAVY)
+	var budget: int = wave_budget(n)
+	# El tipo recién desbloqueado aparece siempre en su primera oleada.
+	for entry in ROSTER:
+		if entry[2] == n and entry[1] <= budget:
+			list.append(entry[0])
+			budget -= entry[1]
+	while budget > 0:
+		var options: Array = []
+		var weights: Array[float] = []
+		for entry in ROSTER:
+			if entry[2] <= n and entry[1] <= budget:
+				options.append(entry)
+				# Los enemigos más recientes salen algo más a menudo que los básicos.
+				weights.append(1.0 + float(entry[2]) / 4.0)
+		if options.is_empty():
+			break
+		var pick: Array = options[_weighted_index(weights)]
+		list.append(pick[0])
+		budget -= pick[1]
 	list.shuffle()
 	return list
+
+
+func _weighted_index(weights: Array[float]) -> int:
+	var total: float = 0.0
+	for w in weights:
+		total += w
+	var roll: float = randf() * total
+	for i in weights.size():
+		roll -= weights[i]
+		if roll <= 0.0:
+			return i
+	return weights.size() - 1
 
 
 func _begin_wave() -> void:
 	wave += 1
 	_pending = wave_composition(wave)
+	for stats in _pending:
+		if not _seen_types.has(stats.display_name):
+			_seen_types[stats.display_name] = true
+			_intro_queue.append(stats)
+	_intro_timer = 3.0
 	_wave_active = true
 	wave_changed.emit(wave)
 	message.emit("OLEADA %d — %d ENEMIGOS" % [wave, _pending.size()], true)

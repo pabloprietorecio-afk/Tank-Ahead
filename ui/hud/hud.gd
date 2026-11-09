@@ -148,8 +148,14 @@ func _draw() -> void:
 	draw_line(center + Vector2(0.0, 6.0), center + Vector2(0.0, 18.0), reticle, 2.0)
 	if tank == null:
 		return
-	if tank.aim_lock != null:
-		draw_string(ThemeDB.fallback_font, center + Vector2(-52.0, -34.0), "BLANCO FIJADO", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16, VectorMaterials.ORANGE)
+	if tank.aim_lock != null and is_instance_valid(tank.aim_lock):
+		var target: Tank = tank.aim_lock
+		var font: Font = ThemeDB.fallback_font
+		var label: String = "%s  %d m" % [target.stats.display_name, roundi(tank.global_position.distance_to(target.global_position))]
+		draw_string(font, center + Vector2(-140.0, -52.0), label, HORIZONTAL_ALIGNMENT_CENTER, 280.0, 18, target.stats.color)
+		var bar := Rect2(center + Vector2(-50.0, -44.0), Vector2(100.0, 5.0))
+		draw_rect(bar, Color(target.stats.color, 0.3), false, 1.0)
+		draw_rect(Rect2(bar.position, Vector2(bar.size.x * target.health.fraction(), bar.size.y)), target.stats.color, true)
 	# Barra de recarga bajo la retícula
 	var ready_fraction: float = tank.weapon.ready_fraction()
 	var bar_color: Color = green if ready_fraction >= 1.0 else VectorMaterials.ORANGE

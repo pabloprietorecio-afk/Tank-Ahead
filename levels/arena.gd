@@ -127,6 +127,11 @@ func _build_scenery() -> void:
 			var size := Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.5, 5.0), _rng.randf_range(6.0, 9.0))
 			var offset := Vector2(_rng.randf_range(-18.0, 18.0), _rng.randf_range(-18.0, 18.0))
 			_place(PropFactory.house(size), center + offset, 5.0, round(_rng.randf() * 4.0) * PI * 0.5)
+		for l in 4:
+			var lamp := PropFactory.lamp_post()
+			lamp.position = Vector3(center.x + _rng.randf_range(-20.0, 20.0), 0.0, center.y + _rng.randf_range(-20.0, 20.0))
+			lamp.rotation.y = _rng.randf() * TAU
+			add_child(lamp)
 		for f in 4:
 			var angle: float = TAU * f / 4.0 + 0.4
 			var spot: Vector2 = center + Vector2(cos(angle), sin(angle)) * 27.0
@@ -145,6 +150,22 @@ func _build_scenery() -> void:
 			tree.position = Vector3(center.x + offset.x, 0.0, center.y + offset.y)
 			add_child(tree)
 		_obstacle_rects.append(Rect2(center - Vector2.ONE * 13.0, Vector2.ONE * 26.0))
+	# Ruinas con bidones de combustible (explotan y dañan lo que haya cerca).
+	for r in 5:
+		var pos := _free_spot(8.0)
+		if pos == Vector2.INF:
+			continue
+		_place(PropFactory.ruin(_rng.randf_range(8.0, 14.0)), pos, 7.0, _rng.randf() * TAU)
+		for b in _rng.randi_range(1, 3):
+			var barrel := PropFactory.barrel()
+			barrel.position = Vector3(pos.x + _rng.randf_range(-5.0, 5.0), 0.0, pos.y + _rng.randf_range(2.0, 5.0))
+			add_child(barrel)
+	# Rocas sueltas.
+	for i in 18:
+		var radius: float = _rng.randf_range(0.8, 2.5)
+		var pos := _free_spot(radius)
+		if pos != Vector2.INF:
+			_place(PropFactory.rock(radius), pos, radius)
 	# Bloques y torres.
 	for i in 10:
 		var size := Vector3(_rng.randf_range(4.0, 12.0), _rng.randf_range(3.0, 18.0), _rng.randf_range(4.0, 12.0))

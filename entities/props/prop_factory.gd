@@ -15,7 +15,8 @@ static var _roof: PrismMesh
 static func block(size: Vector3) -> Destructible:
 	var prop := _base(clampf(size.x * size.y * size.z * 0.15, 60.0, 400.0), Color(0.4, 0.8, 0.45), size.y * 0.3)
 	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
-	var mesh := VectorMaterials.make_box(size)
+	# Edificios altos con plantas y ventanas; bloques bajos con paneles.
+	var mesh := VectorMaterials.make_box(size, VectorMaterials.GREEN, 1 if size.y > 8.0 else 4, 3.0 if size.y > 8.0 else 2.0)
 	mesh.position.y = size.y * 0.5
 	prop.add_child(mesh)
 	return prop
@@ -55,7 +56,7 @@ static func house(size: Vector3) -> Destructible:
 		_roof.size = Vector3.ONE
 	var prop := _base(140.0, Color(0.6, 0.6, 0.55), size.y)
 	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
-	var walls := VectorMaterials.make_box(size, HOUSE_CYAN)
+	var walls := VectorMaterials.make_box(size, HOUSE_CYAN, 2, 1.2)
 	walls.position.y = size.y * 0.5
 	prop.add_child(walls)
 	var roof := VectorMaterials.make_outlined(_roof, HOUSE_CYAN)
@@ -86,6 +87,75 @@ static func fence(length: float) -> Destructible:
 		rail.position.y = y
 		prop.add_child(rail)
 	_add_box_shape(prop, Vector3(length, 1.3, 0.3), Vector3(0.0, 0.65, 0.0))
+	return prop
+
+
+static func rock(radius: float) -> Destructible:
+	var prop := _base(45.0 * radius, ROCK_COLOR, radius)
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * randf_range(1.0, 1.5)
+	mesh.radial_segments = 6
+	mesh.rings = 3
+	var visual := VectorMaterials.make_outlined(mesh, ROCK_COLOR.lightened(0.2))
+	visual.position.y = mesh.height * 0.35
+	visual.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
+	prop.add_child(visual)
+	var shape := CollisionShape3D.new()
+	shape.shape = mesh.create_convex_shape()
+	shape.position.y = mesh.height * 0.35
+	prop.add_child(shape)
+	return prop
+
+
+static func barrel() -> Destructible:
+	var prop := _base(6.0, Color(1.0, 0.6, 0.2), 1.8)
+	prop.blast_radius = 12.0
+	prop.blast_damage = 60.0
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.5
+	mesh.bottom_radius = 0.5
+	mesh.height = 1.3
+	mesh.radial_segments = 8
+	mesh.rings = 2
+	var visual := VectorMaterials.make_outlined(mesh, Color(1.0, 0.25, 0.15), Color(0.08, 0.0, 0.0))
+	visual.position.y = 0.65
+	prop.add_child(visual)
+	_add_box_shape(prop, Vector3(1.0, 1.3, 1.0), Vector3(0.0, 0.65, 0.0))
+	return prop
+
+
+## Muro en ruinas: tramos de ladrillo de alturas irregulares.
+static func ruin(length: float) -> Destructible:
+	var prop := _base(70.0, Color(0.6, 0.55, 0.45), 2.0)
+	var pieces: int = 4
+	var piece_length: float = length / pieces
+	for i in pieces:
+		var height: float = randf_range(1.0, 4.5)
+		var piece := VectorMaterials.make_box(Vector3(piece_length * 0.95, height, 0.8), Color(0.75, 0.85, 0.5), 2, 1.0)
+		piece.position = Vector3(-length * 0.5 + piece_length * (i + 0.5), height * 0.5, 0.0)
+		prop.add_child(piece)
+	_add_box_shape(prop, Vector3(length, 3.0, 0.8), Vector3(0.0, 1.5, 0.0))
+	return prop
+
+
+static func lamp_post() -> Destructible:
+	var prop := _base(10.0, Color(0.7, 0.7, 0.6), 0.6)
+	prop.crushable = true
+	var pole := VectorMaterials.make_box(Vector3(0.18, 5.0, 0.18), Color(0.8, 0.9, 0.6))
+	pole.position.y = 2.5
+	prop.add_child(pole)
+	var arm := VectorMaterials.make_box(Vector3(1.4, 0.12, 0.12), Color(0.8, 0.9, 0.6))
+	arm.position = Vector3(0.6, 5.0, 0.0)
+	prop.add_child(arm)
+	var lamp := MeshInstance3D.new()
+	var bulb := BoxMesh.new()
+	bulb.size = Vector3(0.45, 0.2, 0.3)
+	lamp.mesh = bulb
+	lamp.material_override = VectorMaterials.flat(Color(1.0, 0.95, 0.6))
+	lamp.position = Vector3(1.2, 4.85, 0.0)
+	prop.add_child(lamp)
+	_add_box_shape(prop, Vector3(0.4, 5.0, 0.4), Vector3(0.0, 2.5, 0.0))
 	return prop
 
 

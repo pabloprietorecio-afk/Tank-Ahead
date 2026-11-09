@@ -4,7 +4,7 @@ extends Control
 ## No conoce ningún tipo de enemigo: dibuja todo nodo Node3D del grupo "enemies".
 
 const RADIUS: float = 90.0
-const RANGE: float = 260.0
+const RANGE: float = 200.0
 const SWEEP_PERIOD: float = 2.5
 
 @export var player: Tank
@@ -48,5 +48,9 @@ func _draw() -> void:
 		var distance: float = local.length()
 		var out_of_range: bool = distance > RANGE
 		var pos: Vector2 = c + local.limit_length(RANGE) / RANGE * (RADIUS - 6.0)
-		var color: Color = Color(1.0, 0.5, 0.1, 0.5 if out_of_range else 1.0)
-		draw_circle(pos, 4.0 if out_of_range else 6.0, color)
+		var base: Color = enemy.stats.color if enemy is Tank else VectorMaterials.ORANGE
+		var color: Color = Color(base, 0.45 if out_of_range else 1.0)
+		var dot: float = (4.0 if out_of_range else 5.0) * (enemy.stats.body_scale if enemy is Tank else 1.0)
+		draw_circle(pos, dot, color)
+		if enemy == player.aim_lock:
+			draw_arc(pos, dot + 4.0, 0.0, TAU, 16, VectorMaterials.ORANGE, 2.0)

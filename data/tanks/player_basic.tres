@@ -4,4 +4,5 @@
 
 [resource]
 script = ExtResource("1")
-display_name = "PLAYER"
+display_name = "JUGADOR"
+has_antenna = true

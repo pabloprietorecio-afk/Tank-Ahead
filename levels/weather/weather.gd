@@ -13,6 +13,7 @@ var follow: Node3D
 var ground_material: ShaderMaterial
 
 var _particles: GPUParticles3D
+var sky: SkyDome
 var _rain_loop: AudioStreamPlayer
 var _lightning_timer: float = 10.0
 var _flash: float = 0.0
@@ -26,6 +27,10 @@ func setup(env: Environment, target: Node3D, ground: ShaderMaterial, forced: int
 	kind = (randi() % 4) as Kind if forced < 0 else forced as Kind
 	_base_background = env.background_color
 	ground_material.set_shader_parameter("tint", 0.0)
+	sky = SkyDome.new()
+	sky.follow = target
+	add_child(sky)
+	sky.visible = kind == Kind.CLEAR
 	match kind:
 		Kind.CLEAR:
 			env.fog_density = 0.006

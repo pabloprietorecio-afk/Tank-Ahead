@@ -101,45 +101,75 @@ func _on_died(source: Node) -> void:
 func _build_body() -> void:
 	var k: float = _scale_factor
 	var color: Color = stats.color
+	var hull_size: Vector3 = HULL_SIZE * stats.hull_proportions * k
+	var own_meshes: Array[MeshInstance3D] = []
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(HULL_SIZE.x, 1.2, HULL_SIZE.z) * k
+	box.size = Vector3(hull_size.x, 1.2 * k, hull_size.z)
 	shape.shape = box
 	shape.position.y = 0.6 * k
 	add_child(shape)
 
-	var hull := VectorMaterials.make_box(HULL_SIZE * k, color)
-	hull.position.y = 0.45 * k
+	var hull := VectorMaterials.make_box(hull_size, color, 4, 1.2 * k)
+	hull.position.y = 0.2 * k + hull_size.y * 0.5
 	add_child(hull)
+	own_meshes.append(hull)
+	var top: float = 0.2 * k + hull_size.y
 
+	if stats.has_tracks:
+		var track_size := Vector3(0.55 * k, 0.75 * k, hull_size.z * 1.04)
+		for side in [-1.0, 1.0]:
+			var track := VectorMaterials.make_box(track_size, color.darkened(0.25), 3, 0.5 * k)
+			track.position = Vector3(side * (hull_size.x * 0.5 + track_size.x * 0.5 - 0.05), track_size.y * 0.5, 0.0)
+			add_child(track)
+			own_meshes.append(track)
+
+	var turret_size: Vector3 = TURRET_SIZE * stats.turret_scale * k
 	turret = Node3D.new()
 	turret.name = "Turret"
-	turret.position = Vector3(0.0, 1.25, 0.2) * k
+	turret.position = Vector3(0.0, top + turret_size.y * 0.5, 0.2 * k)
 	add_child(turret)
-	var turret_mesh := VectorMaterials.make_box(TURRET_SIZE * k, color)
+	var turret_mesh := VectorMaterials.make_box(turret_size, color, 4, 0.8 * k)
 	turret.add_child(turret_mesh)
+	own_meshes.append(turret_mesh)
+
+	if stats.has_dome:
+		var dome := VectorMaterials.make_box(Vector3(0.7, 0.35, 0.7) * k, color.lightened(0.3))
+		dome.position = Vector3(0.35 * k, turret_size.y * 0.5 + 0.17 * k, 0.35 * k)
+		turret.add_child(dome)
+		own_meshes.append(dome)
+	if stats.has_antenna:
+		var antenna := VectorMaterials.make_box(Vector3(0.06, 2.4, 0.06) * k, color.lightened(0.4))
+		antenna.position = Vector3(-turret_size.x * 0.4, turret_size.y * 0.5 + 1.2 * k, turret_size.z * 0.4)
+		turret.add_child(antenna)
+		own_meshes.append(antenna)
 
 	gun_pivot = Node3D.new()
 	gun_pivot.name = "GunPivot"
 	gun_pivot.position = Vector3(0.0, 0.1, 0.0) * k
 	turret.add_child(gun_pivot)
-	var barrel := VectorMaterials.make_box(BARREL_SIZE * k, color)
-	barrel.position = Vector3(0.0, 0.0, -BARREL_SIZE.z * 0.5 - 0.6) * k
-	gun_pivot.add_child(barrel)
+	var barrel_size := Vector3(BARREL_SIZE.x * stats.barrel_thickness, BARREL_SIZE.y * stats.barrel_thickness, BARREL_SIZE.z * stats.barrel_length) * k
+	var barrels: int = maxi(stats.barrel_count, 1)
+	for b in barrels:
+		var x: float = 0.0 if barrels == 1 else (b - (barrels - 1) * 0.5) * barrel_size.x * 1.8
+		var barrel := VectorMaterials.make_box(barrel_size, color)
+		barrel.position = Vector3(x, 0.0, -turret_size.z * 0.5 - barrel_size.z * 0.5 + 0.2 * k)
+		gun_pivot.add_child(barrel)
+		own_meshes.append(barrel)
 
 	muzzle = Marker3D.new()
 	muzzle.name = "Muzzle"
-	muzzle.position = Vector3(0.0, 0.0, -BARREL_SIZE.z - 0.7) * k
+	muzzle.position = Vector3(0.0, 0.0, -turret_size.z * 0.5 - barrel_size.z - 0.1 * k)
 	gun_pivot.add_child(muzzle)
 
 	if is_player:
-		for mesh: MeshInstance3D in [hull, turret_mesh, barrel]:
+		for mesh in own_meshes:
 			mesh.layers = VISUAL_LAYER_OWN
 		camera = Camera3D.new()
 		camera.name = "Camera"
 		camera.fov = 75.0
 		camera.near = 0.1
-		camera.far = 500.0
+		camera.far = 600.0
 		camera.cull_mask = 1
 		camera.position = Vector3(0.0, 0.3, 0.2)
 		gun_pivot.add_child(camera)
@@ -161,9 +191,9 @@ func _build_components() -> void:
 	hurtbox.team = team
 	var hurt_shape := CollisionShape3D.new()
 	var hurt_box := BoxShape3D.new()
-	hurt_box.size = Vector3(HULL_SIZE.x * k + 0.2, 2.2 * k, HULL_SIZE.z * k + 0.2)
+	hurt_box.size = Vector3(HULL_SIZE.x * stats.hull_proportions.x * k + 1.2 * k, 2.4 * k, HULL_SIZE.z * stats.hull_proportions.z * k + 0.2)
 	hurt_shape.shape = hurt_box
-	hurt_shape.position.y = 1.1 * k
+	hurt_shape.position.y = 1.2 * k
 	hurtbox.add_child(hurt_shape)
 	add_child(hurtbox)
 
