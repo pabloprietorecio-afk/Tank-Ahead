@@ -20,29 +20,33 @@ var hunt: bool = true
 ## Distancia a la que se queda del objetivo al llegar (defensores: patrullan alrededor).
 var objective_radius: float = 6.0
 
-## Navegación con rodeo de obstáculos (la usan los tanques del bando del jugador): palpa el
-## terreno en abanico, toma el rumbo libre más cercano al destino, bordea el obstáculo siempre
-## por el mismo lado y, si aun así se queda clavado, da marcha atrás y prueba por el otro.
+## Navegación con rodeo de obstáculos (la usan los tanques del bando del jugador). Dos capas:
+## una ruta sobre el mapa de celdas (NavGrid), que evita edificios, setos, colinas y callejones
+## sin salida; y, para seguirla, un abanico de rayos que esquiva lo que el mapa no ve (otros
+## tanques, restos, esquinas). Si aun así se queda clavado, da marcha atrás y recalcula.
 var smart_nav: bool = false
 
 const NAV_INTERVAL: float = 0.12
 const NAV_REACH: float = 14.0
-## Desvíos que se prueban respecto al rumbo directo (radianes; positivo = izquierda).
+## Desvíos que se prueban respecto al rumbo deseado (radianes; positivo = izquierda).
 const NAV_ANGLES: Array[float] = [0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.65, -1.65, 2.2, -2.2]
 const NAV_SIDE_PENALTY: float = 1.5
+const PATH_INTERVAL: float = 2.5
 const STUCK_CHECK: float = 1.2
 const STUCK_DISTANCE: float = 0.7
 
 var _avoid_sign: float = 1.0
 var _avoid_timer: float = 0.0
 var _retarget_timer: float = 0.0
+var _grid: NavGrid
+var _path := PackedVector3Array()
+var _path_index: int = 0
+var _path_goal: Vector3 = Vector3.INF
+var _path_timer: float = 0.0
 var _nav_timer: float = 0.0
 var _nav_heading: Vector3 = Vector3.ZERO
-## Rumbo directo al destino real (sin contar rodeos).
-var _nav_goal_dir: Vector3 = Vector3.ZERO
 var _nav_blocked: bool = false
-var _nav_blocked_time: float = 0.0
-## Lado por el que está rodeando: +1 izquierda, -1 derecha, 0 ninguno.
+## Lado por el que está esquivando: +1 izquierda, -1 derecha, 0 ninguno.
 var _nav_side: float = 0.0
 var _nav_side_time: float = 0.0
 var _nav_driving: bool = false
@@ -53,8 +57,6 @@ var _stuck_count: int = 0
 var _stuck_calm: float = 0.0
 var _reverse_time: float = 0.0
 var _reverse_turn: float = 0.0
-var _detour: Vector3 = Vector3.INF
-var _detour_time: float = 0.0
 ## Veces que ha tenido que desatascarse (para pruebas).
 var unstuck_total: int = 0
 
@@ -210,8 +212,8 @@ func aim_with_error() -> void:
 ## queriendo avanzar, ya encarado a su rumbo, y apenas se ha movido del sitio.
 func _nav_tick(delta: float) -> void:
 	_nav_timer -= delta
+	_path_timer -= delta
 	_nav_side_time = maxf(_nav_side_time - delta, 0.0)
-	_detour_time = maxf(_detour_time - delta, 0.0)
 	if _nav_side_time <= 0.0 and not _nav_blocked:
 		_nav_side = 0.0
 	_stuck_calm += delta
@@ -222,25 +224,13 @@ func _nav_tick(delta: float) -> void:
 		_stuck_time = 0.0
 		_stuck_origin = tank.global_position
 		return
-	if not _nav_driving:
+	if not _nav_driving or not _nav_aligned:
+		# Parado a propósito, o girando sobre sí mismo hacia su rumbo: normal que no se desplace.
+		_nav_driving = false
 		_stuck_time = 0.0
 		_stuck_origin = tank.global_position
 		return
 	_nav_driving = false
-	# Tiempo acumulado con el paso cortado (se descuenta despacio cuando lo tiene libre, para
-	# notar también cuando entra y sale una y otra vez del mismo callejón).
-	if _nav_blocked:
-		_nav_blocked_time += delta
-		if _nav_blocked_time > 9.0:
-			_nav_blocked_time = 0.0
-			_pick_lateral_detour()
-	else:
-		_nav_blocked_time = maxf(_nav_blocked_time - delta * 0.5, 0.0)
-	if not _nav_aligned:
-		# Girando sobre sí mismo hacia su rumbo: es normal que no se desplace.
-		_stuck_time = 0.0
-		_stuck_origin = tank.global_position
-		return
 	_stuck_time += delta
 	if _stuck_time < STUCK_CHECK:
 		return
@@ -251,8 +241,7 @@ func _nav_tick(delta: float) -> void:
 		_unstick()
 
 
-## Atascado: marcha atrás girando el morro hacia el lado del rodeo. Cada segundo intento
-## cambia de lado, y al tercero busca un punto despejado por el que dar un rodeo amplio.
+## Atascado: marcha atrás girando el morro hacia un lado (alterna cada dos intentos) y ruta nueva.
 func _unstick() -> void:
 	unstuck_total += 1
 	_stuck_count += 1
@@ -266,55 +255,7 @@ func _unstick() -> void:
 	# drive_input.x > 0 gira a la derecha; para llevar el morro a la izquierda (+1), negativo.
 	_reverse_turn = -_nav_side * 0.9
 	_nav_timer = 0.0
-	if _stuck_count >= 3:
-		_stuck_count = 0
-		_pick_detour()
-
-
-## Rodeo amplio: el rumbo con más espacio libre alrededor, y hacia allí durante unos segundos.
-func _pick_detour() -> void:
-	var best_free: float = 0.0
-	var best_dir: Vector3 = Vector3.ZERO
-	var start: float = randf() * TAU
-	for i in 10:
-		var dir: Vector3 = Vector3.FORWARD.rotated(Vector3.UP, start + TAU * i / 10.0)
-		var free: float = _clearance(dir, 30.0)
-		if free > best_free:
-			best_free = free
-			best_dir = dir
-	if best_free < 8.0:
-		return
-	_detour = tank.global_position + best_dir * (best_free - 4.0)
-	_detour.x = clampf(_detour.x, -ARENA_LIMIT, ARENA_LIMIT)
-	_detour.z = clampf(_detour.z, -ARENA_LIMIT, ARENA_LIMIT)
-	_detour_time = 7.0
-
-
-## Lleva demasiado rato sin encontrar paso (un callejón, un recinto): se aparta de lado un buen
-## trecho, por donde haya más sitio, para volver a intentarlo desde otro ángulo.
-func _pick_lateral_detour() -> void:
-	if _nav_goal_dir == Vector3.ZERO:
-		return
-	var best_free: float = 0.0
-	var best_dir: Vector3 = Vector3.ZERO
-	for offset: float in [PI * 0.5, -PI * 0.5, 2.1, -2.1, 1.0, -1.0]:
-		var dir: Vector3 = _nav_goal_dir.rotated(Vector3.UP, offset)
-		var free: float = _clearance(dir, 38.0)
-		# Mejor por el lado por el que ya venía rodeando.
-		var value: float = free + (5.0 if signf(offset) == _nav_side else 0.0)
-		if value > best_free:
-			best_free = value
-			best_dir = dir
-			_nav_side = signf(offset)
-	if best_free < 12.0:
-		_pick_detour()
-		return
-	_detour = tank.global_position + best_dir * (minf(best_free, 38.0) - 4.0)
-	_detour.x = clampf(_detour.x, -ARENA_LIMIT, ARENA_LIMIT)
-	_detour.z = clampf(_detour.z, -ARENA_LIMIT, ARENA_LIMIT)
-	_detour_time = 10.0
-	_nav_side_time = 6.0
-	_nav_timer = 0.0
+	_path_timer = 0.0
 
 
 func _drive_smart(point: Vector3, speed: float) -> void:
@@ -322,40 +263,60 @@ func _drive_smart(point: Vector3, speed: float) -> void:
 	if _reverse_time > 0.0:
 		tank.drive_input = Vector2(_reverse_turn, -0.8)
 		return
-	var goal: Vector3 = point
-	var direct: Vector3 = point - tank.global_position
-	direct.y = 0.0
-	if direct.length() > 0.5:
-		_nav_goal_dir = direct.normalized()
-	if _detour != Vector3.INF:
-		var left: Vector3 = _detour - tank.global_position
-		left.y = 0.0
-		if _detour_time <= 0.0 or left.length() < 5.0:
-			_detour = Vector3.INF
-		else:
-			goal = _detour
-	var to: Vector3 = goal - tank.global_position
-	to.y = 0.0
-	var dist: float = to.length()
-	if dist < 0.5:
-		tank.drive_input = Vector2.ZERO
-		return
 	if _nav_timer <= 0.0 or _nav_heading == Vector3.ZERO:
 		_nav_timer = NAV_INTERVAL
+		if _path_timer <= 0.0 or _path_goal == Vector3.INF or _path_goal.distance_to(point) > 8.0:
+			_plan_path(point)
+		var to: Vector3 = _path_target(point) - tank.global_position
+		to.y = 0.0
+		var dist: float = to.length()
+		if dist < 0.5:
+			tank.drive_input = Vector2.ZERO
+			return
 		_choose_heading(to / dist, dist)
 	var forward: Vector3 = -tank.global_transform.basis.z
 	var angle: float = forward.signed_angle_to(_nav_heading, Vector3.UP)
 	var turn: float = clampf(-angle * 2.5, -1.0, 1.0)
 	var advance: float = speed * clampf(1.0 - absf(angle) / 0.9, 0.0, 1.0)
 	if _nav_blocked and absf(angle) > 0.45:
-		# Rodeando: primero gira en el sitio hacia el hueco y luego avanza.
+		# Esquivando: primero gira en el sitio hacia el hueco y luego avanza.
 		advance = 0.0
 	_nav_aligned = absf(angle) < 0.5
 	tank.drive_input = Vector2(turn, advance)
 
 
-## Elige el rumbo: el directo si está libre; si no, el desvío más pequeño con paso, con
-## preferencia por seguir rodeando por el mismo lado (para no dudar entre los dos).
+## Calcula la ruta hasta el destino sobre el mapa de celdas (vacía si aún no está listo o no
+## hay paso: entonces va en línea recta, esquivando con los rayos).
+func _plan_path(point: Vector3) -> void:
+	_path_timer = PATH_INTERVAL + randf() * 0.5
+	_path_goal = point
+	_path_index = 0
+	if _grid == null:
+		_grid = NavGrid.of(tank.get_parent())
+	_path = _grid.find_path(tank.global_position, point) if _grid.ready_once else PackedVector3Array()
+
+
+## Punto de la ruta hacia el que conducir ahora: deja atrás los ya alcanzados y ataja hasta el
+## más lejano de los siguientes que tenga a la vista, para no ir haciendo eses de celda en celda.
+func _path_target(point: Vector3) -> Vector3:
+	if _path.is_empty():
+		return point
+	var pos: Vector3 = tank.global_position
+	var last: int = _path.size() - 1
+	while _path_index < last and Vector2(_path[_path_index].x - pos.x, _path[_path_index].z - pos.z).length() < 5.0:
+		_path_index += 1
+	for i in range(mini(_path_index + 5, last), _path_index, -1):
+		var leg: Vector3 = _path[i] - pos
+		leg.y = 0.0
+		var length: float = leg.length()
+		if length < 0.5 or _clearance(leg / length, length) >= length - 0.3:
+			_path_index = i
+			break
+	return _path[_path_index]
+
+
+## Elige el rumbo: el deseado si está libre; si no, el desvío más pequeño con paso, con
+## preferencia por seguir esquivando por el mismo lado (para no dudar entre los dos).
 func _choose_heading(goal_dir: Vector3, dist: float) -> void:
 	var reach: float = NAV_REACH * maxf(tank.stats.body_scale, 1.0)
 	var need: float = minf(reach, dist)

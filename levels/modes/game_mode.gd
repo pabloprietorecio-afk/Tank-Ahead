@@ -170,6 +170,9 @@ func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> 
 	brain.setup(tank)
 	# Los tanques de nuestro bando rodean los obstáculos y se desatascan solos.
 	brain.smart_nav = team == PLAYER_TEAM
+	if brain.smart_nav:
+		# El mapa de rutas empieza a rellenarse ya, antes de que haga falta.
+		NavGrid.of(world)
 	tank.destroyed.connect(_on_tank_destroyed)
 	return tank
 
