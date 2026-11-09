@@ -31,7 +31,7 @@ void fragment() {
 	vec3 fire = mix(vec3(0.75, 0.08, 0.01), vec3(1.0, 0.45, 0.06), smoothstep(0.1, 0.45, temp));
 	fire = mix(fire, vec3(1.0, 0.85, 0.45), smoothstep(0.5, 0.9, temp));
 	fire = mix(fire, vec3(1.0, 0.98, 0.9), smoothstep(1.0, 1.4, temp));
-	float glow = smoothstep(0.05, 0.3, temp);
+	float glow = smoothstep(0.2, 0.5, temp);
 	vec3 smoke = mix(tint, vec3(0.03, 0.028, 0.026), heat * 0.6) * (0.55 + n * 0.9);
 	ALBEDO = smoke * (1.0 - glow);
 	EMISSION = fire * glow * (1.2 + temp);

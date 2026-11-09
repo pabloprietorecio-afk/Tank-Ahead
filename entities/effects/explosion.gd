@@ -60,7 +60,7 @@ func _build() -> void:
 		# Columna de humo negro que queda después.
 		for i in 5:
 			var side := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)) * 0.7 * s
-			_puff(side + Vector3.UP * (0.6 + i * 0.35) * s, side * 0.6 + Vector3.UP * randf_range(2.0, 3.6), 0.9 * s, randf_range(2.4, 3.3) * s, randf_range(2.0, 3.0), 0.12 + i * 0.07, 0.25 * fire_heat, cloud, 0.6, 0.7)
+			_puff(side + Vector3.UP * (0.6 + i * 0.35) * s, side * 0.6 + Vector3.UP * randf_range(2.0, 3.6), 0.9 * s, randf_range(2.4, 3.3) * s, randf_range(2.0, 3.0), 0.12 + i * 0.07, 0.0, cloud, 0.6, 0.7)
 		if on_ground:
 			# Polvo levantado a ras de suelo, en corona.
 			var dust: Color = Fronts.ground_colors(GameSession.front)[2].lerp(Color(0.5, 0.47, 0.42), 0.35)
