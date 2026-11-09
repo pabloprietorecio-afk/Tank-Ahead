@@ -5,6 +5,9 @@ extends Control
 
 @export var tank: Tank
 @export var director: MatchDirector
+var touch: TouchControls
+var input_source: PlayerInputSource
+var weather: Weather
 
 var _info: Label
 var _message: Label
@@ -14,6 +17,7 @@ var _message_time: float = 0.0
 var _flash: float = 0.0
 var _over_time: float = 0.0
 var _panel: PanelContainer
+var _release: Button
 
 
 
@@ -58,13 +62,30 @@ func _build_settings() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	_panel.add_child(box)
-	box.add_child(_make_toggle("Control clásico (como el Battlezone original)", GameSettings.classic_controls, func(on: bool) -> void:
-		GameSettings.classic_controls = on
+	box.add_child(_make_toggle("Torreta libre (gira 360º)", GameSettings.turret_free, func(on: bool) -> void:
+		GameSettings.turret_free = on
 		GameSettings.save()))
 	box.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
 		GameSettings.save()))
 	add_child(_panel)
+
+	_release = Button.new()
+	_release.text = "LIBERAR\nOBJETIVO"
+	_release.add_theme_font_size_override("font_size", 24)
+	_release.add_theme_color_override("font_color", VectorMaterials.ORANGE)
+	_release.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	_release.offset_left = -300.0
+	_release.offset_top = -380.0
+	_release.offset_right = -110.0
+	_release.offset_bottom = -280.0
+	_release.visible = false
+	_release.pressed.connect(func() -> void:
+		if input_source != null:
+			input_source.release_lock())
+	add_child(_release)
+	if touch != null:
+		touch.exclusions.append_array([gear, _panel, _release])
 
 
 func _make_toggle(text: String, value: bool, on_change: Callable) -> CheckButton:
@@ -108,7 +129,9 @@ func _process(delta: float) -> void:
 	_flash = maxf(_flash - delta * 1.5, 0.0)
 	if director.is_over:
 		_over_time += delta
-	_info.text = "v%s  %d FPS\nPUNTOS %d   OLEADA %d   ENEMIGOS %d" % [_version, Engine.get_frames_per_second(), director.score, director.wave, director.alive]
+	_release.visible = tank.aim_lock != null and not director.is_over
+	var sky: String = weather.display_name() if weather != null else ""
+	_info.text = "v%s  %d FPS   %s\nPUNTOS %d   OLEADA %d   ENEMIGOS %d" % [_version, Engine.get_frames_per_second(), sky, director.score, director.wave, director.alive]
 	queue_redraw()
 
 

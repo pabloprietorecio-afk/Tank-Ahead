@@ -4,7 +4,7 @@ extends Control
 ## No conoce ningún tipo de enemigo: dibuja todo nodo Node3D del grupo "enemies".
 
 const RADIUS: float = 90.0
-const RANGE: float = 150.0
+const RANGE: float = 260.0
 const SWEEP_PERIOD: float = 2.5
 
 @export var player: Tank

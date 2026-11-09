@@ -42,3 +42,66 @@ static func make_box(size: Vector3, color: Color = GREEN) -> MeshInstance3D:
 	instance.mesh = mesh
 	instance.material_override = box_edges(size, color)
 	return instance
+
+
+static var _edge_cache: Dictionary = {}
+
+
+## Malla sólida oscura con sus aristas marcadas (cualquier forma: árboles, montañas, tejados).
+static func make_outlined(mesh: Mesh, color: Color = GREEN, fill: Color = Color(0.0, 0.03, 0.01)) -> MeshInstance3D:
+	var body := MeshInstance3D.new()
+	body.mesh = mesh
+	body.material_override = flat(fill)
+	var lines := MeshInstance3D.new()
+	lines.mesh = _feature_edges(mesh)
+	lines.material_override = flat(color)
+	lines.scale = Vector3.ONE * 1.01
+	body.add_child(lines)
+	return body
+
+
+## Aristas "de silueta": las que separan caras con orientación distinta (> 20º).
+static func _feature_edges(mesh: Mesh) -> ArrayMesh:
+	if _edge_cache.has(mesh):
+		return _edge_cache[mesh]
+	var faces: PackedVector3Array = mesh.get_faces()
+	var edges: Dictionary = {}
+	for i in range(0, faces.size(), 3):
+		var a: Vector3 = faces[i]
+		var b: Vector3 = faces[i + 1]
+		var c: Vector3 = faces[i + 2]
+		var normal: Vector3 = (b - a).cross(c - a)
+		if normal.length_squared() < 0.000001:
+			continue
+		normal = normal.normalized()
+		for pair in [[a, b], [b, c], [c, a]]:
+			var key: String = _edge_key(pair[0], pair[1])
+			if not edges.has(key):
+				edges[key] = [pair[0], pair[1], []]
+			edges[key][2].append(normal)
+	var points := PackedVector3Array()
+	var threshold: float = cos(deg_to_rad(20.0))
+	for key in edges:
+		var entry: Array = edges[key]
+		var normals: Array = entry[2]
+		if normals.size() == 1 or (normals.size() >= 2 and normals[0].dot(normals[1]) < threshold):
+			points.append(entry[0])
+			points.append(entry[1])
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = points
+	var result := ArrayMesh.new()
+	if not points.is_empty():
+		result.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arrays)
+	_edge_cache[mesh] = result
+	return result
+
+
+static func _edge_key(a: Vector3, b: Vector3) -> String:
+	var ka: Vector3 = a.snapped(Vector3.ONE * 0.001)
+	var kb: Vector3 = b.snapped(Vector3.ONE * 0.001)
+	if str(ka) > str(kb):
+		var tmp: Vector3 = ka
+		ka = kb
+		kb = tmp
+	return str(ka) + str(kb)

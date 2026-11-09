@@ -10,7 +10,7 @@ signal hit(amount: float, source: Node)
 @export var team: int = 0
 
 
-func take_hit(amount: float, source: Node = null) -> void:
+func take_hit(amount: float, source: Node = null, _point: Vector3 = Vector3.ZERO) -> void:
 	var final_amount: float = amount * damage_multiplier
 	hit.emit(final_amount, source)
 	if health != null:

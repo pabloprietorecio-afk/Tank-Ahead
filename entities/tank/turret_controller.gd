@@ -7,6 +7,8 @@ extends Node
 const MAX_LEAD: float = 1.0
 const MIN_PITCH: float = deg_to_rad(-6.0)
 const MAX_PITCH: float = deg_to_rad(18.0)
+## Suavizado: cuanto mayor, más rápido alcanza la torreta su objetivo.
+const SMOOTHING: float = 9.0
 
 ## Rumbo de la torreta respecto al casco (0 = alineada con el casco).
 var local_yaw: float = 0.0
@@ -83,8 +85,9 @@ func _process(delta: float) -> void:
 	if _tank == null:
 		return
 	var max_step: float = _tank.stats.turret_turn_speed * delta
+	var ease: float = 1.0 - exp(-SMOOTHING * delta)
 	var diff: float = angle_difference(world_yaw, _desired_world())
-	local_yaw = wrapf(local_yaw + clampf(diff, -max_step, max_step), -PI, PI)
-	pitch += clampf(_target_pitch - pitch, -max_step, max_step)
+	local_yaw = wrapf(local_yaw + clampf(diff * ease, -max_step, max_step), -PI, PI)
+	pitch += clampf((_target_pitch - pitch) * ease, -max_step, max_step)
 	_tank.turret.rotation.y = local_yaw
 	_tank.gun_pivot.rotation.x = pitch

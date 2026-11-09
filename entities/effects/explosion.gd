@@ -7,19 +7,26 @@ const FLASH_TIME: float = 0.35
 const GRAVITY: float = 14.0
 
 var _strength: float = 1.0
+var _color: Color = VectorMaterials.ORANGE
 var _time: float = 0.0
 var _flash: MeshInstance3D
 var _fragments: Array[MeshInstance3D] = []
 var _velocities: Array[Vector3] = []
 
 
-static func spawn(host: Node, point: Vector3, strength: float = 1.0) -> void:
+static func spawn(host: Node, point: Vector3, strength: float = 1.0, color: Color = VectorMaterials.ORANGE, silent: bool = false) -> void:
 	var tree: SceneTree = host.get_tree()
 	var root: Node = tree.current_scene if tree.current_scene != null else tree.root
 	var explosion := Explosion.new()
 	explosion._strength = strength
+	explosion._color = color
 	root.add_child(explosion)
 	explosion.global_position = point
+	if not silent:
+		if strength < 0.8:
+			Sfx.play_at(host, Sfx.HIT, point, -4.0)
+		else:
+			Sfx.play_at(host, Sfx.EXPLOSION, point, 2.0, 1.2 / clampf(strength, 0.8, 2.0))
 
 
 func _ready() -> void:
@@ -30,7 +37,7 @@ func _ready() -> void:
 	sphere.rings = 4
 	_flash = MeshInstance3D.new()
 	_flash.mesh = sphere
-	_flash.material_override = VectorMaterials.flat(VectorMaterials.ORANGE)
+	_flash.material_override = VectorMaterials.flat(_color)
 	_flash.scale = Vector3.ONE * 0.5 * _strength
 	add_child(_flash)
 
@@ -40,7 +47,7 @@ func _ready() -> void:
 	for i in count:
 		var fragment := MeshInstance3D.new()
 		fragment.mesh = box
-		fragment.material_override = VectorMaterials.flat(VectorMaterials.ORANGE if i % 2 == 0 else Color(1.0, 0.9, 0.4))
+		fragment.material_override = VectorMaterials.flat(_color if i % 2 == 0 else _color.lightened(0.4))
 		add_child(fragment)
 		_fragments.append(fragment)
 		_velocities.append(Vector3(randf_range(-1.0, 1.0), randf_range(0.6, 1.6), randf_range(-1.0, 1.0)).normalized() * randf_range(5.0, 11.0) * _strength)

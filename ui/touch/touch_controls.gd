@@ -12,8 +12,8 @@ const LEFT_ZONE_FRACTION: float = 0.45
 var move_vector: Vector2 = Vector2.ZERO
 var fire_held: bool = false
 
-## Zona de pantalla que no genera controles (botones de la interfaz).
-var exclusion: Rect2 = Rect2()
+## Controles de la interfaz (botones, paneles) cuyos toques no se usan para conducir ni apuntar.
+var exclusions: Array[Control] = []
 
 var _look_delta: Vector2 = Vector2.ZERO
 var _stick_id: int = -1
@@ -56,8 +56,9 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_press(index: int, pos: Vector2) -> void:
-	if exclusion.has_point(pos):
-		return
+	for control in exclusions:
+		if is_instance_valid(control) and control.is_visible_in_tree() and control.get_global_rect().has_point(pos):
+			return
 	if _fire_id == -1 and pos.distance_to(_fire_center()) <= FIRE_RADIUS * 1.25:
 		_fire_id = index
 		fire_held = true

@@ -67,6 +67,14 @@ func _process(delta: float) -> void:
 		camera.v_offset = randf_range(-1.0, 1.0) * _shake * 0.25
 
 
+func _on_fired() -> void:
+	if is_player:
+		Sfx.play_2d(self, Sfx.CANNON, -2.0)
+		_shake = maxf(_shake, 0.35)
+	else:
+		Sfx.play_at(self, Sfx.CANNON, muzzle.global_position, 0.0, 1.0 / maxf(_scale_factor, 0.7))
+
+
 func _on_damaged(amount: float, source: Node) -> void:
 	if is_player:
 		_shake = minf(_shake + amount / 25.0, 1.5)
@@ -178,4 +186,5 @@ func _build_components() -> void:
 	weapon.muzzle = muzzle
 	weapon.ignore_rids = [hurtbox.get_rid()]
 	weapon.team = team
+	weapon.fired.connect(_on_fired)
 	add_child(weapon)

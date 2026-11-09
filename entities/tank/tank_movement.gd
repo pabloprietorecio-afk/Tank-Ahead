@@ -29,3 +29,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_tank.velocity.y -= GRAVITY * delta
 	_tank.move_and_slide()
+	for i in _tank.get_slide_collision_count():
+		var collider: Object = _tank.get_slide_collision(i).get_collider()
+		if collider is Destructible and collider.crushable and absf(current_speed) > 2.0:
+			collider.take_hit(1000.0, _tank, collider.global_position)

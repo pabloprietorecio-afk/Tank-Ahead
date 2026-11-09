@@ -77,7 +77,9 @@ func _physics_process(delta: float) -> void:
 			if hurtbox.team == team:
 				_ignore.append(hurtbox.get_rid())
 				continue
-			hurtbox.take_hit(damage, shooter)
+			hurtbox.take_hit(damage, shooter, result["position"])
+		elif collider.has_method("take_hit"):
+			collider.take_hit(damage, shooter, result["position"])
 		Explosion.spawn(self, result["position"], 0.4)
 		_release()
 		return

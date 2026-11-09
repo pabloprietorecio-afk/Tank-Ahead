@@ -3,10 +3,10 @@ extends Node
 ## Traduce los controles táctiles en órdenes para el tanque.
 ## Incluye la ayuda de apuntado opcional.
 
-const LOCK_CONE: float = deg_to_rad(6.0)
-const LOCK_RANGE: float = 140.0
-## Arrastre (px en un frame) a partir del cual el jugador recupera el control de la torreta.
-const BREAK_LOCK_PIXELS: float = 5.0
+const LOCK_CONE: float = deg_to_rad(7.0)
+const LOCK_RANGE: float = 260.0
+## Tras liberar un objetivo, segundos sin volver a fijar automáticamente.
+const RELOCK_DELAY: float = 2.0
 const WORLD_MASK: int = 1
 
 @export var tank: Tank
@@ -15,35 +15,37 @@ const WORLD_MASK: int = 1
 @export var look_sensitivity: float = 0.004
 
 ## Modo clásico: máximo desvío del cañón respecto al casco y su recentrado.
-const FINE_AIM_LIMIT: float = deg_to_rad(15.0)
-const FINE_RECENTER_DELAY: float = 0.5
-const FINE_RECENTER_SPEED: float = 0.6
+const FINE_AIM_LIMIT: float = deg_to_rad(45.0)
+const FINE_RECENTER_DELAY: float = 2.0
+const FINE_RECENTER_SPEED: float = 0.5
 ## Suavizado del giro del casco (unidades de joystick por segundo).
 const TURN_SMOOTHING: float = 5.0
 
 var _fine_yaw: float = 0.0
 var _idle_time: float = 0.0
 var _turn: float = 0.0
+var _relock_cooldown: float = 0.0
 
 
 func _process(delta: float) -> void:
 	if tank == null or touch == null or tank.is_destroyed:
 		return
 	var stick: Vector2 = touch.move_vector
-	if GameSettings.classic_controls:
+	if not GameSettings.turret_free:
 		_turn = move_toward(_turn, stick.x, TURN_SMOOTHING * delta)
 		stick.x = _turn
 	tank.drive_input = stick
 	tank.trigger_held = touch.fire_held
 
 	var look: Vector2 = touch.consume_look_delta()
+	_relock_cooldown = maxf(_relock_cooldown - delta, 0.0)
 	if GameSettings.aim_assist:
-		_update_lock(look)
-	else:
-		tank.aim_lock = null
+		_update_lock()
+	elif tank.aim_lock != null:
+		release_lock()
 	if tank.aim_lock != null:
 		tank.turret_controller.aim_at(_lock_point(tank.aim_lock))
-	elif GameSettings.classic_controls:
+	elif not GameSettings.turret_free:
 		_classic_aim(look, delta)
 	elif look != Vector2.ZERO:
 		tank.turret_controller.add_aim(-look.x * look_sensitivity, -look.y * look_sensitivity)
@@ -51,13 +53,26 @@ func _process(delta: float) -> void:
 		tank.turret_controller.hold_relative()
 
 
-func _update_lock(look: Vector2) -> void:
+## Libera el objetivo fijado (botón LIBERAR del HUD).
+func release_lock() -> void:
+	if tank.aim_lock == null:
+		return
+	tank.aim_lock = null
+	_relock_cooldown = RELOCK_DELAY
+	_fine_yaw = clampf(tank.turret_controller.local_yaw, -FINE_AIM_LIMIT, FINE_AIM_LIMIT)
+	_idle_time = 0.0
+
+
+## Una vez fijado, el objetivo no se pierde hasta que muere o el jugador lo libera.
+func _update_lock() -> void:
 	var current: Tank = tank.aim_lock
 	if current != null:
-		if look.length() > BREAK_LOCK_PIXELS or not _lock_valid(current):
+		if not is_instance_valid(current) or current.is_destroyed:
 			tank.aim_lock = null
+			_fine_yaw = clampf(tank.turret_controller.local_yaw, -FINE_AIM_LIMIT, FINE_AIM_LIMIT)
+			_idle_time = 0.0
 		return
-	if look.length() > BREAK_LOCK_PIXELS:
+	if _relock_cooldown > 0.0:
 		return
 	var origin: Vector3 = tank.muzzle.global_position
 	var aim_dir: Vector3 = -tank.muzzle.global_transform.basis.z
