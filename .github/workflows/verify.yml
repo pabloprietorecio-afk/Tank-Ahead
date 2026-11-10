@@ -38,7 +38,7 @@ jobs:
           SHOTS_ONLY: "story nav"
         run: |
           timeout 600 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN)" logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB)" logic.log || true
 
       - name: Capturas
         run: |
@@ -52,6 +52,8 @@ jobs:
           grep -q "SHOTS DONE" run.log || { echo "Las capturas no terminaron"; tail -60 run.log; exit 1; }
           grep -q "SHOTS DONE" logic.log || { echo "La prueba de misiones y navegación no terminó"; tail -60 logic.log; exit 1; }
           grep -q "NAV RESULT fallos de la navegación con rodeo: 0" logic.log || { echo "Algún tanque con rodeo no llegó a su destino"; exit 1; }
+          grep -q "REACH RESULT inaccesibles: 0" logic.log || { echo "Hay objetivos u objetos inaccesibles"; exit 1; }
+          grep -q "CLIMB RESULT.*(OK)" logic.log || { echo "Un tanque puede subirse a una colina"; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
 
       - name: Publicar capturas en la rama verify-shots

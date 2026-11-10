@@ -86,8 +86,8 @@ func cell_center(cell: Vector2i) -> Vector3:
 ## hay paso. Si un extremo cae en una celda ocupada se usa la celda libre más cercana.
 func find_path(from: Vector3, to: Vector3) -> PackedVector3Array:
 	var path := PackedVector3Array()
-	var start: Vector2i = _nearest_free(cell_of(from))
-	var goal: Vector2i = _nearest_free(cell_of(to))
+	var start: Vector2i = nearest_free(cell_of(from))
+	var goal: Vector2i = nearest_free(cell_of(to))
 	if start.x < 0 or goal.x < 0:
 		return path
 	for cell: Vector2i in _astar.get_id_path(start, goal):
@@ -97,7 +97,7 @@ func find_path(from: Vector3, to: Vector3) -> PackedVector3Array:
 	return path
 
 
-func _nearest_free(cell: Vector2i) -> Vector2i:
+func nearest_free(cell: Vector2i) -> Vector2i:
 	if not _astar.is_point_solid(cell):
 		return cell
 	var best := Vector2i(-1, -1)

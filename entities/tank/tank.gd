@@ -6,6 +6,10 @@ extends CharacterBody3D
 const LAYER_WORLD: int = 1
 const LAYER_TANK: int = 2
 const LAYER_HURTBOX: int = 4
+## Barrera del límite del mapa: solo la tocan los tanques.
+const LAYER_BOUNDARY: int = 8
+## Pendiente máxima que sube un tanque. Colinas y montañas son más empinadas: hacen de pared.
+const MAX_SLOPE_DEG: float = 10.0
 ## Capa visual de las piezas del propio jugador (la cámara en primera persona no las ve).
 const VISUAL_LAYER_OWN: int = 2
 ## Distancia hacia atrás y altura de las vistas exteriores [cerca, lejos].
@@ -69,7 +73,9 @@ func _ready() -> void:
 	_scale_factor = stats.body_scale
 	add_to_group(&"tanks")
 	collision_layer = LAYER_TANK
-	collision_mask = LAYER_WORLD | LAYER_TANK
+	collision_mask = LAYER_WORLD | LAYER_TANK | LAYER_BOUNDARY
+	floor_max_angle = deg_to_rad(MAX_SLOPE_DEG)
+	floor_block_on_wall = true
 	_build_body()
 	_build_components()
 	_build_effects()

@@ -139,8 +139,26 @@ func _add_wall(center: Vector3, size: Vector3) -> void:
 	add_child(body)
 
 
+## Límite infranqueable para los tanques: una barrera alta e invisible sobre cada muro, en una
+## capa que solo ellos tocan (los disparos y los aviones la atraviesan).
+func _add_boundary(center: Vector3, size: Vector3) -> void:
+	var body := StaticBody3D.new()
+	body.collision_layer = Tank.LAYER_BOUNDARY
+	body.collision_mask = 0
+	body.position = center
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	add_child(body)
+
+
 func _build_walls() -> void:
 	var length: float = ARENA_HALF * 2.0
+	for side in [-1.0, 1.0]:
+		_add_boundary(Vector3(0.0, 40.0, side * (ARENA_HALF + 2.0)), Vector3(length + 20.0, 80.0, 6.0))
+		_add_boundary(Vector3(side * (ARENA_HALF + 2.0), 40.0, 0.0), Vector3(6.0, 80.0, length + 20.0))
 	var height: float = 2.5
 	var thickness: float = 2.0
 	_add_wall(Vector3(0.0, height * 0.5, -ARENA_HALF), Vector3(length, height, thickness))
@@ -151,6 +169,8 @@ func _build_walls() -> void:
 
 ## Busca un sitio libre de radio `radius`. Devuelve Vector2.INF si no lo encuentra.
 func _free_spot(radius: float, margin: float = 15.0) -> Vector2:
+	# Nada asoma por encima del muro: el borde del objeto queda al menos a 8 m de él.
+	margin = maxf(margin, radius + 8.0)
 	for attempt in 40:
 		var pos := Vector2(_rng.randf_range(-ARENA_HALF + margin, ARENA_HALF - margin), _rng.randf_range(-ARENA_HALF + margin, ARENA_HALF - margin))
 		if pos.distance_to(_spawn_point) < SAFE_RADIUS + radius:
@@ -191,9 +211,13 @@ func _build_scenery() -> void:
 	var desert: bool = front == Fronts.Id.AFRICA
 	for i in 14:
 		var angle: float = TAU * i / 14.0 + _rng.randf_range(-0.1, 0.1)
-		var dist: float = ARENA_HALF + _rng.randf_range(60.0, 140.0)
 		var height: float = _rng.randf_range(12.0, 30.0) if desert or front == Fronts.Id.KURSK else _rng.randf_range(20.0, 45.0)
-		var mountain := PropFactory.mountain(_rng.randf_range(45.0, 70.0), height, _rng.randi_range(6, 9))
+		var base_radius: float = _rng.randf_range(45.0, 70.0)
+		# Toda la falda queda fuera del muro (que es cuadrado: en las esquinas está más lejos),
+		# para que ninguna montaña tape objetivos ni sirva de rampa para salir del mapa.
+		var toward_wall: float = maxf(absf(cos(angle)), absf(sin(angle)))
+		var dist: float = (ARENA_HALF + base_radius + 12.0) / toward_wall + _rng.randf_range(0.0, 60.0)
+		var mountain := PropFactory.mountain(base_radius, height, _rng.randi_range(6, 9))
 		mountain.position = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
 		mountain.rotation.y = _rng.randf() * TAU
 		add_child(mountain)
@@ -249,13 +273,15 @@ func _house_size() -> Vector3:
 
 func _scenery_normandy() -> void:
 	for v in 2:
-		var center := _free_spot(30.0)
+		# El pueblo de la iglesia ocupa más: las casas van desplazadas respecto al templo.
+		var center := _free_spot(48.0 if v == 0 else 30.0)
 		if center == Vector2.INF:
 			continue
 		if v == 0:
 			var church := PropFactory.church()
 			church.position = Vector3(center.x, 0.0, center.y)
 			add_child(church)
+			_obstacle_rects.append(Rect2(center - Vector2(14.0, 14.0), Vector2(28.0, 28.0)))
 			_village(center + Vector2(0.0, 22.0), 2, func() -> Node3D: return PropFactory.house(_house_size()))
 		else:
 			_village(center, 4, func() -> Node3D: return PropFactory.house(_house_size()))
@@ -282,7 +308,8 @@ func _scenery_normandy() -> void:
 
 func _scenery_africa() -> void:
 	for v in 2:
-		var center := _free_spot(30.0)
+		# Sitio para el pueblo y para su palmeral, que va a un lado.
+		var center := _free_spot(44.0)
 		if center == Vector2.INF:
 			continue
 		_village(center, 4, func() -> Node3D: return PropFactory.desert_house(Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.0, 4.5), _rng.randf_range(5.0, 8.0))))

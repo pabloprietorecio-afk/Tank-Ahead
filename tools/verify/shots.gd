@@ -13,6 +13,7 @@ func _ready() -> void:
 class Runner extends Node:
 
 	var _dir: String
+	var _unreachable: int = 0
 	var _camera: Camera3D
 	var _stage: Node3D
 
@@ -42,6 +43,13 @@ class Runner extends Node:
 			await _story(Fronts.Faction.AXIS, Fronts.Id.KURSK, 6)
 			await _story(Fronts.Faction.ALLIES, Fronts.Id.AFRICA, 5)
 			await _story(Fronts.Faction.AXIS, Fronts.Id.AFRICA, 7)
+			await _story(Fronts.Faction.ALLIES, Fronts.Id.AFRICA, 1)
+			await _story(Fronts.Faction.ALLIES, Fronts.Id.KURSK, 1)
+			await _story(Fronts.Faction.AXIS, Fronts.Id.NORMANDY, 5)
+			await _story(Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 3)
+			await _story(Fronts.Faction.AXIS, Fronts.Id.KURSK, 3)
+			await _story(Fronts.Faction.ALLIES, Fronts.Id.KURSK, 4)
+			print("REACH RESULT inaccesibles: ", _unreachable)
 		if only.contains("nav"):
 			await _nav()
 		print("SHOTS DONE")
@@ -293,6 +301,67 @@ class Runner extends Node:
 				enemies += 1
 		print("STORY ", GameSession.current_mission()["title"], " | ", mode.status_text(), " | ", mode.objective_lines(), " | bando propio ", allies, " enemigos ", enemies)
 		await _snap("story_%d_%d_%d" % [faction, front, index])
+		_check_reach(mode as StoryMode)
+
+	## Accesibilidad: desde el jugador tiene que haber ruta hasta cada objetivo, cada edificio
+	## con premio, cada premio suelto y cada tanque, y nada puede quedar bajo una montaña ni
+	## fuera del muro. Usa el mismo mapa de celdas con el que navegan los aliados.
+	func _check_reach(mode: StoryMode) -> void:
+		var arena: Node = get_tree().current_scene
+		var grid := NavGrid.of(arena)
+		var origin: Vector3 = mode.player.global_position
+		var targets: Array[Node3D] = []
+		for objective in mode._objectives:
+			targets.append(objective)
+		for node in get_tree().get_nodes_in_group(&"radar_marks"):
+			if node is Destructible and not node in targets:
+				targets.append(node)
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			targets.append(tank)
+		if mode.kind == "breakthrough":
+			var exit_marker := Node3D.new()
+			arena.add_child(exit_marker)
+			exit_marker.position = StoryMode.EXIT_POINT
+			targets.append(exit_marker)
+		var mountains: Array[Destructible] = []
+		for child in arena.get_children():
+			if child is Destructible and child.indestructible:
+				mountains.append(child)
+		var bad: int = 0
+		for target in targets:
+			var point: Vector3 = target.global_position
+			var problem: String = ""
+			if absf(point.x) > 196.0 or absf(point.z) > 196.0:
+				problem = "fuera del muro"
+			elif grid.find_path(origin, point).is_empty():
+				problem = "sin ruta"
+			else:
+				var near: Vector3 = grid.cell_center(grid.nearest_free(grid.cell_of(point)))
+				if Vector2(near.x - point.x, near.z - point.z).length() > 24.0:
+					problem = "encerrado (celda libre más cercana a %.0f m)" % Vector2(near.x - point.x, near.z - point.z).length()
+			# Bajo la falda de una colina o montaña (salvo la propia).
+			var space: PhysicsDirectSpaceState3D = arena.get_world_3d().direct_space_state
+			var query := PhysicsRayQueryParameters3D.create(Vector3(point.x, 90.0, point.z), Vector3(point.x, 0.3, point.z), 1)
+			var hit: Dictionary = space.intersect_ray(query)
+			if not hit.is_empty() and hit["collider"] in mountains and hit["collider"] != target:
+				problem = "dentro de una montaña"
+			if problem != "":
+				bad += 1
+				print("REACH MAL ", target.name, " ", point, " ", problem)
+		var outside: int = 0
+		for mountain in mountains:
+			var p: Vector3 = mountain.global_position
+			if absf(p.x) > 200.0 or absf(p.z) > 200.0:
+				# Montaña exterior: ningún punto del muro puede caer bajo su falda.
+				for i in 81:
+					var along: float = -200.0 + 5.0 * i
+					for edge: Vector3 in [Vector3(along, 60.0, -199.0), Vector3(along, 60.0, 199.0), Vector3(-199.0, 60.0, along), Vector3(199.0, 60.0, along)]:
+						var down := PhysicsRayQueryParameters3D.create(edge, Vector3(edge.x, 0.3, edge.z), 1)
+						var found: Dictionary = arena.get_world_3d().direct_space_state.intersect_ray(down)
+						if not found.is_empty() and found["collider"] == mountain:
+							outside += 1
+		_unreachable += bad + outside
+		print("REACH ", GameSession.current_mission()["title"], ": ", targets.size(), " puntos comprobados, ", bad, " inaccesibles; ", mountains.size(), " montañas, ", outside, " puntos del muro bajo una montaña")
 
 	## Prueba de navegación (sin gráficos): tanques que deben llegar al otro lado de un muro
 	## largo, de un recinto en U y de un grupo de bloques. Compara la navegación con rodeo
@@ -348,11 +417,28 @@ class Runner extends Node:
 					brain.objective = origin + Vector3(0.0, 0.0, -34.0)
 					brain.objective_radius = 2.0
 					runs.append({"case": cases[c], "smart": smart, "tank": tank, "brain": brain, "id": stats_id, "best": INF, "time": -1.0})
+		# Colina: un tanque que empuja de frente contra ella no debe subirla.
+		var hill := PropFactory.mountain(14.0, 9.0, 7)
+		hill.position = Vector3(0.0, 0.0, -150.0)
+		stage.add_child(hill)
+		var dune := PropFactory.mountain(16.0, 5.0, 10)
+		dune.position = Vector3(60.0, 0.0, -150.0)
+		stage.add_child(dune)
+		var climbers: Array[Tank] = []
+		for x in [0.0, 60.0]:
+			var climber: Tank = mode.spawn_tank(Fronts.tank("m4_sherman"), GameMode.PLAYER_TEAM, Vector2(x + 2.0, -120.0), 0.0)
+			climber.get_node("AIBrain").queue_free()
+			climbers.append(climber)
+		var climb_height: float = 0.0
 		Engine.time_scale = 4.0
 		var clock: float = 0.0
 		while clock < 60.0:
 			await get_tree().physics_frame
 			clock += get_physics_process_delta_time()
+			for climber in climbers:
+				if clock < 20.0:
+					climber.drive_input = Vector2(0.0, 1.0)
+				climb_height = maxf(climb_height, climber.global_position.y)
 			for run in runs:
 				var tank: Tank = run["tank"]
 				var brain: AIBrain = run["brain"]
@@ -369,6 +455,7 @@ class Runner extends Node:
 				failures += 1
 			print("NAV %-13s %-10s %s  %s  mínima distancia %.1f m  desatascos %d" % [run["case"], run["id"], "CON RODEO" if run["smart"] else "ANTIGUA  ", ("llega en %.1f s" % run["time"]) if ok else "NO LLEGA", run["best"], run["brain"].unstuck_total])
 		print("NAV RESULT fallos de la navegación con rodeo: ", failures)
+		print("CLIMB RESULT altura máxima alcanzada empujando contra una colina y una duna: %.2f m (%s)" % [climb_height, "OK" if climb_height < 1.0 else "SUBE"])
 		stage.queue_free()
 		await _frames(2)
 
