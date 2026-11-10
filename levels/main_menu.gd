@@ -17,7 +17,6 @@ var fit_height: float = 0.0
 
 var _content: VBoxContainer
 var _center: MarginContainer
-var _page_id: int = 0
 var _title: Label
 var _subtitle: Label
 var _radio: AudioStreamPlayer
@@ -137,10 +136,12 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 func _clear(subtitle: String) -> void:
 	_subtitle.text = subtitle
 	for child in _content.get_children():
+		# Oculta deja de contar para el tamaño de la página ya, aunque se borre al acabar el fotograma.
+		(child as Control).visible = false
 		child.queue_free()
 	_content.add_theme_constant_override("separation", ROW_GAP)
-	_page_id += 1
-	_fit(_page_id)
+	# Cuando termine de montarse la página nueva (en este mismo fotograma), se ajusta.
+	_fit.call_deferred()
 
 
 ## Alto que necesita la página que se está mostrando (título, filas y márgenes).
@@ -151,25 +152,23 @@ func needed_height() -> float:
 ## Ajusta la página recién montada para que quepa entera en la pantalla sin desplazarla: si no
 ## cabe, junta las filas y las hace más bajas, lo justo y hasta un mínimo cómodo para el dedo.
 ## Las listas largas (las misiones de una campaña) siguen pudiendo desplazarse.
-func _fit(page: int) -> void:
-	# La página anterior se borra al acabar el fotograma y los tamaños se recalculan después.
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if page != _page_id or not is_inside_tree():
-		return
+func _fit() -> void:
 	var screen: float = fit_height if fit_height > 0.0 else size.y
 	var over: float = needed_height() - screen
 	if over <= 0.0:
 		return
 	var rows: Array[Button] = []
+	var shown: int = 0
 	for child in _content.get_children():
-		if child is Button and not child.is_queued_for_deletion():
+		if not (child as Control).visible:
+			continue
+		shown += 1
+		if child is Button:
 			rows.append(child)
-	var gaps: int = maxi(_content.get_child_count() - 1, 0)
 	var gap: int = ROW_GAP
 	while gap > 5 and over > 0.0:
 		gap -= 1
-		over -= gaps
+		over -= maxi(shown - 1, 0)
 	_content.add_theme_constant_override("separation", gap)
 	if over <= 0.0 or rows.is_empty():
 		return
