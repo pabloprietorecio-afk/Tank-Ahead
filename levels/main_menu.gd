@@ -10,7 +10,12 @@ var _title: Label
 var _subtitle: Label
 var _radio: AudioStreamPlayer
 var _radio_timer: Timer
-var _bulletins: Array[String] = []
+## Partes de radio por bando: [aliados, alemanes].
+var _bulletins: Array = []
+var _radio_side: int = 0
+## Volumen de la radio de fondo por bando (los partes alemanes están grabados más fuertes):
+## queda unos 7 dB por debajo de la música.
+const RADIO_DB: Array[float] = [-3.0, -8.0]
 
 
 func _ready() -> void:
@@ -67,30 +72,38 @@ func _ready() -> void:
 		_page_mode()
 
 
-## Música del menú y partes de guerra por radio de vez en cuando (la música baja al hablar).
+## Música del menú y, de fondo y sin parar, la radio: partes aliados y alemanes intercalados,
+## bajitos, como una emisora que alguien se ha dejado encendida.
 func _start_audio() -> void:
 	AudioSetup.ensure()
 	add_child(AudioSetup.music_player("res://assets/music/menu_theme.ogg"))
-	for lang in ["de", "en"]:
+	for lang in ["en", "de"]:
+		var list: Array[String] = []
 		for i in 4:
-			_bulletins.append("res://assets/radio/radio_%s_%d.ogg" % [lang, i])
-	_bulletins.shuffle()
+			list.append("res://assets/radio/radio_%s_%d.ogg" % [lang, i])
+		list.shuffle()
+		_bulletins.append(list)
 	_radio = AudioStreamPlayer.new()
-	_radio.bus = AudioSetup.VOICE
+	# Va por el bus de la música: es ambiente, no una orden, y así no hace bajar la música.
+	_radio.bus = AudioSetup.MUSIC
 	add_child(_radio)
 	_radio_timer = Timer.new()
 	_radio_timer.one_shot = true
 	_radio_timer.timeout.connect(_play_bulletin)
 	add_child(_radio_timer)
-	_radio_timer.start(6.0)
+	_radio.finished.connect(func() -> void: _radio_timer.start(randf_range(1.5, 3.5)))
+	_radio_timer.start(2.5)
 
 
+## Siguiente parte: alterna bando (aliados, alemanes, aliados...) y no repite hasta agotarlos.
 func _play_bulletin() -> void:
-	var path: String = _bulletins.pop_front()
-	_bulletins.append(path)
+	var list: Array = _bulletins[_radio_side]
+	_radio.volume_db = RADIO_DB[_radio_side]
+	_radio_side = 1 - _radio_side
+	var path: String = list.pop_front()
+	list.append(path)
 	_radio.stream = load(path)
 	_radio.play()
-	_radio_timer.start(_radio.stream.get_length() + randf_range(18.0, 30.0))
 
 
 func _label(text: String, font_size: int, color: Color) -> Label:
