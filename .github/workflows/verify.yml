@@ -35,10 +35,10 @@ jobs:
 
       - name: Misiones nuevas, navegación de los aliados y tutorial completo (sin gráficos)
         env:
-          SHOTS_ONLY: "story nav tutorial sky ai ctf"
+          SHOTS_ONLY: "story nav tutorial sky ai ctf fit"
         run: |
           timeout 900 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB|TUTORIAL|SKY|AI|CTF)" logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT)" logic.log || true
 
       - name: Capturas
         run: |
@@ -59,6 +59,7 @@ jobs:
           grep -q "SKY RESULT derribos dentro del campo: 0 de" logic.log || { echo "Un avión derribado cae dentro del campo"; exit 1; }
           if grep -q "SKY MAL" logic.log; then exit 1; fi
           grep -q "CLIMB RESULT.*(OK)" logic.log || { echo "Un tanque puede subirse a una colina"; exit 1; }
+          grep -q "FIT RESULT páginas del menú que no caben en pantalla: 0 de" logic.log || { echo "Alguna página del menú no cabe en la pantalla sin desplazarla"; grep "^FIT" logic.log; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
 
       - name: Publicar capturas en la rama verify-shots

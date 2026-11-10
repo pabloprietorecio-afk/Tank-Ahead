@@ -37,6 +37,8 @@ class Runner extends Node:
 				await _arena(front)
 		if only == "" or only.contains("menu"):
 			await _menu()
+		if only.contains("fit"):
+			await _menu_fit()
 		if only.contains("story"):
 			_campaign()
 			await _story(Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 6)
@@ -299,6 +301,40 @@ class Runner extends Node:
 			var angle: float = TAU * i / 4.0 + 0.4
 			_look(origin + Vector3(0.0, 3.0, 0.0), origin + Vector3(sin(angle) * 50.0, 4.0, cos(angle) * 50.0), 70.0)
 			await _snap("arena_%d_view%d" % [front, i])
+
+	## Cada página del menú principal debe caber en una pantalla de 720 de alto sin tener que
+	## desplazarla. Las listas de misiones de una campaña son la excepción (son listas largas).
+	func _menu_fit() -> void:
+		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+		await _frames(4)
+		var menu: Control = get_tree().current_scene
+		menu.fit_height = 720.0
+		var pages: Array = [["modo", menu._page_mode], ["oferta del tutorial", menu._page_tutorial_offer], ["opciones", menu._page_audio], ["vehículos", menu._page_vehicles]]
+		GameSession.mode = GameSession.Mode.STORY
+		pages.append(["bando", menu._page_faction])
+		for faction in [Fronts.Faction.ALLIES, Fronts.Faction.AXIS]:
+			pages.append(["frente (bando %d)" % faction, func() -> void:
+				GameSession.faction = faction
+				menu._page_front()])
+			for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+				GameSession.faction = faction
+				GameSession.front_choice = front
+				for i in GameSession.missions().size():
+					pages.append(["parte de misión %d (bando %d, frente %d)" % [i + 1, faction, front], func() -> void:
+						GameSession.faction = faction
+						GameSession.front_choice = front
+						menu._page_briefing(i)])
+		var too_tall: int = 0
+		var worst: float = 0.0
+		for page: Array in pages:
+			(page[1] as Callable).call()
+			await _frames(5)
+			var needed: float = menu.needed_height()
+			worst = maxf(worst, needed)
+			if needed > 720.0:
+				too_tall += 1
+				print("FIT MAL «%s» necesita %d de alto y la pantalla tiene 720" % [page[0], roundi(needed)])
+		print("FIT RESULT páginas del menú que no caben en pantalla: %d de %d (la más alta: %d de 720)" % [too_tall, pages.size(), roundi(worst)])
 
 	func _menu() -> void:
 		if not GameSession.tutorial_offered():

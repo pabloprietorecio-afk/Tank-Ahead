@@ -61,6 +61,13 @@ func _init() -> void:
 	add_child(close)
 
 
+## Versión algo más baja (menú principal): cabe en la pantalla sin desplazarla.
+func compact() -> void:
+	add_theme_constant_override("separation", 8)
+	for node in find_children("*", "Button", true, false):
+		(node as Button).custom_minimum_size.y = 56.0
+
+
 func _make_button(text: String) -> Button:
 	var button := Button.new()
 	button.text = text

@@ -5,7 +5,19 @@ const GOLD := Color(0.96, 0.82, 0.5)
 const AMBER := Color(1.0, 0.75, 0.35)
 const GREEN := GOLD
 
+## Alto de fila normal y mínimo al que se encoge una página que no cabe en la pantalla.
+const ROW_HEIGHT: float = 68.0
+const ROW_MIN: float = 54.0
+const ROW_GAP: int = 10
+## Hueco que debe quedar bajo la última fila.
+const BOTTOM_MARGIN: float = 12.0
+
+## Alto de pantalla con el que se ajustan las páginas (0 = el de verdad; lo fijan las pruebas).
+var fit_height: float = 0.0
+
 var _content: VBoxContainer
+var _center: MarginContainer
+var _page_id: int = 0
 var _title: Label
 var _subtitle: Label
 var _radio: AudioStreamPlayer
@@ -40,13 +52,14 @@ func _ready() -> void:
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	center.add_theme_constant_override("margin_left", 50)
-	center.add_theme_constant_override("margin_top", 30)
+	center.add_theme_constant_override("margin_top", 14)
 	scroll.add_child(center)
+	_center = center
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", 8)
 	center.add_child(column)
-	_title = _label("A TANK STORY", 86, GOLD)
+	_title = _label("A TANK STORY", 72, GOLD)
 	_title.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.04))
 	_title.add_theme_constant_override("outline_size", 14)
 	_title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
@@ -60,7 +73,7 @@ func _ready() -> void:
 	_subtitle = _label("", 26, AMBER)
 	column.add_child(_subtitle)
 	_content = VBoxContainer.new()
-	_content.add_theme_constant_override("separation", 12)
+	_content.add_theme_constant_override("separation", ROW_GAP)
 	column.add_child(_content)
 	var version := _label("versión %s" % str(ProjectSettings.get_setting("application/config/version", "dev")), 16, Color(0.5, 0.6, 0.5))
 	column.add_child(version)
@@ -125,12 +138,53 @@ func _clear(subtitle: String) -> void:
 	_subtitle.text = subtitle
 	for child in _content.get_children():
 		child.queue_free()
+	_content.add_theme_constant_override("separation", ROW_GAP)
+	_page_id += 1
+	_fit(_page_id)
+
+
+## Alto que necesita la página que se está mostrando (título, filas y márgenes).
+func needed_height() -> float:
+	return _center.get_combined_minimum_size().y + BOTTOM_MARGIN
+
+
+## Ajusta la página recién montada para que quepa entera en la pantalla sin desplazarla: si no
+## cabe, junta las filas y las hace más bajas, lo justo y hasta un mínimo cómodo para el dedo.
+## Las listas largas (las misiones de una campaña) siguen pudiendo desplazarse.
+func _fit(page: int) -> void:
+	# La página anterior se borra al acabar el fotograma y los tamaños se recalculan después.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if page != _page_id or not is_inside_tree():
+		return
+	var screen: float = fit_height if fit_height > 0.0 else size.y
+	var over: float = needed_height() - screen
+	if over <= 0.0:
+		return
+	var rows: Array[Button] = []
+	for child in _content.get_children():
+		if child is Button and not child.is_queued_for_deletion():
+			rows.append(child)
+	var gaps: int = maxi(_content.get_child_count() - 1, 0)
+	var gap: int = ROW_GAP
+	while gap > 5 and over > 0.0:
+		gap -= 1
+		over -= gaps
+	_content.add_theme_constant_override("separation", gap)
+	if over <= 0.0 or rows.is_empty():
+		return
+	var cut: float = ceilf(over / rows.size())
+	for row in rows:
+		var height: float = maxf(row.custom_minimum_size.y - cut, ROW_MIN)
+		row.custom_minimum_size.y = height
+		if height < 62.0 and row.get_theme_font_size("font_size") > 24:
+			row.add_theme_font_size_override("font_size", 24)
 
 
 func _button(text: String, action: Callable, enabled: bool = true) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(620.0, 72.0)
+	button.custom_minimum_size = Vector2(620.0, ROW_HEIGHT)
 	button.add_theme_font_size_override("font_size", 28)
 	button.disabled = not enabled
 	button.modulate = Color(1.0, 1.0, 1.0, 0.92)
@@ -204,6 +258,7 @@ func _page_audio() -> void:
 func _page_vehicles() -> void:
 	_clear("VEHÍCULOS DEL JUEGO")
 	var gallery := VehicleGallery.new()
+	gallery.compact()
 	gallery.closed.connect(_page_mode)
 	_content.add_child(gallery)
 	gallery.show_index(0)
