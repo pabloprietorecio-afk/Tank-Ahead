@@ -31,14 +31,16 @@ FILES = {
 }
 
 os.makedirs("audio_raw", exist_ok=True)
-log = open("audio_raw/README.txt", "w")
+log = open("audio_raw/README.txt", "a")
 model = None
 for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][1] is not None):
+    if os.path.exists(f"audio_raw/{key}.ogg"):
+        continue
     url = "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(name)
     source = "source_" + key
     ok = False
-    for attempt in range(4):
-        time.sleep(4 + attempt * 20)
+    for attempt in range(6):
+        time.sleep(20 + attempt * 50)
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=180) as response, open(source, "wb") as out:
                 out.write(response.read())

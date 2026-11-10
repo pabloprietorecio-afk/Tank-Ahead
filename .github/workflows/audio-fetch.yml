@@ -21,6 +21,10 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           pip install -q faster-whisper
+          git clone -q --depth 1 --branch audio-raw "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" audio_raw || mkdir -p audio_raw
+          rm -rf audio_raw/.git
+          grep -v "NO DESCARGADO" audio_raw/README.txt > keep.txt || true
+          mv keep.txt audio_raw/README.txt
           python3 tools/audio_fetch/fetch.py
           ls -la audio_raw
       - name: Publicar en la rama audio-raw
