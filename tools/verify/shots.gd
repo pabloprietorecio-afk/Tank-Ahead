@@ -56,6 +56,10 @@ class Runner extends Node:
 			await _tutorial()
 		if only == "" or only.contains("tutshots"):
 			await _tutorial_shots()
+		if only.contains("sky"):
+			await _sky()
+		if only == "" or only.contains("skyshots"):
+			await _sky_shots()
 		print("SHOTS DONE")
 		get_tree().quit()
 
@@ -343,6 +347,65 @@ class Runner extends Node:
 
 	func mode_ok(missing: int, restored: bool) -> bool:
 		return missing == 0 and restored and GameSession.tutorial_completed()
+
+	## Guerra en el cielo: muchas formaciones seguidas con un avión condenado en cada una.
+	## Ningún derribado puede caer dentro del campo de batalla.
+	func _sky() -> void:
+		await _new_stage(Fronts.Id.KURSK)
+		var sky := SkyWar.new()
+		sky.front = Fronts.Id.KURSK
+		_stage.add_child(sky)
+		var models: Dictionary = {}
+		Engine.time_scale = 6.0
+		for i in 36:
+			sky.front = i % 3
+			sky.launch(i % 2, -1, true, 0)
+			models[sky.last_model] = true
+			await get_tree().create_timer(4.0).timeout
+		await get_tree().create_timer(40.0).timeout
+		Engine.time_scale = 1.0
+		print("SKY modelos vistos: ", models.keys())
+		print("SKY RESULT derribos dentro del campo: %d de %d" % [sky.crashes_inside, sky.crashes])
+		if sky.crashes < 20:
+			print("SKY MAL: demasiado pocos derribos para dar la prueba por buena")
+
+	## Una formación de bombarderos bajo el fuego antiaéreo y un avión cayendo.
+	func _sky_shots() -> void:
+		GameSession.mode = GameSession.Mode.SURVIVAL
+		GameSession.front_choice = Fronts.Id.NORMANDY
+		GameSession.faction = Fronts.Faction.ALLIES
+		get_tree().change_scene_to_file("res://levels/arena.tscn")
+		await _frames(4)
+		var arena: Node = get_tree().current_scene
+		var sky: SkyWar = arena.get_node("SkyWar")
+		_camera = Camera3D.new()
+		_camera.far = 900.0
+		arena.add_child(_camera)
+		for spec in [[Fronts.Faction.ALLIES, 4, "sky_b17"], [Fronts.Faction.AXIS, 0, "sky_bf109"]]:
+			var formation: Dictionary = sky.launch(spec[0], spec[1], true, 1)
+			formation["doom_at"] = -40.0
+			var leader: Variant = formation["planes"][0]
+			var dir: Vector3 = formation["dir"]
+			while is_instance_valid(leader) and leader.global_position.dot(dir) < -150.0:
+				await get_tree().create_timer(0.3).timeout
+			if not is_instance_valid(leader):
+				continue
+			_look(Vector3(0.0, 3.0, 0.0), leader.global_position, 28.0)
+			await _snap(spec[2] + "_formacion")
+			var waited: float = 0.0
+			var victim: Variant = formation["doomed"]
+			while is_instance_valid(victim) and not victim.falling and waited < 12.0:
+				await get_tree().create_timer(0.2).timeout
+				waited += 0.2
+			await get_tree().create_timer(1.6).timeout
+			if is_instance_valid(victim):
+				_look(Vector3(0.0, 3.0, 0.0), victim.global_position, 28.0)
+				await _snap(spec[2] + "_derribo")
+		_look(Vector3(0.0, 3.0, 0.0), Vector3(0.0, 70.0, -200.0), 70.0)
+		for i in 4:
+			sky._distant_barrage()
+		await get_tree().create_timer(1.3).timeout
+		await _snap("sky_antiaerea_lejana")
 
 	## Aspecto de varias lecciones, con la interfaz real.
 	func _tutorial_shots() -> void:
