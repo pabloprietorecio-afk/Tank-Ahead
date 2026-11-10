@@ -165,6 +165,12 @@ func announce(text: String, urgent: bool) -> void:
 	message.emit(text, urgent)
 
 
+## Marcador de banderas para el HUD (solo captura la bandera): {"score": texto, "flags": [
+## {"color": Color, "title": texto, "state": texto, "alert": bool}, ...]}. Vacío = no se dibuja.
+func flag_board() -> Dictionary:
+	return {}
+
+
 ## Líneas de objetivos para el HUD (vacío si el modo no tiene objetivos concretos).
 func objective_lines() -> Array[String]:
 	return []

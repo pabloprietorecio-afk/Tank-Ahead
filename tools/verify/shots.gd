@@ -64,6 +64,8 @@ class Runner extends Node:
 			await _sky()
 		if only == "" or only.contains("skyshots"):
 			await _sky_shots()
+		if only == "" or only.contains("ctfshot"):
+			await _ctf_shot()
 		print("SHOTS DONE")
 		get_tree().quit()
 
@@ -792,6 +794,22 @@ class Runner extends Node:
 		# a coger la bandera contraria.
 		var ok: bool = pickups[0] > 0 and pickups[1] > 0
 		print("CTF RESULT la máquina juega a capturar: ", "OK" if ok else "NO")
+
+	## Marcador de banderas en pantalla: una en su base y otra llevada por el jugador.
+	func _ctf_shot() -> void:
+		GameSession.mode = GameSession.Mode.CTF
+		GameSession.front_choice = Fronts.Id.NORMANDY
+		GameSession.faction = Fronts.Faction.ALLIES
+		GameSettings.camera_view = 1
+		get_tree().change_scene_to_file("res://levels/arena.tscn")
+		await _frames(4)
+		var mode: CtfMode = get_tree().current_scene.get_node("GameMode") as CtfMode
+		mode.captures[0] = 1
+		mode.captures[1] = 2
+		mode.flags[1].pick_up(mode.player)
+		await get_tree().create_timer(1.5).timeout
+		await _snap("ctf_marcador")
+		GameSettings.camera_view = 0
 
 	func _secs(value: float) -> String:
 		return "a los %.0f s" % value if value >= 0.0 else "NUNCA"

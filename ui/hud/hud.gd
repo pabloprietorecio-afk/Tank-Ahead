@@ -464,6 +464,7 @@ func _draw() -> void:
 	draw_rect(Rect2(bar_origin, Vector2(60.0 * ready_fraction, 6.0)), bar_color, true)
 	_draw_armor(center)
 	_draw_objectives()
+	_draw_flag_board()
 	_draw_raid_warning(center)
 	# Icono del tanque visto desde arriba (norte arriba): casco y cañón con su orientación real.
 	_draw_tank_icon(Vector2(center.x, 74.0), green)
@@ -531,6 +532,30 @@ func _draw_armor(center: Vector2) -> void:
 		var label: String = "%s %d s" % [buff_names.get(kind, kind), ceili(tank.buffs[kind])]
 		draw_string(font, Vector2(x0, bar.position.y - 12.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(0.5, 0.9, 1.0))
 		x0 += font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18).x + 24.0
+
+
+## Captura la bandera: capturas de cada bando y quién tiene cada bandera, bajo el texto de estado.
+func _draw_flag_board() -> void:
+	var board: Dictionary = director.flag_board()
+	if board.is_empty():
+		return
+	var font: Font = ThemeDB.fallback_font
+	var origin := Vector2(18.0, 82.0)
+	var rows: Array = board["flags"]
+	draw_rect(Rect2(origin, Vector2(430.0, 34.0 + rows.size() * 34.0)), Color(0.0, 0.0, 0.0, 0.5), true)
+	draw_string(font, origin + Vector2(10.0, 24.0), "CAPTURAS", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color(1.0, 0.85, 0.1))
+	draw_string(font, origin + Vector2(110.0, 26.0), board["score"], HORIZONTAL_ALIGNMENT_LEFT, -1.0, 24, Color.WHITE)
+	var blink: bool = fmod(Time.get_ticks_msec() / 1000.0, 0.7) < 0.45
+	for i in rows.size():
+		var row: Dictionary = rows[i]
+		var at: Vector2 = origin + Vector2(12.0, 40.0 + i * 34.0)
+		var color: Color = row["color"]
+		# Iconito de bandera: mástil y paño del color del bando; parpadea si no está en su base.
+		if not row["alert"] or blink:
+			draw_line(at, at + Vector2(0.0, 26.0), Color(0.85, 0.85, 0.85), 2.0)
+			draw_colored_polygon(PackedVector2Array([at + Vector2(1.0, 1.0), at + Vector2(22.0, 7.0), at + Vector2(1.0, 14.0)]), color)
+		draw_string(font, at + Vector2(32.0, 13.0), row["title"], HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14, color.lightened(0.3))
+		draw_string(font, at + Vector2(32.0, 29.0), row["state"], HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16, Color(1.0, 0.9, 0.5) if row["alert"] else Color(0.9, 0.92, 0.9))
 
 
 ## Lista de objetivos de la misión, bajo el texto de estado.

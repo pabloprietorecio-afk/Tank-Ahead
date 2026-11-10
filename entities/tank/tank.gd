@@ -29,6 +29,8 @@ var paint: Dictionary = {}
 ## Órdenes (las rellena PlayerInputSource o la IA).
 var drive_input: Vector2 = Vector2.ZERO
 var trigger_held: bool = false
+## Factor sobre la velocidad máxima (quien lleva la bandera va más lento).
+var speed_factor: float = 1.0
 
 var turret: Node3D
 var gun_pivot: Node3D

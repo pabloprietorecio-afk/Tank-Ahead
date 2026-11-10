@@ -11,6 +11,14 @@ const TOUCH_RADIUS: float = 6.0
 const CAPTURE_RADIUS: float = 9.0
 const TEAM_SIZE: int = 4
 const RESPAWN_TIME: float = 6.0
+## Quien lleva la bandera, sea del bando que sea, va más lento: se le puede dar caza.
+const CARRIER_SPEED: float = 0.8
+## Bando enemigo por dificultad: cuántos tanques, cuántos van a por la bandera (el resto
+## defiende) y cuánto más pegan y aguantan que en los demás modos, donde vienen en masa.
+const ENEMY_COUNT: Array[int] = [3, 4, 5, 6]
+const ENEMY_ATTACKERS: Array[int] = [1, 2, 3, 4]
+const ENEMY_DAMAGE: Array[float] = [1.0, 1.5, 1.9, 2.4]
+const ENEMY_ARMOR: Array[float] = [1.0, 1.3, 1.6, 2.0]
 
 var captures: Array[int] = [0, 0]
 var flags: Array[Flag] = []
@@ -52,9 +60,9 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		flags.append(flag)
 		_build_base(team)
 	for team in [PLAYER_TEAM, ENEMY_TEAM]:
-		var count: int = TEAM_SIZE - (1 if team == PLAYER_TEAM else 0)
+		var count: int = TEAM_SIZE - 1 if team == PLAYER_TEAM else ENEMY_COUNT[GameSettings.difficulty]
 		# Atacantes por bando: dos de los tres aliados; del enemigo, según la dificultad.
-		var attackers: int = 2 if team == PLAYER_TEAM else [2, 3, 3, 4][GameSettings.difficulty]
+		var attackers: int = 2 if team == PLAYER_TEAM else ENEMY_ATTACKERS[GameSettings.difficulty]
 		for i in count:
 			_spawn_unit(team, "attack" if i < attackers else "defend")
 	message.emit("CAPTURA LA BANDERA ENEMIGA Y TRÁELA A TU BASE", true)
@@ -83,12 +91,41 @@ func _spawn_unit(team: int, role: String) -> void:
 	# Sin los más pesados para que el ritmo sea ágil.
 	var options: Array[TankStats] = pool.filter(func(s: TankStats) -> bool: return s.tier <= 2)
 	var stats: TankStats = options.pick_random()
+	if team == ENEMY_TEAM:
+		stats = stats.duplicate()
+		stats.damage *= ENEMY_DAMAGE[GameSettings.difficulty]
+		stats.max_armor *= ENEMY_ARMOR[GameSettings.difficulty]
 	var base: Vector3 = base_pos(team)
 	var point: Vector2 = free_point_near(Vector2(base.x, base.z), 8.0, 22.0)
 	var tank: Tank = spawn_tank(stats, team, point, 0.0 if team == PLAYER_TEAM else PI)
 	_roles[tank] = role
 	var brain: AIBrain = tank.get_node("AIBrain")
 	brain.hunt = false
+
+
+## Marcador para el HUD: capturas y, de cada bandera, dónde está y quién la lleva.
+func flag_board() -> Dictionary:
+	var rows: Array[Dictionary] = []
+	for team in [PLAYER_TEAM, ENEMY_TEAM]:
+		var flag: Flag = flags[team]
+		var ours: bool = team == PLAYER_TEAM
+		var state: String = "EN SU BASE"
+		var alert: bool = false
+		match flag.state:
+			Flag.Status.CARRIED:
+				if flag.carrier == player:
+					state = "¡LA LLEVAS TÚ!"
+				elif is_instance_valid(flag.carrier):
+					state = "LA LLEVA %s %s" % ["EL ENEMIGO:" if ours else "UN ALIADO:", flag.carrier.stats.display_name]
+				alert = true
+			Flag.Status.DROPPED:
+				state = "CAÍDA — VUELVE SOLA EN %d s" % ceili(Flag.RETURN_TIME - flag.dropped_time)
+				alert = true
+		rows.append({
+			"color": Color(0.35, 0.65, 1.0) if ours else Color(1.0, 0.25, 0.2),
+			"title": "TU BANDERA" if ours else "BANDERA ENEMIGA", "state": state, "alert": alert,
+		})
+	return {"score": "TÚ %d — %d ENEMIGO" % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]], "flags": rows}
 
 
 func status_text() -> String:
@@ -105,6 +142,10 @@ func _process(delta: float) -> void:
 		_time_up()
 		return
 	_update_flags()
+	for node in get_tree().get_nodes_in_group(&"tanks"):
+		var tank: Tank = node as Tank
+		if tank != null:
+			tank.speed_factor = CARRIER_SPEED if tank == flags[0].carrier or tank == flags[1].carrier else 1.0
 	_order_timer -= delta
 	if _order_timer <= 0.0:
 		_order_timer = 0.5
@@ -139,7 +180,7 @@ func _update_flags() -> void:
 
 func _announce_pickup(flag: Flag, tank: Tank) -> void:
 	if tank == player:
-		message.emit("¡TIENES LA BANDERA ENEMIGA! VUELVE A TU BASE", true)
+		message.emit("¡TIENES LA BANDERA ENEMIGA! VUELVE A TU BASE (CON ELLA VAS MÁS LENTO)", true)
 		get_tree().call_group(&"voice", &"say", "flag_taken", VoiceManager.Priority.HIGH)
 	elif flag.team == PLAYER_TEAM:
 		message.emit("¡EL ENEMIGO TIENE NUESTRA BANDERA!", true)

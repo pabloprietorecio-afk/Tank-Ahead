@@ -19,7 +19,7 @@ func _physics_process(delta: float) -> void:
 
 	var forward: Vector3 = -_tank.global_transform.basis.z
 	var current_speed: float = _tank.velocity.dot(forward)
-	var target_speed: float = _tank.drive_input.y * stats.max_speed
+	var target_speed: float = _tank.drive_input.y * stats.max_speed * _tank.speed_factor
 	current_speed = move_toward(current_speed, target_speed, stats.acceleration * delta)
 
 	_tank.velocity.x = forward.x * current_speed
