@@ -17,6 +17,12 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+      - name: Buscar candidatos (consultas de tools/audio_fetch/queries.txt)
+        run: |
+          if [ -s tools/audio_fetch/queries.txt ]; then
+            mapfile -t QUERIES < tools/audio_fetch/queries.txt
+            python3 tools/audio_fetch/discover.py "${QUERIES[@]}" || true
+          fi
       - name: Descargar y convertir
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
