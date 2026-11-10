@@ -595,7 +595,9 @@ class Runner extends Node:
 				continue
 			var point: Vector3 = target.global_position
 			var problem: String = ""
-			if absf(point.x) > 196.0 or absf(point.z) > 196.0:
+			if point.y < -1.0:
+				problem = "hundido bajo el suelo"
+			elif absf(point.x) > 196.0 or absf(point.z) > 196.0:
 				problem = "fuera del muro"
 			else:
 				# Se puede llegar junto a él: hay ruta hasta algún punto a su alrededor (lo que

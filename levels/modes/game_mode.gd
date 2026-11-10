@@ -26,6 +26,8 @@ var raid_first: float = 45.0
 
 var _rosters: Dictionary = {}
 var _raid_timer: float = 45.0
+## Caja de cada forma de colisión ya medida (ver _solid_shapes).
+var _shape_bounds: Dictionary = {}
 
 
 func _init() -> void:
@@ -190,6 +192,9 @@ func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> 
 		stats.reload_time *= GameSettings.SKILL_RELOAD[level]
 		stats.detect_range *= GameSettings.SKILL_SIGHT[level]
 		stats.lead_factor = minf(stats.lead_factor * (0.6 if level == 0 else 1.25), 1.0)
+	# Nunca dentro de un edificio, una colina u otro tanque: se corre al hueco más cercano.
+	if not fits(pos):
+		pos = free_point_near(pos, 0.0, 12.0)
 	var tank := Tank.new()
 	tank.name = "Tank"
 	tank.stats = stats
@@ -212,15 +217,92 @@ func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> 
 	return tank
 
 
-## Punto libre cerca de `center` (radio entre min y max).
+## Punto libre cerca de `center` (radio entre min y max) en el que cabe un tanque. Primero se
+## busca fuera de las zonas ocupadas o reservadas; si no hay (la guardia de un complejo va
+## dentro de su zona), vale cualquier hueco entre lo construido, cada vez un poco más lejos.
 func free_point_near(center: Vector2, min_radius: float, max_radius: float) -> Vector2:
+	var solids: Array = _solid_shapes()
 	var point := center
-	for attempt in 30:
-		point = center + Vector2.from_angle(randf() * TAU) * randf_range(min_radius, max_radius)
-		point = point.clampf(-180.0, 180.0)
-		if is_free_point.call(point):
+	for attempt in 90:
+		var reach: float = max_radius + maxf(attempt - 30.0, 0.0) * 1.5
+		point = (center + Vector2.from_angle(randf() * TAU) * randf_range(min_radius, reach)).clampf(-180.0, 180.0)
+		if (attempt >= 30 or is_free_point.call(point)) and _fits_among(point, solids, 4.5):
 			return point
 	return point
+
+
+## ¿Cabe un tanque en `point` sin quedar metido dentro de nada ni encima de otro tanque?
+func fits(point: Vector2, margin: float = 4.0) -> bool:
+	return _fits_among(point, _solid_shapes(), margin)
+
+
+## Formas de colisión de todo lo que hay en el campo, cada una como [transformación de mundo a
+## su espacio, caja que la contiene]. Se miran así, y no preguntando a la física, porque la
+## física no ve lo que se acaba de colocar en este mismo fotograma (los edificios de una misión
+## y su guardia se ponen a la vez): un tanque que aparece dentro de algo sale despedido hacia
+## abajo y se hunde.
+func _solid_shapes() -> Array:
+	var solids: Array = []
+	if world != null:
+		_collect_solids(world, solids)
+	return solids
+
+
+func _collect_solids(node: Node, solids: Array) -> void:
+	for child in node.get_children():
+		if child is StaticBody3D:
+			var body: StaticBody3D = child
+			if body.collision_layer & Tank.LAYER_WORLD == 0:
+				continue
+			for part in body.get_children():
+				var holder := part as CollisionShape3D
+				if holder == null or holder.shape == null or holder.disabled:
+					continue
+				var box: AABB = _bounds_of(holder.shape)
+				if box.size != Vector3.ZERO:
+					solids.append([(body.global_transform * holder.transform).affine_inverse(), box])
+		elif child is Node3D and not child is Tank:
+			_collect_solids(child, solids)
+
+
+func _bounds_of(shape: Shape3D) -> AABB:
+	var key: int = shape.get_instance_id()
+	if _shape_bounds.has(key):
+		return _shape_bounds[key]
+	var box := AABB()
+	if shape is BoxShape3D:
+		var size: Vector3 = (shape as BoxShape3D).size
+		box = AABB(-size * 0.5, size)
+	elif shape is ConvexPolygonShape3D:
+		var points: PackedVector3Array = (shape as ConvexPolygonShape3D).points
+		if not points.is_empty():
+			box = AABB(points[0], Vector3.ZERO)
+			for p in points:
+				box = box.expand(p)
+	elif shape is SphereShape3D:
+		var r: float = (shape as SphereShape3D).radius
+		box = AABB(Vector3(-r, -r, -r), Vector3(r, r, r) * 2.0)
+	elif shape is CylinderShape3D:
+		var c := shape as CylinderShape3D
+		box = AABB(Vector3(-c.radius, -c.height * 0.5, -c.radius), Vector3(c.radius * 2.0, c.height, c.radius * 2.0))
+	_shape_bounds[key] = box
+	return box
+
+
+func _fits_among(point: Vector2, solids: Array, margin: float) -> bool:
+	# A un metro del suelo: así no cuenta el propio suelo, que queda por debajo.
+	var spot := Vector3(point.x, 1.0, point.y)
+	for solid: Array in solids:
+		var local: Vector3 = (solid[0] as Transform3D) * spot
+		var box: AABB = solid[1]
+		if local.y >= box.position.y and local.y <= box.end.y and local.x >= box.position.x - margin and local.x <= box.end.x + margin and local.z >= box.position.z - margin and local.z <= box.end.z + margin:
+			return false
+	if is_inside_tree():
+		for node in get_tree().get_nodes_in_group(&"tanks"):
+			var other := node as Node3D
+			if other != null and Vector2(other.global_position.x - point.x, other.global_position.z - point.y).length() < 5.0:
+				return false
+	return true
 
 
 ## Distancia del centro a la línea por la que entran los refuerzos (el muro está a 200 m).
@@ -235,6 +317,7 @@ func edge_point(min_distance: float = 110.0, north_only: bool = false) -> Vector
 		origin = Vector2(player.global_position.x, player.global_position.z)
 	var best := Vector2(0.0, -EDGE)
 	var best_distance: float = -1.0
+	var solids: Array = _solid_shapes()
 	for attempt in 40:
 		var along: float = randf_range(-EDGE, EDGE)
 		var point := Vector2(along, -EDGE)
@@ -246,7 +329,7 @@ func edge_point(min_distance: float = 110.0, north_only: bool = false) -> Vector
 					point = Vector2(-EDGE, along)
 				3:
 					point = Vector2(EDGE, along)
-		if not is_free_point.call(point):
+		if not is_free_point.call(point) or not _fits_among(point, solids, 4.0):
 			continue
 		var distance: float = point.distance_to(origin)
 		if distance >= min_distance:

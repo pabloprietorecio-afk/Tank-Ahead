@@ -125,13 +125,15 @@ func _build_ground() -> void:
 	ground.material_override = material
 	add_child(ground)
 
+	# El suelo es un bloque muy grueso: si algo empuja a un tanque hacia abajo, la física lo
+	# devuelve arriba en vez de dejarlo atravesar una losa fina y caer al vacío.
 	var body := StaticBody3D.new()
 	body.collision_layer = 1
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(ARENA_HALF * 2.0 + 20.0, 2.0, ARENA_HALF * 2.0 + 20.0)
+	box.size = Vector3(ARENA_HALF * 2.0 + 20.0, 100.0, ARENA_HALF * 2.0 + 20.0)
 	shape.shape = box
-	shape.position.y = -1.0
+	shape.position.y = -50.0
 	body.add_child(shape)
 	add_child(body)
 
