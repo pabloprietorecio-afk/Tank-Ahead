@@ -296,7 +296,7 @@ class Runner extends Node:
 		await _snap("arena_%d_player" % front)
 		_look(origin + Vector3(0.0, 45.0, 60.0), origin + Vector3(0.0, 0.0, -30.0), 60.0)
 		await _snap("arena_%d_high" % front)
-		# Enemigos destacados con el borde azul, vistos de cerca.
+		# Enemigos destacados con el borde amarillo, vistos de cerca.
 		await get_tree().create_timer(5.0).timeout
 		GameSettings.highlight_enemies = true
 		for other in get_tree().get_nodes_in_group(&"tanks"):

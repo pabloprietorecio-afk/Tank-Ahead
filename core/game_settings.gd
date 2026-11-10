@@ -45,7 +45,7 @@ const SKILL_SIGHT: Array[float] = [0.85, 1.0, 1.1, 1.2]
 const SKILL_AIM_INTERVAL: Array[float] = [1.0, 0.6, 0.45, 0.3]
 static var difficulty: int = 1
 
-## Dibuja un borde azul alrededor de los tanques enemigos para verlos mejor.
+## Dibuja un borde amarillo alrededor de los tanques enemigos para verlos mejor.
 static var highlight_enemies: bool = false
 
 static var _loaded: bool = false

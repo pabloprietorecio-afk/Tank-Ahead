@@ -86,7 +86,7 @@ var _engine_sound: AudioStreamPlayer3D
 var _idle_sound: AudioStreamPlayer3D
 var _engine_pitch: float = 1.0
 var _engine_level: float = 0.0
-## Borde azul que destaca a los enemigos (ajuste «Destacar enemigos»): el mismo modelo, un poco
+## Borde amarillo que destaca a los enemigos (ajuste «Destacar enemigos»): el mismo modelo, un poco
 ## más gordo y dibujado solo por sus caras traseras, asoma alrededor de la silueta.
 static var _outline: StandardMaterial3D
 
@@ -240,13 +240,13 @@ func _animate_tracks(delta: float) -> void:
 	_track_material.set_shader_parameter("track_offset", _track_scroll)
 
 
-## Pone o quita el borde azul según el ajuste. Solo en tanques enemigos enteros.
+## Pone o quita el borde amarillo según el ajuste. Solo en tanques enemigos enteros.
 func refresh_highlight() -> void:
 	var on: bool = GameSettings.highlight_enemies and team != 0 and not is_player and not is_destroyed
 	if on and _outline == null:
 		_outline = StandardMaterial3D.new()
 		_outline.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_outline.albedo_color = Color(0.3, 0.62, 1.0)
+		_outline.albedo_color = Color(1.0, 0.9, 0.1)
 		_outline.cull_mode = BaseMaterial3D.CULL_FRONT
 		_outline.grow = true
 		_outline.grow_amount = 0.03

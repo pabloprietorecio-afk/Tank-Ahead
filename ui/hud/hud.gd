@@ -193,7 +193,7 @@ func _build_pause_and_history() -> void:
 	actions.add_child(menu)
 
 	options.add_child(VolumeSliders.create())
-	options.add_child(_make_toggle("Destacar enemigos (borde azul)", GameSettings.highlight_enemies, func(on: bool) -> void:
+	options.add_child(_make_toggle("Destacar enemigos (borde amarillo)", GameSettings.highlight_enemies, func(on: bool) -> void:
 		GameSettings.highlight_enemies = on
 		GameSettings.save()
 		for node in get_tree().get_nodes_in_group(&"tanks"):

@@ -258,7 +258,7 @@ func _page_audio() -> void:
 		refresh_effects.call())
 	refresh_effects.call()
 	var highlight := CheckButton.new()
-	highlight.text = "Destacar enemigos (borde azul)"
+	highlight.text = "Destacar enemigos (borde amarillo)"
 	highlight.button_pressed = GameSettings.highlight_enemies
 	highlight.add_theme_font_size_override("font_size", 26)
 	highlight.toggled.connect(func(on: bool) -> void:
