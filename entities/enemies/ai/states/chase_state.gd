@@ -15,11 +15,11 @@ func update(delta: float) -> void:
 	if not brain.has_target():
 		machine.change_to(&"Patrol")
 		return
-	if stats.retreat_fraction > 0.0 and brain.armor_fraction() <= stats.retreat_fraction:
+	if brain.retreat_threshold() > 0.0 and brain.armor_fraction() <= brain.retreat_threshold():
 		machine.change_to(&"Retreat")
 		return
 	_lost = 0.0 if perception.can_see else _lost + delta
-	if _lost > 3.0:
+	if _lost > 3.0 and brain.forced_target != brain.target:
 		machine.change_to(&"Search")
 		return
 	var point: Vector3 = perception.last_known

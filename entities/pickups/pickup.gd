@@ -9,6 +9,8 @@ const KINDS: Dictionary = {
 	"reload": {"name": "RECARGA RÁPIDA 20 s", "color": Color(0.3, 0.9, 1.0), "life": 35.0, "weight": 2.5},
 	"shield": {"name": "BLINDAJE EXTRA 20 s", "color": Color(0.4, 0.5, 1.0), "life": 30.0, "weight": 2.0},
 	"damage": {"name": "CAÑÓN PESADO 20 s", "color": Color(1.0, 0.3, 0.2), "life": 25.0, "weight": 1.5},
+	"missile": {"name": "MISIL +1", "color": Color(1.0, 0.55, 0.15), "life": 40.0, "weight": 1.6},
+	"strike": {"name": "BOMBARDEO +1", "color": Color(0.85, 0.45, 1.0), "life": 40.0, "weight": 1.4},
 	"medal": {"name": "MEDALLA +1000", "color": Color(1.0, 0.75, 0.2), "life": 15.0, "weight": 0.6},
 }
 const PICK_RADIUS: float = 4.5
@@ -107,6 +109,10 @@ func _collect() -> void:
 			_award(1000)
 		"repair":
 			player.health.heal(35.0)
+		"missile":
+			get_tree().call_group(&"game_mode", &"grant_missiles", 1)
+		"strike":
+			get_tree().call_group(&"game_mode", &"grant_strikes", 1)
 		_:
 			player.add_buff(kind, BUFF_TIME)
 	get_tree().call_group(&"game_mode", &"announce", Loc.t("PREMIO: %s") % Loc.t(KINDS[kind]["name"]), false)

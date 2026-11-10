@@ -44,6 +44,10 @@ LINES = {
     "damage_a": "Daño. Un enemigo te va a disparar. Mira tu barra de blindaje, abajo.",
     "damage_b": "Recoge la caja verde pasando por encima. Repara tu blindaje.",
     "damage_c": "Recoge la caja azul. Recarga rápida durante veinte segundos.",
+    "follow_a": "Todos conmigo. Pulsa el icono de las tres flechas, a la izquierda, y tus aliados te seguirán.",
+    "follow_b": "Ahora conduce hasta la baliza amarilla. Tus aliados vendrán contigo y te acompañarán.",
+    "focus_a": "Todos al objetivo. Apunta al tanque enemigo y pulsa el icono de la diana con dos flechas.",
+    "focus_b": "Todos tus aliados atacan lo que has señalado. Espera a que lo destruyan.",
     "final": "Combate final. Con tus dos aliados, destruye los tres tanques enemigos y el depósito. Usa todo lo aprendido.",
     "end": "Tutorial completado. Buen trabajo. Ya puedes empezar la campaña.",
 }

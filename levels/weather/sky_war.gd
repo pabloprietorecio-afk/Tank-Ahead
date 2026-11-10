@@ -40,9 +40,9 @@ const PAINT: Dictionary = {
 }
 
 const FIELD: float = 215.0
-const PASS_INTERVAL: Vector2 = Vector2(22.0, 48.0)
-const DISTANT_INTERVAL: Vector2 = Vector2(9.0, 22.0)
-const DOWN_CHANCE: float = 0.2
+const PASS_INTERVAL: Vector2 = Vector2(14.0, 32.0)
+const DISTANT_INTERVAL: Vector2 = Vector2(4.0, 11.0)
+const DOWN_CHANCE: float = 0.55
 ## Velocidad de las trazadoras antiaéreas (m/s) y color según quién dispara (lineal).
 const TRACER_SPEED: float = 240.0
 const TRACER_AXIS := Color(1.0, 0.62, 0.2)

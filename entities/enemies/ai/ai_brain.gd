@@ -27,6 +27,18 @@ var priority_target: Tank = null
 ## Segundos entre correcciones de puntería: los reflejos del tirador (lo ajusta la dificultad).
 var aim_interval: float = 0.6
 
+## Orden «todos conmigo»: acompaña a este tanque (el del jugador) y solo pelea con quien tenga
+## cerca de él; si se queda lejos, corre a reunirse con él disparando sobre la marcha.
+var follow: Tank = null
+const FOLLOW_RADIUS: float = 14.0
+const FOLLOW_CATCHUP: float = 38.0
+## Los enemigos más lejos que esto del tanque al que sigue se ignoran.
+const FOLLOW_LEASH: float = 60.0
+## Siguiendo al jugador se retira antes (para sobrevivir): a partir de esta fracción de blindaje.
+const FOLLOW_RETREAT: float = 0.4
+## Enemigo al que debe atacar sin distraerse (lo marca el jugador para todo su bando).
+var forced_target: Tank = null
+
 ## Navegación con rodeo de obstáculos (la usan los tanques del bando del jugador). Dos capas:
 ## una ruta sobre el mapa de celdas (NavGrid), que evita edificios, setos, colinas y callejones
 ## sin salida; y, para seguirla, un abanico de rayos que esquiva lo que el mapa no ve (otros
@@ -103,10 +115,38 @@ func _physics_process(delta: float) -> void:
 	if _retarget_timer <= 0.0:
 		_retarget_timer = RETARGET_INTERVAL
 		_choose_target()
+	_follow_tick()
 	perception.update(delta)
 	_avoid_timer = maxf(_avoid_timer - delta, 0.0)
 	if smart_nav:
 		_nav_tick(delta)
+
+
+## Pone o quita la orden de seguir a `leader`. Al quitarla se olvida del punto de reunión.
+func set_follow(leader: Tank) -> void:
+	if leader == follow:
+		return
+	var was_following: bool = follow != null
+	follow = leader
+	if leader == null and was_following:
+		objective = Vector3.INF
+		focus_objective = false
+
+
+func _follow_tick() -> void:
+	if follow == null:
+		return
+	if not is_instance_valid(follow) or follow.is_destroyed:
+		set_follow(null)
+		return
+	var far: bool = tank.global_position.distance_to(follow.global_position) > FOLLOW_CATCHUP
+	order(follow.global_position, 10.0 if far else FOLLOW_RADIUS, far)
+
+
+## Fracción de blindaje a partir de la cual se retira (más alta si sigue al jugador).
+func retreat_threshold() -> float:
+	var base: float = tank.stats.retreat_fraction
+	return maxf(base, FOLLOW_RETREAT) if follow != null else base
 
 
 func has_target() -> bool:
@@ -138,6 +178,11 @@ func fire_on_the_move(delta: float) -> bool:
 
 
 func _choose_target() -> void:
+	if is_instance_valid(forced_target) and not forced_target.is_destroyed:
+		# Ataque marcado por el jugador: sabe dónde está y va a por él aunque no lo vea.
+		perception.reveal(forced_target.global_position)
+		_set_target(forced_target)
+		return
 	if is_instance_valid(priority_target) and not priority_target.is_destroyed:
 		var reach: float = tank.stats.detect_range * maxf(perception.range_boost, 1.3)
 		if tank.global_position.distance_to(priority_target.global_position) <= reach and perception.line_of_sight(priority_target):
@@ -152,6 +197,8 @@ func _choose_target() -> void:
 		if other == null or other.is_destroyed or not tank.is_hostile_to(other):
 			continue
 		var dist: float = tank.global_position.distance_to(other.global_position)
+		if follow != null and is_instance_valid(follow) and other.global_position.distance_to(follow.global_position) > FOLLOW_LEASH:
+			continue
 		if dist < nearest_any_dist:
 			nearest_any_dist = dist
 			nearest_any = other
@@ -162,7 +209,7 @@ func _choose_target() -> void:
 			best = other
 	if best == null and has_target() and (perception.time_since_seen < 6.0 or _alert > 0.0):
 		return
-	if best == null and hunt:
+	if best == null and hunt and follow == null:
 		best = nearest_any
 	_set_target(best)
 

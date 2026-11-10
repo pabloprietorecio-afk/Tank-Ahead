@@ -81,6 +81,10 @@ LINES = {
     "tut_damage_a": (RADIO, "Damage. An enemy is about to shoot at you. Watch your armour bar, at the bottom."),
     "tut_damage_b": (RADIO, "Pick up the green crate by driving over it. It repairs your armour."),
     "tut_damage_c": (RADIO, "Pick up the blue crate. Fast reload for twenty seconds."),
+    "tut_follow_a": (RADIO, "All on me. Press the three-arrow icon on the left and your allies will follow you."),
+    "tut_follow_b": (RADIO, "Now drive to the yellow beacon. Your allies will come along and stay with you."),
+    "tut_focus_a": (RADIO, "All on target. Aim at the enemy tank and press the target icon with two arrows."),
+    "tut_focus_b": (RADIO, "All your allies are attacking what you marked. Wait for them to destroy it."),
     "tut_final": (RADIO, "Final battle. With your two allies, destroy the three enemy tanks and the depot. Use everything you have learned."),
     "tut_end": (RADIO, "Tutorial complete. Well done. You can now start the campaign."),
 }

@@ -36,11 +36,17 @@ const EVENTS: Dictionary = {
 	"air_phase": ["air_phase"],
 	"shot_down": ["shot_down_1", "shot_down_2"],
 	"air_clear": ["air_clear"],
+	# Órdenes del jugador a sus aliados.
+	"follow_on": ["follow_on"],
+	"follow_off": ["follow_off"],
+	"focus_fire": ["focus_fire"],
+	"focus_none": ["focus_none"],
 }
 ## Segundos mínimos entre dos veces el mismo evento.
 const COOLDOWNS: Dictionary = {
 	"kill": 3.0, "hit": 6.0, "radar": 25.0, "locked": 8.0, "pickup": 4.0, "bonus": 4.0,
 	"reinforcements": 40.0, "shot_down": 1.5, "armor_low": 20.0, "cease_fire": 4.0, "objective": 2.0,
+	"follow_on": 1.0, "follow_off": 1.0, "focus_fire": 1.0, "focus_none": 4.0,
 }
 const MAX_QUEUE: int = 3
 const RADAR_RANGE: float = 200.0

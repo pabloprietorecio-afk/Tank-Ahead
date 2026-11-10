@@ -27,6 +27,8 @@ var time_left: float = TIME_LIMIT
 ## Rol de cada tanque de la máquina: "attack" o "defend".
 var _roles: Dictionary = {}
 var _order_timer: float = 0.0
+## Quien va a devolver nuestra bandera caída (no sigue al jugador mientras tanto).
+var _rescuer: Tank = null
 
 
 func _init() -> void:
@@ -228,8 +230,13 @@ func _give_orders() -> void:
 		var rescuer: Tank = null
 		if own_flag.state == Flag.Status.DROPPED:
 			rescuer = _nearest(units, own_flag.global_position, enemy_flag.carrier)
+		if team == PLAYER_TEAM:
+			_rescuer = rescuer
 		for tank in units:
 			var brain: AIBrain = tank.get_node("AIBrain")
+			# «Todos conmigo» manda sobre los roles, salvo el que lleva la bandera y el que la rescata.
+			if brain.follow != null and enemy_flag.carrier != tank and tank != rescuer:
+				continue
 			var attacker: bool = _roles[tank] == "attack"
 			if enemy_flag.carrier == tank:
 				brain.order(base_pos(team), 1.0, true)
@@ -244,6 +251,10 @@ func _give_orders() -> void:
 				brain.order(enemy_flag.global_position, 1.0, true)
 			else:
 				brain.order(own_flag.home, 18.0)
+
+
+func can_follow(tank: Tank) -> bool:
+	return flags[1].carrier != tank and tank != _rescuer
 
 
 func _nearest(units: Array[Tank], point: Vector3, except: Tank) -> Tank:

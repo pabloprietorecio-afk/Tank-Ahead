@@ -18,7 +18,7 @@ en esa tabla. Las voces en inglés están en `assets/voice_en` y se generan con
 `python3 tools/voice_gen/voices_en.py MODELO.onnx VOCES.bin` (voces «am_michael» y «bm_george»).
 
 ## Tutorial
-Modo propio (`levels/modes/tutorial`): quince lecciones en un campo de prácticas. Se ofrece la
+Modo propio (`levels/modes/tutorial`): diecisiete lecciones (las dos últimas antes del combate final enseñan las órdenes a los aliados) en un campo de prácticas. Se ofrece la
 primera vez que se abre el juego y está siempre en el menú. Lo ofrecido y lo completado se
 guardan en la sección `tutorial` de `user://progress.cfg`.
 

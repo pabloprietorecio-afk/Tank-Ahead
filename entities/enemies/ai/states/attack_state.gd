@@ -24,7 +24,7 @@ func update(delta: float) -> void:
 	if not brain.has_target():
 		machine.change_to(&"Patrol")
 		return
-	if stats.retreat_fraction > 0.0 and brain.armor_fraction() <= stats.retreat_fraction:
+	if brain.retreat_threshold() > 0.0 and brain.armor_fraction() <= brain.retreat_threshold():
 		machine.change_to(&"Retreat")
 		return
 	# Los de largo alcance se retiran si el enemigo se les echa encima.

@@ -170,6 +170,20 @@ func _do_damage() -> void:
 		_drive_to(Vector2(mode.pickup.global_position.x, mode.pickup.global_position.z))
 
 
+func _do_follow() -> void:
+	if mode.step == 0:
+		_press("follow")
+	elif not mode.beacons.is_empty() and is_instance_valid(mode.beacons[0]):
+		_drive_to(mode.beacons[0].point())
+
+
+func _do_focus() -> void:
+	if mode.step == 0 and is_instance_valid(mode.enemy):
+		_aim(mode.enemy.global_position + Vector3.UP * 1.2)
+		if mode._aim_error(mode.enemy.global_position + Vector3.UP * 1.2) < 0.05:
+			_press("focus")
+
+
 func _do_final() -> void:
 	# Tras la primera baja espera a que el tanque destruido desaparezca del campo (los restos
 	# se retiran a los 8 s): la lección tiene que seguir contando bien con tanques ya retirados.

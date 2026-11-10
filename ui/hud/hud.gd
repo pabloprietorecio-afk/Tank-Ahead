@@ -21,7 +21,7 @@ var _flash: float = 0.0
 ## Velo de pantalla: esquinas oscurecidas y bordes rojos al recibir un impacto.
 var _overlay: ColorRect
 var _release: Button
-## Botones del HUD por nombre: gear, cam, pause, zoom, missile, strike, release.
+## Botones del HUD por nombre: gear, cam, zoom, missile, strike, release.
 var controls: Dictionary = {}
 ## Con el foco activo (tutorial) solo responden los botones de `focus` y ⚙; el resto se atenúa.
 var focus_active: bool = false
@@ -134,17 +134,6 @@ func _centered_panel(alpha: float = 0.97) -> PanelContainer:
 
 ## Menú de opciones (pausa): a la izquierda las acciones, a la derecha sonido y ayudas.
 func _build_pause_and_history() -> void:
-	var pause := _button("II", 30)
-	pause.custom_minimum_size = Vector2.ZERO
-	pause.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	pause.offset_left = -270.0
-	pause.offset_right = -190.0
-	pause.offset_top = 14.0
-	pause.offset_bottom = 90.0
-	pause.pressed.connect(func() -> void: _set_paused(true))
-	add_child(pause)
-	controls["pause"] = pause
-
 	_pause_panel = _centered_panel()
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
@@ -254,7 +243,7 @@ func _build_pause_and_history() -> void:
 
 	_end_panel = _centered_panel(0.55)
 	if touch != null:
-		touch.exclusions.append_array([pause, _pause_panel, _history_button, _history_panel, _end_panel])
+		touch.exclusions.append_array([_pause_panel, _history_button, _history_panel, _end_panel])
 	_build_arsenal()
 
 
@@ -263,6 +252,8 @@ var _zoom_button: Button
 var _refresh_effects: Callable
 var _missile_button: Button
 var _strike_button: Button
+var _follow_button: CommandButton
+var _focus_button: CommandButton
 var _binocular_mask: ColorRect
 var _history_gallery: VehicleGallery
 ## La ficha se abrió desde el menú de opciones: al cerrarla se vuelve a él.
@@ -311,6 +302,24 @@ func _build_arsenal() -> void:
 	_zoom_button.pressed.connect(func() -> void: tank.set_binoculars(not tank.binoculars))
 	_missile_button.pressed.connect(func() -> void: director.fire_missile())
 	_strike_button.pressed.connect(func() -> void: director.call_air_strike())
+	# Órdenes a los aliados: iconos a la izquierda, a media altura (sin texto).
+	_follow_button = CommandButton.create(CommandButton.Kind.FOLLOW)
+	_focus_button = CommandButton.create(CommandButton.Kind.FOCUS)
+	var offsets: Array = [-104.0, 16.0]
+	for pair in [[_follow_button, offsets[0]], [_focus_button, offsets[1]]]:
+		var icon: CommandButton = pair[0]
+		icon.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+		icon.offset_left = 22.0
+		icon.offset_right = 110.0
+		icon.offset_top = pair[1]
+		icon.offset_bottom = pair[1] + 88.0
+		icon.visible = false
+		add_child(icon)
+		buttons.append(icon)
+	controls["follow"] = _follow_button
+	controls["focus"] = _focus_button
+	_follow_button.pressed.connect(func() -> void: director.toggle_follow())
+	_focus_button.pressed.connect(func() -> void: director.focus_fire())
 	if touch != null:
 		touch.exclusions.append_array(buttons)
 
@@ -443,6 +452,12 @@ func _process(delta: float) -> void:
 	# Misil y aviación solo se ofrecen con los prismáticos puestos.
 	_missile_button.visible = tank.binoculars and not director.is_over
 	_strike_button.visible = tank.binoculars and not director.is_over
+	# Órdenes a los aliados: solo si los hay (y no en el tutorial).
+	var commands: bool = director.wants_commands() and director.allies_alive > 0 and not director.is_over
+	_follow_button.visible = commands
+	_focus_button.visible = commands
+	_follow_button.active = director.follow_me
+	_focus_button.active = director.focus_target != null
 	if focus_active:
 		_apply_focus()
 	_binocular_mask.visible = tank.binoculars

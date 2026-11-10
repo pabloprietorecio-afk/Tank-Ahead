@@ -24,6 +24,15 @@ var strikes: int = 1
 var raid_interval: Vector2 = Vector2(55.0, 85.0)
 var raid_first: float = 45.0
 
+## Órdenes al bando del jugador: «todos conmigo» (siguen al jugador) y ataque al objetivo marcado.
+var follow_me: bool = false
+var focus_target: Tank = null
+## Aliados con vida (se cuentan cada medio segundo; el HUD solo ofrece las órdenes si hay).
+var allies_alive: int = 0
+const FOCUS_CONE: float = 0.35
+const FOCUS_RANGE: float = 420.0
+
+var _command_timer: float = 0.0
 var _rosters: Dictionary = {}
 var _raid_timer: float = 45.0
 ## Caja de cada forma de colisión ya medida (ver _solid_shapes).
@@ -83,12 +92,97 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_commands(delta)
 	if is_over or raid_interval == Vector2.ZERO or not raids_active():
 		return
 	_raid_timer -= delta
 	if _raid_timer <= 0.0:
 		_raid_timer = randf_range(raid_interval.x, raid_interval.y)
 		enemy_air_raid()
+
+
+## ¿Ofrece el HUD las órdenes a los aliados? (El tutorial no.)
+func wants_commands() -> bool:
+	return true
+
+
+## ¿Puede este aliado seguir al jugador? (Captura la bandera reserva al que lleva o rescata una bandera.)
+func can_follow(_tank: Tank) -> bool:
+	return true
+
+
+## Cada medio segundo pone al día las órdenes de los aliados (también las de los que acaban de aparecer).
+func _update_commands(delta: float) -> void:
+	_command_timer -= delta
+	if _command_timer > 0.0 or player == null:
+		return
+	_command_timer = 0.5
+	if not is_instance_valid(focus_target) or focus_target.is_destroyed:
+		focus_target = null
+	allies_alive = 0
+	for node in get_tree().get_nodes_in_group(&"ai_brains"):
+		var brain := node as AIBrain
+		if brain == null or brain.tank == null or brain.tank.is_destroyed or brain.tank.team != player.team:
+			continue
+		allies_alive += 1
+		brain.set_follow(player if follow_me and not player.is_destroyed and can_follow(brain.tank) else null)
+		brain.forced_target = focus_target
+
+
+## «Todos conmigo»: los aliados siguen al jugador a donde vaya (otra pulsación, y vuelven a lo suyo).
+func toggle_follow() -> void:
+	if is_over or player == null or player.is_destroyed:
+		return
+	follow_me = not follow_me
+	_command_timer = 0.0
+	_update_commands(0.0)
+	get_tree().call_group(&"voice", &"say", "follow_on" if follow_me else "follow_off", VoiceManager.Priority.HIGH)
+	message.emit(Loc.t("TODOS CONMIGO: TUS ALIADOS TE SIGUEN") if follow_me else Loc.t("TODOS LIBRES: TUS ALIADOS ACTÚAN POR SU CUENTA"), false)
+
+
+## Todo el bando ataca al objetivo fijado del jugador o, si no hay, al enemigo que tiene bajo la mira.
+func focus_fire() -> void:
+	if is_over or player == null or player.is_destroyed:
+		return
+	var enemy: Tank = player.aim_lock if is_instance_valid(player.aim_lock) and not player.aim_lock.is_destroyed else _enemy_under_crosshair()
+	if enemy == null:
+		get_tree().call_group(&"voice", &"say", "focus_none", VoiceManager.Priority.NORMAL)
+		message.emit(Loc.t("SIN OBJETIVO: APUNTA A UN ENEMIGO"), false)
+		return
+	focus_target = enemy
+	_command_timer = 0.0
+	_update_commands(0.0)
+	get_tree().call_group(&"voice", &"say", "focus_fire", VoiceManager.Priority.HIGH)
+	message.emit(Loc.t("TODOS CONTRA %s") % enemy.stats.display_name, false)
+
+
+## El enemigo más cercano a la dirección en la que apunta el cañón (dentro de un cono amplio).
+func _enemy_under_crosshair() -> Tank:
+	var origin: Vector3 = player.muzzle.global_position
+	var aim: Vector3 = -player.muzzle.global_transform.basis.z
+	var best: Tank = null
+	var best_angle: float = FOCUS_CONE
+	for node in get_tree().get_nodes_in_group(&"tanks"):
+		var other := node as Tank
+		if other == null or other.is_destroyed or not player.is_hostile_to(other):
+			continue
+		var to: Vector3 = other.global_position + Vector3.UP * 1.2 - origin
+		if to.length() > FOCUS_RANGE:
+			continue
+		var angle: float = aim.angle_to(to)
+		if angle < best_angle:
+			best_angle = angle
+			best = other
+	return best
+
+
+## Premios de la aviación y de misiles recogidos del suelo (vía grupo "game_mode").
+func grant_missiles(count: int) -> void:
+	missiles += count
+
+
+func grant_strikes(count: int) -> void:
+	strikes += count
 
 
 ## ¿Hay bombardeos enemigos ahora? (Supervivencia los activa a partir de la oleada 2.)

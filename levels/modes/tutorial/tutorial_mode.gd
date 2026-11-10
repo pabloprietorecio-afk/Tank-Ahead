@@ -14,7 +14,7 @@ const HINT_TIME: float = 20.0
 
 const LESSONS: Array[String] = [
 	"move", "turn", "turret", "fire", "easy", "camera", "radar", "enemy",
-	"assist", "zoom", "missile", "strike", "raid", "damage", "final",
+	"assist", "zoom", "missile", "strike", "raid", "damage", "follow", "focus", "final",
 ]
 
 ## Pasos de cada lección: locución (id), instrucción, pista detallada y qué se resalta.
@@ -122,6 +122,22 @@ const STEPS: Dictionary = {
 			"text": "RECOGE LA CAJA AZUL: RECARGA RÁPIDA DURANTE 20 SEGUNDOS.\nEL AVISO SALE SOBRE TU BLINDAJE",
 			"hint": "LA CAJA ES LA CRUZ AZUL DEL RADAR.\nCONDUCE HASTA TOCARLA"},
 	],
+	"follow": [
+		{"id": "follow_a", "show": ["follow"],
+			"text": "TODOS CONMIGO: PULSA EL ICONO DE LAS TRES FLECHAS\nY TUS ALIADOS TE SEGUIRÁN",
+			"hint": "ESTÁ A LA IZQUIERDA DE LA PANTALLA, EL DE ARRIBA.\nPÚLSALO UNA VEZ"},
+		{"id": "follow_b", "show": ["radar"],
+			"text": "AHORA CONDUCE HASTA LA BALIZA AMARILLA:\nTUS ALIADOS VENDRÁN CONTIGO Y TE ACOMPAÑARÁN",
+			"hint": "AVANZA SIN PRISA HASTA LA BALIZA.\nLOS ALIADOS SE QUEDAN CERCA DE TI, VAYAS DONDE VAYAS"},
+	],
+	"focus": [
+		{"id": "focus_a", "show": ["focus"],
+			"text": "TODOS AL OBJETIVO: APUNTA AL TANQUE ENEMIGO\nY PULSA EL ICONO DE LA DIANA CON DOS FLECHAS",
+			"hint": "PON LA MIRA SOBRE EL TANQUE ENEMIGO. EL ICONO ESTÁ\nA LA IZQUIERDA, DEBAJO DEL DE LAS TRES FLECHAS"},
+		{"id": "focus_b", "show": [],
+			"text": "TODOS TUS ALIADOS ATACAN LO QUE HAS SEÑALADO.\nESPERA A QUE LO DESTRUYAN",
+			"hint": "NO HACE FALTA QUE DISPARES TÚ:\nTUS ALIADOS SE ENCARGAN DEL OBJETIVO"},
+	],
 	"final": [
 		{"id": "final", "show": ["radar"],
 			"text": "COMBATE FINAL: CON TUS DOS ALIADOS, DESTRUYE LOS TRES\nTANQUES ENEMIGOS Y EL DEPÓSITO (ROMBO DEL RADAR)",
@@ -148,6 +164,7 @@ var depot_near: Destructible
 var depot_far: Destructible
 var pickup: Pickup
 var raid: AirStrike
+var allies: Array[Tank] = []
 var final_enemies: Array[Tank] = []
 var final_objective: Destructible
 
@@ -173,6 +190,7 @@ var _raid_judged: bool = false
 var _hit: bool = false
 var _shoot_delay: float = 0.0
 var _picked: int = 0
+var _follow_wait: float = 0.0
 
 ## Ajustes del jugador antes del tutorial: se restauran al salir.
 static var _saved: Dictionary = {}
@@ -184,6 +202,10 @@ func _init() -> void:
 	strikes = 0
 	# Sin bombardeos enemigos por sorpresa: solo el de su lección.
 	raid_interval = Vector2.ZERO
+
+
+func wants_commands() -> bool:
+	return lesson_id() in ["follow", "focus", "final"]
 
 
 func wants_scenery() -> bool:
@@ -400,13 +422,20 @@ func _prepare(index: int) -> void:
 	player.health.invulnerable = index < LESSONS.find("damage")
 	missiles = 0
 	strikes = 0
-	if LESSONS[index] in ["raid", "damage", "final"]:
+	# Las órdenes a los aliados empiezan de cero en cada lección.
+	follow_me = false
+	focus_target = null
+	allies_alive = 0
+	if LESSONS[index] in ["raid", "damage", "follow", "focus", "final"]:
 		player.set_binoculars(false)
 	if touch != null:
 		touch.fire_enabled = index >= LESSONS.find("fire")
 	if hud != null:
-		var allowed: Array[String] = ["pause"]
-		var unlock: Dictionary = {"cam": "camera", "release": "assist", "zoom": "zoom", "missile": "missile", "strike": "strike"}
+		var allowed: Array[String] = []
+		var unlock: Dictionary = {
+			"cam": "camera", "release": "assist", "zoom": "zoom", "missile": "missile", "strike": "strike",
+			"follow": "follow", "focus": "focus",
+		}
 		for key in unlock:
 			if index >= LESSONS.find(unlock[key]):
 				allowed.append(key)
@@ -444,6 +473,7 @@ func _cleanup(keep_targets: bool) -> void:
 	beacons.clear()
 	beacon_index = 0
 	final_enemies.clear()
+	allies.clear()
 	enemy = null
 	depot_near = null
 	depot_far = null
@@ -876,6 +906,62 @@ func _check_damage(delta: float) -> bool:
 				_enter_step(2)
 		2:
 			return player.buffs.has("reload")
+	return false
+
+
+func _spawn_allies(forward: float) -> void:
+	var dir: Vector2 = _base_dir()
+	var facing: float = yaw_towards(Vector2.ZERO, dir)
+	allies.clear()
+	for side in [-14.0, 14.0]:
+		var ally: Tank = spawn_tank(Fronts.tank("m4_sherman"), PLAYER_TEAM, _spot(forward, side, dir), facing)
+		_props.append(ally)
+		allies.append(ally)
+
+
+func _setup_follow() -> void:
+	player.health.heal(1000.0)
+	_follow_wait = 0.0
+	_spawn_allies(-6.0)
+	_beacon(_spot(62.0, 0.0))
+
+
+func _check_follow(delta: float) -> bool:
+	match step:
+		0:
+			if follow_me:
+				_enter_step(1)
+		1:
+			var beacon_point: Vector2 = Vector2(beacons[0].global_position.x, beacons[0].global_position.z)
+			if not _near(beacon_point, 9.0):
+				_follow_wait = 0.0
+				return false
+			# En la baliza, los aliados tienen que haber llegado junto al jugador.
+			var close: int = 0
+			for ally: Tank in allies:
+				if is_instance_valid(ally) and not ally.is_destroyed and ally.global_position.distance_to(player.global_position) < 34.0:
+					close += 1
+			_follow_wait += delta
+			return close >= 1 and _follow_wait > 3.0
+	return false
+
+
+func _setup_focus() -> void:
+	player.health.heal(1000.0)
+	_spawn_allies(-6.0)
+	var dir: Vector2 = _base_dir()
+	var point: Vector2 = _spot(75.0, 0.0, dir)
+	enemy = _dummy("panzer3", ENEMY_TEAM, point, yaw_towards(point, _player_xz()), 90.0)
+	enemy.health.invulnerable = false
+
+
+func _check_focus(_delta: float) -> bool:
+	match step:
+		0:
+			if focus_target != null and focus_target == enemy:
+				_enter_step(1)
+		1:
+			return _dead(enemy)
 	return false
 
 
