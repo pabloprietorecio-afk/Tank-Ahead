@@ -7,6 +7,7 @@ var _camera: Camera3D
 var _time: float = 0.0
 var _fire_light: OmniLight3D
 var _boom_timer: float = 2.0
+var _guns_timer: float = 5.0
 ## Mallas del último tanque creado (para calcinar el que hace de resto).
 var _wreck_meshes: Array[MeshInstance3D] = []
 
@@ -18,8 +19,6 @@ func _ready() -> void:
 	sky_material.ground_horizon_color = Color(0.6, 0.35, 0.2)
 	sky_material.ground_bottom_color = Color(0.05, 0.05, 0.05)
 	sky_material.sun_angle_max = 25.0
-	sky_material.sky_cover = VectorMaterials.clouds()
-	sky_material.sky_cover_modulate = Color(0.9, 0.5, 0.34)
 	var sky := Sky.new()
 	sky.sky_material = sky_material
 	var env := Environment.new()
@@ -51,6 +50,11 @@ func _ready() -> void:
 	var dirt: Color = Fronts.ground_colors(Fronts.Id.NORMANDY)[2]
 	fx.soil = dirt.darkened(0.3).srgb_to_linear()
 	fx.dust = dirt.lerp(Color(0.56, 0.53, 0.48), 0.4).srgb_to_linear()
+	# Nubes del atardecer, que se encienden con las explosiones y la artillería lejana.
+	var clouds := CloudDome.new()
+	add_child(clouds)
+	clouds.setup(Color(0.85, 0.34, 0.17), Color(0.1, 0.055, 0.1), sky_material.sky_horizon_color.srgb_to_linear(), 0.45, 0.8, fx.wind)
+	fx.sky = clouds
 
 	var ground_mat: ShaderMaterial = VectorMaterials.ground().duplicate()
 	var colors: Array[Color] = Fronts.ground_colors(Fronts.Id.NORMANDY)
@@ -83,7 +87,8 @@ func _ready() -> void:
 	church.rotation.y = 0.4
 	add_child(church)
 	for i in 3:
-		var house := PropFactory.house(Vector3(6.0, 4.0, 7.0))
+		# La del centro está bombardeada y sigue ardiendo.
+		var house: Destructible = PropFactory.bombed_house(Vector3(6.5, 4.2, 7.5)) if i == 1 else PropFactory.house(Vector3(6.0, 4.0, 7.0))
 		house.position = Vector3(-35.0 + i * 11.0, 0.0, -55.0 - i * 4.0)
 		house.rotation.y = 0.2 * i
 		add_child(house)
@@ -91,7 +96,7 @@ func _ready() -> void:
 	hedge.position = Vector3(-5.0, 0.0, -35.0)
 	add_child(hedge)
 	for i in 8:
-		var tree := PropFactory.apple_tree(randf_range(4.0, 6.0))
+		var tree: Destructible = PropFactory.burnt_tree(randf_range(4.0, 6.0), 0, i == 0) if i < 2 else PropFactory.apple_tree(randf_range(4.0, 6.0))
 		tree.position = Vector3(randf_range(-40.0, 40.0), 0.0, randf_range(-50.0, -30.0))
 		add_child(tree)
 	var ruin := PropFactory.ruin(10.0)
@@ -140,3 +145,15 @@ func _process(delta: float) -> void:
 	if _boom_timer <= 0.0:
 		_boom_timer = randf_range(3.0, 7.0)
 		Explosion.spawn(self, Vector3(randf_range(-60.0, 60.0), 1.0, randf_range(-90.0, -60.0)), 1.6, VectorMaterials.ORANGE, true)
+	# Artillería tras el horizonte: una salva de fogonazos en las nubes del fondo.
+	_guns_timer -= delta
+	if _guns_timer <= 0.0:
+		_guns_timer = randf_range(6.0, 14.0)
+		var centre := Vector3(randf_range(-1500.0, 1500.0), 0.0, randf_range(-3000.0, -1800.0))
+		var at: float = 0.0
+		for i in randi_range(3, 7):
+			at += randf_range(0.1, 0.6)
+			var point: Vector3 = centre + Vector3(randf_range(-400.0, 400.0), 0.0, randf_range(-300.0, 300.0))
+			get_tree().create_timer(at).timeout.connect(func() -> void:
+				if is_inside_tree():
+					Fx.on(self).sky_flash(point, Color(1.0, 0.62, 0.32), randf_range(1.2, 2.0), randf_range(300.0, 420.0), randf_range(0.22, 0.42)))

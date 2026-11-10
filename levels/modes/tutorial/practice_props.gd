@@ -15,6 +15,8 @@ class Target extends Destructible:
 		max_health = 50.0
 		debris_color = Color(0.85, 0.8, 0.7)
 		size_hint = 2.0
+		# Al destruirla se tumba hacia atrás.
+		topples = true
 		var colors: Array[Color] = [Color(0.95, 0.95, 0.9), Color(0.85, 0.12, 0.1), Color(0.95, 0.95, 0.9), Color(0.85, 0.12, 0.1)]
 		var radii: Array[float] = [1.7, 1.25, 0.8, 0.35]
 		for i in 4:

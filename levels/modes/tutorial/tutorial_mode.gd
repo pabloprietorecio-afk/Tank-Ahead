@@ -433,6 +433,9 @@ func _cleanup(keep_targets: bool) -> void:
 		if is_instance_valid(node) and not (keep_targets and node is PracticeProps.Target):
 			node.queue_free()
 	_props.clear()
+	# Tampoco quedan los restos de lo destruido en la lección anterior.
+	if is_inside_tree():
+		get_tree().call_group(&"remains", &"queue_free")
 	if keep_targets:
 		for target in targets:
 			if is_instance_valid(target):

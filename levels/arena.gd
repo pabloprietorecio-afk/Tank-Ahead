@@ -78,7 +78,6 @@ func _create_mode() -> GameMode:
 
 func _build_environment() -> void:
 	_sky_material = ProceduralSkyMaterial.new()
-	_sky_material.sky_cover = VectorMaterials.clouds()
 	var sky := Sky.new()
 	sky.sky_material = _sky_material
 	_env = Environment.new()
@@ -204,10 +203,11 @@ func _place(prop: Node3D, pos: Vector2, radius: float, yaw: float = 0.0) -> void
 	_obstacle_rects.append(Rect2(pos - Vector2.ONE * (radius + 3.0), Vector2.ONE * (radius + 3.0) * 2.0))
 
 
-## Coloca varios objetos alrededor de un centro sin registrar obstáculos individuales.
-func _scatter(center: Vector2, count: int, spread: float, factory: Callable) -> void:
+## Coloca varios objetos alrededor de un centro sin registrar obstáculos individuales. Con
+## `burnt`, los dos primeros son árboles alcanzados por el fuego (y el primero sigue ardiendo).
+func _scatter(center: Vector2, count: int, spread: float, factory: Callable, burnt: Callable = Callable()) -> void:
 	for i in count:
-		var prop: Node3D = factory.call()
+		var prop: Node3D = burnt.call(i == 0) if burnt.is_valid() and i < 2 else factory.call()
 		var offset := Vector2(_rng.randf_range(-spread, spread), _rng.randf_range(-spread, spread))
 		prop.position = Vector3(center.x + offset.x, 0.0, center.y + offset.y)
 		prop.rotation.y = _rng.randf() * TAU
@@ -250,7 +250,17 @@ func _build_scenery() -> void:
 		var pos := _free_spot(8.0)
 		if pos == Vector2.INF:
 			continue
-		_place(PropFactory.ruin(_rng.randf_range(8.0, 14.0)), pos, 7.0, _rng.randf() * TAU)
+		var ruin := PropFactory.ruin(_rng.randf_range(8.0, 14.0))
+		_place(ruin, pos, 7.0, _rng.randf() * TAU)
+		if r < 2:
+			# Un par de ellas aún humean.
+			var vent := FxVent.new()
+			vent.rate = 1.8
+			vent.size = 1.3
+			vent.rise = 1.8
+			vent.color = Color(Fx.GREY_SMOKE.r, Fx.GREY_SMOKE.g, Fx.GREY_SMOKE.b, 0.55)
+			vent.position = Vector3(_rng.randf_range(-3.0, 3.0), 0.6, 1.2)
+			ruin.add_child(vent)
 		for b in _rng.randi_range(1, 3):
 			var barrel := PropFactory.barrel()
 			barrel.position = Vector3(pos.x + _rng.randf_range(-5.0, 5.0), 0.0, pos.y + _rng.randf_range(2.0, 5.0))
@@ -268,10 +278,13 @@ func _build_scenery() -> void:
 			_place(PropFactory.rock(radius), pos, radius)
 
 
-func _village(center: Vector2, houses: int, house_factory: Callable) -> void:
+## Pueblo: `houses` casas en torno a `center`. Una de ellas, la que da `bombed_factory`, está
+## bombardeada y sigue ardiendo.
+func _village(center: Vector2, houses: int, house_factory: Callable, bombed_factory: Callable = Callable()) -> void:
+	var bombed: int = _rng.randi() % houses if bombed_factory.is_valid() else -1
 	for h in houses:
 		var offset := Vector2(_rng.randf_range(-20.0, 20.0), _rng.randf_range(-20.0, 20.0))
-		var prop: Node3D = house_factory.call()
+		var prop: Node3D = bombed_factory.call() if h == bombed else house_factory.call()
 		prop.position = Vector3(center.x + offset.x, 0.0, center.y + offset.y)
 		prop.rotation.y = round(_rng.randf() * 4.0) * PI * 0.5
 		add_child(prop)
@@ -293,9 +306,9 @@ func _scenery_normandy() -> void:
 			church.position = Vector3(center.x, 0.0, center.y)
 			add_child(church)
 			_obstacle_rects.append(Rect2(center - Vector2(14.0, 14.0), Vector2(28.0, 28.0)))
-			_village(center + Vector2(0.0, 22.0), 2, func() -> Node3D: return PropFactory.house(_house_size()))
+			_village(center + Vector2(0.0, 22.0), 2, func() -> Node3D: return PropFactory.house(_house_size()), func() -> Node3D: return PropFactory.bombed_house(_house_size(), 0))
 		else:
-			_village(center, 4, func() -> Node3D: return PropFactory.house(_house_size()))
+			_village(center, 4, func() -> Node3D: return PropFactory.house(_house_size()), func() -> Node3D: return PropFactory.bombed_house(_house_size(), 0))
 		for l in 3:
 			var lamp := PropFactory.lamp_post()
 			lamp.position = Vector3(center.x + _rng.randf_range(-20.0, 20.0), 0.0, center.y + _rng.randf_range(-20.0, 20.0))
@@ -310,7 +323,8 @@ func _scenery_normandy() -> void:
 	for o in 5:
 		var center := _free_spot(12.0)
 		if center != Vector2.INF:
-			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.apple_tree(_rng.randf_range(4.0, 6.0)))
+			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.apple_tree(_rng.randf_range(4.0, 6.0)),
+					(func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(4.0, 6.0), 0, burning)) if o < 2 else Callable())
 	for f in 6:
 		var pos := _free_spot(6.0)
 		if pos != Vector2.INF:
@@ -323,8 +337,10 @@ func _scenery_africa() -> void:
 		var center := _free_spot(44.0)
 		if center == Vector2.INF:
 			continue
-		_village(center, 4, func() -> Node3D: return PropFactory.desert_house(Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.0, 4.5), _rng.randf_range(5.0, 8.0))))
-		_scatter(center + Vector2(32.0, 0.0), 6, 8.0, func() -> Node3D: return PropFactory.palm(_rng.randf_range(7.0, 10.0)))
+		_village(center, 4, func() -> Node3D: return PropFactory.desert_house(Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.0, 4.5), _rng.randf_range(5.0, 8.0))),
+				func() -> Node3D: return PropFactory.bombed_house(Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.0, 4.5), _rng.randf_range(5.0, 8.0)), 1))
+		_scatter(center + Vector2(32.0, 0.0), 6, 8.0, func() -> Node3D: return PropFactory.palm(_rng.randf_range(7.0, 10.0)),
+				func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(7.0, 10.0), 2, burning))
 	for i in 10:
 		var pos := _free_spot(5.0)
 		if pos != Vector2.INF:
@@ -340,7 +356,8 @@ func _scenery_kursk() -> void:
 		var center := _free_spot(30.0)
 		if center == Vector2.INF:
 			continue
-		_village(center, 5, func() -> Node3D: return PropFactory.izba(Vector3(_rng.randf_range(5.0, 7.0), _rng.randf_range(3.0, 4.0), _rng.randf_range(6.0, 8.0))))
+		_village(center, 5, func() -> Node3D: return PropFactory.izba(Vector3(_rng.randf_range(5.0, 7.0), _rng.randf_range(3.0, 4.0), _rng.randf_range(6.0, 8.0))),
+				func() -> Node3D: return PropFactory.bombed_house(Vector3(_rng.randf_range(5.0, 7.0), _rng.randf_range(3.0, 4.0), _rng.randf_range(6.0, 8.0)), 2))
 		for f in 3:
 			var fence := PropFactory.fence(10.0)
 			fence.position = Vector3(center.x + _rng.randf_range(-25.0, 25.0), 0.0, center.y + _rng.randf_range(-25.0, 25.0))
@@ -349,7 +366,8 @@ func _scenery_kursk() -> void:
 	for g in 7:
 		var center := _free_spot(12.0)
 		if center != Vector2.INF:
-			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.birch(_rng.randf_range(7.0, 11.0)))
+			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.birch(_rng.randf_range(7.0, 11.0)),
+					(func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(7.0, 11.0), 1, burning)) if g < 2 else Callable())
 	for i in 16:
 		var pos := _free_spot(3.0)
 		if pos != Vector2.INF:

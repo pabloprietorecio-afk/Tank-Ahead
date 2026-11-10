@@ -25,10 +25,16 @@ var objective_name: String = ""
 var protected_area: bool = false
 ## Sonido especial al destruirlo (p. ej. la campana del campanario).
 var destroy_sound: AudioStream
+## Al destruirlo se tumba (árboles, postes, mástiles) en vez de venirse abajo.
+var topples: bool = false
+## Segundos que arden sus restos si lo destruye un disparo o una bomba (0 = no arde).
+var burns: float = 0.0
 
 var health: float
 var is_destroyed: bool = false
 var _last_source: Node
+var _last_point: Vector3
+var _run_over: bool = false
 
 
 func _ready() -> void:
@@ -44,6 +50,7 @@ func take_hit(amount: float, _source: Node = null, point: Vector3 = Vector3.ZERO
 		get_tree().call_group(&"game_mode", &"penalize", _source)
 	if point == Vector3.ZERO:
 		point = global_position + Vector3.UP
+	_last_point = point
 	# Polvo y astillas del material, que saltan hacia fuera del objeto.
 	var away: Vector3 = point - (global_position + Vector3.UP * size_hint * 0.5)
 	away.y = maxf(away.y, 0.0)
@@ -84,10 +91,42 @@ func _destroy() -> void:
 		get_tree().call_group(&"pickup_spawner", &"spawn", Pickup.random_kind(), Vector2(global_position.x, global_position.z) + Vector2(4.0, 4.0))
 	if blast_radius > 0.0:
 		_blast.call_deferred()
-	# Se derrumba: se aplasta hacia el suelo y desaparece.
-	var tween := create_tween()
-	tween.tween_property(self, "scale", Vector3(1.15, 0.05, 1.15), 0.45).set_ease(Tween.EASE_IN)
-	tween.tween_callback(queue_free)
+	_leave_remains()
+	queue_free()
+
+
+## Un tanque le pasa por encima (solo los objetos `crushable`).
+func crush(by: Node) -> void:
+	_run_over = true
+	take_hit(1000.0, by, global_position)
+
+
+## Lo que queda en el sitio (ver Remains): escombros, el árbol caído, la valla aplastada o el
+## combustible ardiendo. El objeto en sí desaparece al acabar el fotograma.
+func _leave_remains() -> void:
+	# Arde si lo ha destruido un disparo o una bomba, no si solo lo han atropellado.
+	var fire: float = 0.0 if _run_over else burns
+	if blast_radius > 0.0:
+		if fire > 0.0:
+			var pool: float = clampf(blast_radius * 0.14, 1.2, 2.6)
+			Remains.fire_at(self, Vector3(pool, 0.2, pool), clampf(pool * 0.75, 1.0, 1.8), fire)
+		return
+	# Se tumba hacia el lado contrario a de donde vino el golpe.
+	var from: Vector3 = _last_point
+	if _last_source is Node3D and is_instance_valid(_last_source):
+		from = (_last_source as Node3D).global_position
+	var push: Vector3 = global_position - from
+	var style: int = Remains.Style.CRUMBLE
+	if topples:
+		style = Remains.Style.TOPPLE
+	elif crushable:
+		if not _run_over:
+			# Un disparo hace astillas las cosas pequeñas: no queda nada (salvo el fuego).
+			if fire > 0.0:
+				Remains.fire_at(self, Vector3(1.0, 0.3, 1.0), 0.9, fire)
+			return
+		style = Remains.Style.FLATTEN
+	Remains.leave(self, style, push, fire)
 
 
 func _blast() -> void:

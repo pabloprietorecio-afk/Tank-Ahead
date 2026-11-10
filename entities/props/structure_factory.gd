@@ -84,11 +84,14 @@ static func _objective(prop: Destructible, name: String) -> Destructible:
 
 static func radio_mast() -> Destructible:
 	var prop := _prize(_part(60.0, 3.0, STEEL), "MÁSTIL DE RADIO", 300)
+	prop.topples = true
 	for i in 6:
 		var section := _box(prop, Vector3(1.2 - i * 0.15, 4.0, 1.2 - i * 0.15), Vector3(0.0, 2.0 + i * 4.0, 0.0), Color(0.6, 0.15, 0.1) if i % 2 == 0 else Color(0.85, 0.85, 0.85), 6, 0.3)
 		section.rotation.y = i * 0.3
 	var hut := _box(prop, Vector3(3.0, 2.5, 3.0), Vector3(3.0, 1.25, 0.0), CONCRETE, 0)
 	hut.rotation.y = 0.1
+	# La caseta se queda donde está cuando el mástil cae.
+	hut.set_meta(&"rooted", true)
 	_shape(prop, Vector3(1.4, 24.0, 1.4), Vector3(0.0, 12.0, 0.0))
 	_shape(prop, Vector3(3.0, 2.5, 3.0), Vector3(3.0, 1.25, 0.0))
 	return prop
@@ -96,6 +99,7 @@ static func radio_mast() -> Destructible:
 
 static func water_tower() -> Destructible:
 	var prop := _prize(_part(80.0, 3.0, STEEL), "TORRE DE AGUA", 250)
+	prop.topples = true
 	for x in [-1.8, 1.8]:
 		for z in [-1.8, 1.8]:
 			_box(prop, Vector3(0.3, 9.0, 0.3), Vector3(x, 4.5, z), STEEL, 4, 0.8)
@@ -121,6 +125,7 @@ static func flak_gun() -> Destructible:
 
 static func command_tent() -> Destructible:
 	var prop := _prize(_part(60.0, 2.0, Color(0.4, 0.38, 0.28)), "PUESTO DE MANDO", 500)
+	prop.burns = 35.0
 	var roof := PrismMesh.new()
 	roof.size = Vector3(6.0, 3.0, 8.0)
 	var tent := VectorMaterials.make_outlined(roof, Color(0.35, 0.36, 0.25), Color(0.25, 0.25, 0.18), 8, 0.6)
@@ -171,6 +176,7 @@ static func _airfield(root: Node3D) -> Array[Destructible]:
 	root.add_child(runway)
 	for i in 2:
 		var hangar := _objective(_part(180.0, 5.0), "HANGAR %d" % (i + 1))
+		hangar.burns = 30.0
 		var shell := CylinderMesh.new()
 		shell.top_radius = 7.0
 		shell.bottom_radius = 7.0
@@ -195,6 +201,7 @@ static func _airfield(root: Node3D) -> Array[Destructible]:
 
 static func _plane(name: String) -> Destructible:
 	var plane := _objective(_part(40.0, 2.5, Color(0.4, 0.42, 0.38)), name)
+	plane.burns = 30.0
 	var color := Color(0.35, 0.38, 0.3)
 	var body := _cylinder(plane, 0.7, 9.0, Vector3(0.0, 1.8, 0.0), color, 4)
 	body.rotation.x = PI * 0.5

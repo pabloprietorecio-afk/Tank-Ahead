@@ -46,7 +46,7 @@ func setup(amount: int, physics: Dictionary, mesh: Mesh, field: AABB) -> void:
 	_buffer.resize(amount * STRIDE)
 	for key: String in ["gravity_y", "drag", "wind_pull"]:
 		var values := PackedFloat32Array()
-		values.resize(6)
+		values.resize(8)
 		var given: Array = physics.get(key, [])
 		for i in given.size():
 			values[i] = given[i]
@@ -54,7 +54,7 @@ func setup(amount: int, physics: Dictionary, mesh: Mesh, field: AABB) -> void:
 			"gravity_y": _gravity = values
 			"drag": _drag = values
 			_: _wind_pull = values
-	_ground.resize(6)
+	_ground.resize(8)
 	var floors: Array = physics.get("ground", [])
 	for i in floors.size():
 		_ground[i] = floors[i]
@@ -119,7 +119,7 @@ func step(delta: float, eye: Vector3) -> void:
 		var p: Vector3 = _pos[i]
 		var size: Vector3 = _size[i]
 		if age > 0.0:
-			var kind: int = clampi(int(custom.r), 0, 5)
+			var kind: int = clampi(int(custom.r), 0, 7)
 			var floor_mode: int = _ground[kind]
 			var v: Vector3 = _vel[i]
 			var floor_y: float = size.x * _ground_offset
@@ -160,7 +160,9 @@ func step(delta: float, eye: Vector3) -> void:
 				var along: Vector3 = v / speed if speed > 0.001 else Vector3.UP
 				var side: Vector3 = along.cross(eye - p)
 				side = side.normalized() if side.length_squared() > 0.000001 else Vector3.RIGHT
-				var length: float = clampf(speed * _stretch, _stretch_range.x, _stretch_range.y)
+				# Las trazadoras (clase 2) dejan un trazo más largo que las chispas.
+				var longest: float = _stretch_range.y * (3.5 if int(custom.r) == 2 else 1.0)
+				var length: float = clampf(speed * _stretch, _stretch_range.x, longest)
 				_write_basis(o, Basis(side * size.x, along * length, side.cross(along)))
 			_:
 				_write_basis(o, _basis[i])

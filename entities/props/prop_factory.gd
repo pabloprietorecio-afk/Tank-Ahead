@@ -29,6 +29,8 @@ static func block(size: Vector3) -> Destructible:
 static func tree(height: float) -> Destructible:
 	var prop := _base(20.0, WOOD, 1.2)
 	prop.crushable = true
+	prop.topples = true
+	prop.burns = 16.0
 	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), WOOD, WOOD.darkened(0.6), 1, 0.5)
 	trunk.scale = Vector3(1.0, height * 0.4, 1.0)
 	trunk.position.y = height * 0.2
@@ -40,6 +42,7 @@ static func tree(height: float) -> Destructible:
 	crown.scale = Vector3(height * 0.62, height * 0.8, height * 0.62)
 	crown.position.y = height * 0.22
 	crown.rotation.y = randf() * TAU
+	crown.set_meta(&"foliage", true)
 	prop.add_child(crown)
 	_add_box_shape(prop, Vector3(0.8, height, 0.8), Vector3(0.0, height * 0.5, 0.0))
 	return prop
@@ -50,6 +53,7 @@ static func house(size: Vector3) -> Destructible:
 		_roof = PrismMesh.new()
 		_roof.size = Vector3.ONE
 	var prop := _base(140.0, Color(0.6, 0.6, 0.55), size.y)
+	prop.burns = 50.0
 	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
 	# Mitad de las casas enlucidas (con desconchones) y mitad de ladrillo visto.
 	var plastered: bool = randf() < 0.55
@@ -132,6 +136,7 @@ static func barrel() -> Destructible:
 	var prop := _base(6.0, Color(1.0, 0.6, 0.2), 1.8)
 	prop.blast_radius = 12.0
 	prop.blast_damage = 60.0
+	prop.burns = 14.0
 	var mesh := CylinderMesh.new()
 	mesh.top_radius = 0.5
 	mesh.bottom_radius = 0.5
@@ -172,6 +177,7 @@ static func ruin(length: float) -> Destructible:
 static func lamp_post() -> Destructible:
 	var prop := _base(10.0, Color(0.7, 0.7, 0.6), 0.6)
 	prop.crushable = true
+	prop.topples = true
 	var pole := VectorMaterials.make_box(Vector3(0.18, 5.0, 0.18), Color(0.25, 0.27, 0.28), 4, 0.8)
 	pole.position.y = 2.5
 	prop.add_child(pole)
@@ -193,6 +199,8 @@ static func lamp_post() -> Destructible:
 static func apple_tree(height: float) -> Destructible:
 	var prop := _base(20.0, WOOD, 1.0)
 	prop.crushable = true
+	prop.topples = true
+	prop.burns = 16.0
 	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), WOOD, WOOD.darkened(0.6), 1, 0.5)
 	trunk.scale = Vector3(1.1, height * 0.5, 1.1)
 	trunk.position.y = height * 0.25
@@ -203,6 +211,7 @@ static func apple_tree(height: float) -> Destructible:
 	crown.scale = Vector3(height * 0.72, height * 0.62, height * 0.72)
 	crown.position.y = height * 0.7
 	crown.rotation.y = randf() * TAU
+	crown.set_meta(&"foliage", true)
 	prop.add_child(crown)
 	_add_box_shape(prop, Vector3(0.8, height, 0.8), Vector3(0.0, height * 0.5, 0.0))
 	return prop
@@ -212,6 +221,8 @@ static func apple_tree(height: float) -> Destructible:
 static func birch(height: float) -> Destructible:
 	var prop := _base(15.0, Color(0.85, 0.85, 0.8), 1.0)
 	prop.crushable = true
+	prop.topples = true
+	prop.burns = 14.0
 	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), Color(0.85, 0.84, 0.78), Color(0.1, 0.1, 0.1), 1, 0.25)
 	trunk.scale = Vector3(0.6, height * 0.72, 0.6)
 	trunk.position.y = height * 0.36
@@ -222,6 +233,7 @@ static func birch(height: float) -> Destructible:
 	crown.scale = Vector3(height * 0.4, height * 0.58, height * 0.4)
 	crown.position.y = height * 0.76
 	crown.rotation.y = randf() * TAU
+	crown.set_meta(&"foliage", true)
 	prop.add_child(crown)
 	_add_box_shape(prop, Vector3(0.5, height, 0.5), Vector3(0.0, height * 0.5, 0.0))
 	return prop
@@ -231,6 +243,8 @@ static func birch(height: float) -> Destructible:
 static func palm(height: float) -> Destructible:
 	var prop := _base(18.0, WOOD, 1.0)
 	prop.crushable = true
+	prop.topples = true
+	prop.burns = 14.0
 	var trunk := VectorMaterials.make_outlined(_trunk_mesh(), Color(0.45, 0.35, 0.22), Color(0.2, 0.15, 0.08), 1, 0.15)
 	trunk.scale = Vector3(0.7, height, 0.7)
 	trunk.position.y = height * 0.5
@@ -244,6 +258,7 @@ static func palm(height: float) -> Destructible:
 	crown.scale = Vector3.ONE * height
 	crown.position = Vector3(-sin(lean) * height * 0.5, height - 0.15, 0.0)
 	crown.rotation.y = randf() * TAU
+	crown.set_meta(&"foliage", true)
 	prop.add_child(crown)
 	_add_box_shape(prop, Vector3(0.6, height, 0.6), Vector3(0.0, height * 0.5, 0.0))
 	return prop
@@ -252,6 +267,7 @@ static func palm(height: float) -> Destructible:
 ## Seto de bocage normando: muro de tierra con vegetación, resistente.
 static func hedgerow(length: float) -> Destructible:
 	var prop := _base(90.0, Color(0.3, 0.4, 0.15), 1.5)
+	prop.burns = 10.0
 	var bank := VectorMaterials.make_box(Vector3(length, 1.2, 2.2), Color(0.3, 0.24, 0.15), 0, 1.0)
 	bank.position.y = 0.6
 	prop.add_child(bank)
@@ -271,6 +287,7 @@ static func hedgerow(length: float) -> Destructible:
 ## Casa del desierto: encalada, de azotea plana con pretil.
 static func desert_house(size: Vector3) -> Destructible:
 	var prop := _base(120.0, Color(0.85, 0.8, 0.7), size.y)
+	prop.burns = 24.0
 	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
 	var wall_color: Color = [Color(0.84, 0.8, 0.7), Color(0.8, 0.72, 0.58), Color(0.86, 0.84, 0.78)][randi() % 3]
 	var walls := VectorMaterials.make_box(size, wall_color, 9, 1.5)
@@ -301,6 +318,7 @@ static func izba(size: Vector3) -> Destructible:
 		_roof = PrismMesh.new()
 		_roof.size = Vector3.ONE
 	var prop := _base(100.0, WOOD, size.y)
+	prop.burns = 70.0
 	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
 	var walls := VectorMaterials.make_box(size, Color(0.42, 0.3, 0.18), 11, 1.6)
 	walls.position.y = size.y * 0.5
@@ -331,6 +349,7 @@ static func church() -> Node3D:
 	var root := Node3D.new()
 	var stone := Color(0.55, 0.53, 0.48)
 	var nave := _base(250.0, Color(0.6, 0.58, 0.52), 6.0)
+	nave.burns = 60.0
 	var walls := VectorMaterials.make_box(Vector3(8.0, 7.0, 16.0), stone, 2, 1.8)
 	walls.position.y = 3.5
 	nave.add_child(walls)
@@ -399,6 +418,7 @@ static func _mark_prize(prop: Destructible) -> void:
 static func haystack() -> Destructible:
 	var prop := _base(8.0, Color(0.75, 0.65, 0.3), 1.2)
 	prop.crushable = true
+	prop.burns = 20.0
 	var mesh := CylinderMesh.new()
 	mesh.top_radius = 0.3
 	mesh.bottom_radius = 1.8
@@ -439,6 +459,7 @@ static func supply_depot() -> Destructible:
 	var prop := _base(160.0, Color(1.0, 0.6, 0.2), 3.0)
 	prop.blast_radius = 14.0
 	prop.blast_damage = 50.0
+	prop.burns = 30.0
 	for i in 6:
 		var crate := VectorMaterials.make_box(Vector3(1.4, 1.1, 1.4), Color(0.4, 0.33, 0.2), 5, 0.6)
 		crate.position = Vector3((i % 3 - 1) * 1.6, 0.55 + (i / 3) * 1.1, -1.5)
@@ -463,6 +484,110 @@ static func supply_depot() -> Destructible:
 	_add_box_shape(prop, Vector3(5.5, 2.4, 5.5), Vector3(0.0, 1.2, 0.0))
 	prop.add_to_group(&"radar_marks")
 	prop.set_meta("radar_color", Color(1.0, 0.75, 0.1))
+	return prop
+
+
+## Casa bombardeada que sigue ardiendo: sin tejado, con los muros rotos a distintas alturas
+## (más bajos hacia la esquina donde cayó la bomba), los huecos de las ventanas ennegrecidos,
+## vigas carbonizadas caídas dentro, la chimenea aún en pie y cascotes alrededor.
+## `style`: 0 casa de pueblo, 1 casa del desierto, 2 isba de troncos (queda la estufa de ladrillo).
+static func bombed_house(size: Vector3, style: int = 0) -> Destructible:
+	var wall_color: Color = [Color(0.56, 0.5, 0.42), Color(0.7, 0.64, 0.52), Color(0.2, 0.15, 0.1)][style]
+	var pattern: int = 11 if style == 2 else 9
+	var prop := _base(90.0, Color(0.5, 0.47, 0.42), size.y * 0.75)
+	prop.burns = 35.0
+	_add_box_shape(prop, Vector3(size.x, size.y * 0.75, size.z), Vector3(0.0, size.y * 0.375, 0.0))
+	var thick: float = 0.45
+	var hit := Vector2(size.x * (0.5 if randf() < 0.5 else -0.5), size.z * (0.5 if randf() < 0.5 else -0.5))
+	var diagonal: float = Vector2(size.x, size.z).length()
+	var soot: Color = Fx.CHARRED * 1.5
+	# Las piezas menudas (tiznones, vigas, cascotes) van juntas en una sola malla.
+	var bits: Array = []
+	for wall in 4:
+		var along_x: bool = wall < 2
+		var side: float = -1.0 if wall % 2 == 0 else 1.0
+		# Los muros cortos van entre los largos, para que no se pisen en las esquinas.
+		var length: float = size.x if along_x else size.z - thick * 2.0
+		var pieces: int = maxi(roundi(length / 2.0), 2)
+		var piece: float = length / pieces
+		for i in pieces:
+			var offset: float = -length * 0.5 + piece * (i + 0.5)
+			var at: Vector2 = Vector2(offset, side * (size.z - thick) * 0.5) if along_x else Vector2(side * (size.x - thick) * 0.5, offset)
+			var tall: float = size.y * clampf(0.1 + 1.2 * at.distance_to(hit) / diagonal + randf_range(-0.12, 0.12), 0.1, 1.0)
+			var block := VectorMaterials.make_box(Vector3(piece, tall, thick) if along_x else Vector3(thick, tall, piece), wall_color.darkened(randf_range(0.0, 0.3)), pattern, 1.3)
+			block.position = Vector3(at.x, tall * 0.5, at.y)
+			prop.add_child(block)
+			if tall > size.y * 0.72 and i % 2 == 1:
+				# Hueco de ventana, negro de humo, con el tiznón que dejó la llama al salir.
+				bits.append([Transform3D(Basis.from_scale(Vector3(0.9, 1.0, thick + 0.08) if along_x else Vector3(thick + 0.08, 1.0, 0.9)), Vector3(at.x, size.y * 0.52, at.y)), soot])
+				bits.append([Transform3D(Basis.from_scale(Vector3(1.1, 0.5, thick + 0.04) if along_x else Vector3(thick + 0.04, 0.5, 1.1)), Vector3(at.x, minf(size.y * 0.52 + 0.78, tall - 0.26), at.y)), wall_color.darkened(0.72).srgb_to_linear()])
+	var back := Vector2(-signf(hit.x), -signf(hit.y))
+	if style != 1:
+		# La chimenea (o la estufa de ladrillo de la isba) aguanta en pie.
+		var stack := VectorMaterials.make_box(Vector3(0.9, size.y + 2.0, 0.9), BRICK.darkened(0.4), 2, 0.8)
+		stack.position = Vector3(back.x * (size.x * 0.5 - 1.0), (size.y + 2.0) * 0.5, back.y * (size.z * 0.5 - 1.0) * 0.5)
+		prop.add_child(stack)
+	# Vigas del tejado, carbonizadas, caídas hacia dentro desde los muros que quedan altos.
+	for i in 5:
+		var length: float = minf(size.x, size.z) * randf_range(0.55, 0.9)
+		var lean := Basis.from_euler(Vector3(randf_range(0.35, 0.8), randf() * TAU, randf_range(-0.2, 0.2)))
+		bits.append([Transform3D(lean * Basis.from_scale(Vector3(0.2, 0.2, length)), Vector3(back.x * randf_range(0.0, 0.3) * size.x, randf_range(0.5, 0.75) * size.y * 0.5, back.y * randf_range(0.0, 0.3) * size.z)), Fx.CHARRED * randf_range(1.5, 3.0)])
+	# Cascotes dentro y, sobre todo, fuera por donde reventó.
+	for i in 12:
+		var chunk_size := Vector3(randf_range(0.4, 1.0), randf_range(0.25, 0.6), randf_range(0.4, 0.9))
+		var where: Vector2 = Vector2(randf_range(-0.4, 0.4) * size.x, randf_range(-0.4, 0.4) * size.z) if i < 5 else hit + Vector2(randf_range(-2.6, 2.6), randf_range(-2.6, 2.6))
+		var tumbled := Basis.from_euler(Vector3(randf_range(-0.4, 0.4), randf() * TAU, randf_range(-0.4, 0.4)))
+		bits.append([Transform3D(tumbled * Basis.from_scale(chunk_size), Vector3(where.x, chunk_size.y * 0.35, where.y)), (BRICK if i % 3 == 0 else wall_color).darkened(randf_range(0.2, 0.5)).srgb_to_linear()])
+	prop.add_child(Remains.pile(bits))
+	var blaze := Blaze.new()
+	# Arde por dentro de arriba abajo: las llamas asoman por encima de los muros.
+	blaze.extent = Vector3(size.x * 0.32, size.y * 0.4, size.z * 0.32)
+	blaze.power = clampf(size.y * 0.5, 1.7, 2.4)
+	blaze.smoke = 1.1
+	blaze.lights_sky = true
+	blaze.position = Vector3(back.x * size.x * 0.06, size.y * 0.45, back.y * size.z * 0.06)
+	prop.add_child(blaze)
+	return prop
+
+
+## Árbol alcanzado por el fuego: el tronco carbonizado con unas pocas ramas peladas. Con
+## `burning` sigue en llamas; si no, solo humea.
+## `kind`: 0 frutal, 1 abedul, 2 palmera, 3 abeto.
+static func burnt_tree(height: float, kind: int = 0, burning: bool = true) -> Destructible:
+	var prop := _base(12.0, Color(0.12, 0.1, 0.08), 1.0)
+	prop.crushable = true
+	prop.topples = true
+	var girth: float = [1.1, 0.6, 0.7, 1.0][kind]
+	var tall: float = height * [0.8, 0.85, 0.9, 0.8][kind]
+	# Tronco y ramas peladas (la palmera se queda en el puro tronco), fundidos en una malla.
+	var parts: Array = [[_trunk_mesh(), Transform3D(Basis.from_scale(Vector3(girth, tall, girth)), Vector3(0.0, tall * 0.5, 0.0))]]
+	for i in (0 if kind == 2 else randi_range(3, 5)):
+		var length: float = height * randf_range(0.2, 0.36)
+		var yaw: float = randf() * TAU
+		var tilt: float = randf_range(0.55, 1.1)
+		var dir := Vector3(sin(tilt) * cos(yaw), cos(tilt), sin(tilt) * sin(yaw))
+		parts.append([_trunk_mesh(), Transform3D(Basis(Quaternion(Vector3.UP, dir)) * Basis.from_scale(Vector3(girth * 0.35, length, girth * 0.35)), Vector3(0.0, tall * randf_range(0.5, 0.95), 0.0) + dir * length * 0.5)])
+	var wood := MeshInstance3D.new()
+	wood.mesh = _merge(parts)
+	wood.material_override = VectorMaterials.textured(Remains.CHARRED_WOOD, Color(0.02, 0.02, 0.02), 1, 0.5)
+	prop.add_child(wood)
+	if burning:
+		var blaze := Blaze.new()
+		blaze.extent = Vector3(0.45, tall * 0.3, 0.45)
+		blaze.power = randf_range(0.75, 0.95)
+		blaze.smoke = 0.6
+		blaze.position.y = tall * 0.62
+		prop.add_child(blaze)
+	else:
+		var vent := FxVent.new()
+		vent.rate = 1.4
+		vent.size = 0.9
+		vent.rise = 1.6
+		vent.life = 4.0
+		vent.color = Color(Fx.GREY_SMOKE.r, Fx.GREY_SMOKE.g, Fx.GREY_SMOKE.b, 0.5)
+		vent.position.y = tall
+		prop.add_child(vent)
+	_add_box_shape(prop, Vector3(0.6, tall, 0.6), Vector3(0.0, tall * 0.5, 0.0))
 	return prop
 
 

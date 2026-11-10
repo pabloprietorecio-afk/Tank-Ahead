@@ -10,13 +10,13 @@ render_mode disable_velocity, disable_force;
 
 // Cada familia reparte sus partículas en clases (la parte entera de la semilla) con su propia
 // física: gravedad vertical (positiva = flota), freno del aire, arrastre del viento, remolino.
-uniform float gravity_y[6];
-uniform float drag[6];
-uniform float wind_pull[6];
-uniform float swirl[6];
+uniform float gravity_y[8];
+uniform float drag[8];
+uniform float wind_pull[8];
+uniform float swirl[8];
 // Suelo (el campo es llano, y = 0): 0 no existe, 1 la partícula se apaga al tocarlo, 2 rebota
 // y acaba posándose, 3 se queda donde cae, 4 resbala sin hundirse.
-uniform int ground[6];
+uniform int ground[8];
 uniform vec3 wind = vec3(0.0);
 uniform float bounce = 0.35;
 // Altura del centro al posarse, como fracción del tamaño.
@@ -42,7 +42,7 @@ void process() {
 		ACTIVE = false;
 	}
 	if (age > 0.0) {
-		int cls = clamp(int(CUSTOM.x), 0, 5);
+		int cls = clamp(int(CUSTOM.x), 0, 7);
 		float seed = fract(CUSTOM.x);
 		int floor_mode = ground[cls];
 		vec3 v = VELOCITY;
@@ -97,7 +97,9 @@ void process() {
 		}
 		if (stretch > 0.0) {
 			// El motor orienta el eje Y según la velocidad; aquí solo importa su longitud.
-			TRANSFORM[1].xyz = vec3(0.0, clamp(length(v) * stretch, stretch_range.x, stretch_range.y), 0.0);
+			// Las trazadoras (clase 2) dejan un trazo más largo que las chispas.
+			float longest = stretch_range.y * (cls == 2 ? 3.5 : 1.0);
+			TRANSFORM[1].xyz = vec3(0.0, clamp(length(v) * stretch, stretch_range.x, longest), 0.0);
 		}
 		TRANSFORM[3].xyz = p;
 		VELOCITY = v;

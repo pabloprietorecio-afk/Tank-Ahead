@@ -92,7 +92,8 @@ func _process(delta: float) -> void:
 		# El avión de ataque no vuela recto: va haciendo eses para estorbar la puntería.
 		_wobble += delta
 		_velocity = _velocity.rotated(Vector3.UP, sin(_wobble * 0.7) * delta * 0.45)
-		look_at(global_position + _velocity, Vector3.UP)
+		if _velocity.length_squared() > 0.01:
+			look_at(global_position + _velocity, Vector3.UP)
 	global_position += _velocity * delta
 	if _life <= 0.0 or absf(global_position.x) > 320.0 or absf(global_position.z) > 320.0:
 		queue_free()

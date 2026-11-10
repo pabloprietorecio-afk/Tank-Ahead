@@ -18,6 +18,8 @@ var _history_button: Button
 var _version: String = ""
 var _message_time: float = 0.0
 var _flash: float = 0.0
+## Velo de pantalla: esquinas oscurecidas y bordes rojos al recibir un impacto.
+var _overlay: ColorRect
 var _release: Button
 ## Botones del HUD por nombre: gear, cam, pause, zoom, missile, strike, release.
 var controls: Dictionary = {}
@@ -40,6 +42,14 @@ func _ready() -> void:
 	_message.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_overlay = ColorRect.new()
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_overlay.show_behind_parent = true
+	var overlay_material := ShaderMaterial.new()
+	overlay_material.shader = load("res://shaders/screen_overlay.gdshader")
+	_overlay.material = overlay_material
+	add_child(_overlay)
 	tank.damaged.connect(func(amount: float, _s: Node) -> void: _flash = minf(_flash + amount / 40.0, 0.6))
 	director.message.connect(_show_message)
 	director.ended.connect(_on_ended)
@@ -416,6 +426,12 @@ func _process(delta: float) -> void:
 	_message_time = maxf(_message_time - delta, 0.0)
 	_message.modulate.a = clampf(_message_time, 0.0, 1.0)
 	_flash = maxf(_flash - delta * 1.5, 0.0)
+	# Las esquinas oscurecidas solo se pintan con los efectos altos; el rojo del impacto, siempre.
+	var vignette: bool = Fx.on(self).level() >= 2
+	_overlay.visible = vignette or _flash > 0.0
+	if _overlay.visible:
+		(_overlay.material as ShaderMaterial).set_shader_parameter("hurt", _flash)
+		(_overlay.material as ShaderMaterial).set_shader_parameter("vignette", 0.3 if vignette else 0.0)
 	_release.visible = tank.aim_lock != null and not director.is_over
 	_history_button.visible = _release.visible and not get_tree().paused
 	_missile_button.text = "MISIL %d" % director.missiles
@@ -453,8 +469,6 @@ func _draw() -> void:
 	var green: Color = VectorMaterials.GREEN
 	var reticle: Color = VectorMaterials.ORANGE if (tank != null and tank.aim_lock != null) else green
 	var aim: Vector2 = _aim_screen_point(center)
-	if _flash > 0.0:
-		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.1, 0.05, _flash * 0.5), true)
 	# Retícula
 	draw_line(aim + Vector2(-18.0, 0.0), aim + Vector2(-6.0, 0.0), reticle, 2.0)
 	draw_line(aim + Vector2(6.0, 0.0), aim + Vector2(18.0, 0.0), reticle, 2.0)

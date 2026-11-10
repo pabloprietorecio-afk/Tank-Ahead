@@ -2,9 +2,10 @@ class_name SkyWar
 extends Node3D
 ## La guerra en el cielo, de ambiente: formaciones de aviones de la época que cruzan muy por
 ## encima del campo con su ruido de motores, la antiaérea del bando contrario que les dispara
-## (fogonazo, nubecilla negra y el estampido que llega con retraso), destellos de baterías
-## lejanas en el horizonte y, de vez en cuando, un avión tocado que cae envuelto en humo y se
-## estrella fuera del campo. No afecta a la partida: nada de esto hace daño ni da puntos.
+## (trazadoras que suben, fogonazo, nubecilla negra y el estampido que llega con retraso),
+## duelos de artillería más allá del horizonte que encienden las nubes y, de vez en cuando, un
+## avión tocado que cae envuelto en humo y se estrella fuera del campo. No afecta a la partida:
+## nada de esto hace daño ni da puntos.
 
 ## Tipos de aparato: envergadura y largo (m), motores, velocidad de paso (m/s) y altura (m).
 const TYPES: Dictionary = {
@@ -42,6 +43,11 @@ const FIELD: float = 215.0
 const PASS_INTERVAL: Vector2 = Vector2(22.0, 48.0)
 const DISTANT_INTERVAL: Vector2 = Vector2(9.0, 22.0)
 const DOWN_CHANCE: float = 0.2
+## Velocidad de las trazadoras antiaéreas (m/s) y color según quién dispara (lineal).
+const TRACER_SPEED: float = 240.0
+const TRACER_AXIS := Color(1.0, 0.62, 0.2)
+const TRACER_ALLIES := Color(1.0, 0.2, 0.1)
+const TRACER_SOVIET := Color(0.45, 1.0, 0.35)
 
 var front: int = Fronts.Id.NORMANDY
 ## Aviones derribados que han caído dentro del campo (debe ser siempre 0; lo miran las pruebas).
@@ -66,7 +72,10 @@ func _process(delta: float) -> void:
 	_distant_timer -= delta
 	if _distant_timer <= 0.0:
 		_distant_timer = randf_range(DISTANT_INTERVAL.x, DISTANT_INTERVAL.y)
-		_distant_barrage()
+		if randf() < 0.6:
+			distant_guns()
+		else:
+			_distant_barrage()
 	for formation in _formations.duplicate():
 		_update_formation(formation, delta)
 
@@ -114,8 +123,17 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 	sound.source_velocity = planes[0].velocity
 	if doomed < 0:
 		doomed = randi() % count if flak and randf() < DOWN_CHANCE else -1
+	# Dos cañones antiaéreos ligeros, fuera del campo y a los lados de la ruta, le tiran trazadoras.
+	var guns: Array[Vector3] = []
+	for side in [-1.0, 1.0]:
+		guns.append(right * (lead_pos.dot(right) + side * randf_range(90.0, 180.0)) + dir * randf_range(-120.0, 120.0))
+	for i in guns.size():
+		var edge: float = maxf(absf(guns[i].x), absf(guns[i].z))
+		if edge < FIELD + 30.0:
+			guns[i] *= (FIELD + 30.0) / maxf(edge, 1.0)
 	var formation: Dictionary = {
 		"planes": Array(planes), "dir": dir, "flak": flak, "flak_timer": randf_range(0.5, 1.5), "sound": sound,
+		"guns": guns, "burst_timer": randf_range(0.2, 1.0), "burst_left": 0, "burst_gun": 0, "burst_due": 0.0,
 		"doomed": planes[doomed] if doomed >= 0 and doomed < count else null, "doom_at": randf_range(-120.0, 60.0), "faction": faction,
 	}
 	_formations.append(formation)
@@ -151,6 +169,7 @@ func _update_formation(formation: Dictionary, delta: float) -> void:
 		(formation["sound"] as FlybySound).fade_out()
 	if not formation["flak"] or absf(along) > 330.0:
 		return
+	_fire_tracers(formation, planes, delta)
 	formation["flak_timer"] -= delta
 	if formation["flak_timer"] <= 0.0:
 		formation["flak_timer"] = randf_range(0.25, 0.9)
@@ -193,6 +212,56 @@ static func make_plane(battle_front: int, faction: int, model: Array) -> SkyPlan
 	var paint: Array = PAINT[faction][battle_front]
 	plane.build(model[0], TYPES[model[1]], paint[0], paint[1], faction)
 	return plane
+
+
+## Ráfagas de trazadoras de los cañones antiaéreos ligeros: suben hacia la formación, apuntando
+## por delante de un avión y casi siempre fallando.
+func _fire_tracers(formation: Dictionary, planes: Array, delta: float) -> void:
+	if formation["burst_left"] <= 0:
+		formation["burst_timer"] -= delta
+		if formation["burst_timer"] > 0.0:
+			return
+		formation["burst_timer"] = randf_range(0.5, 1.6)
+		formation["burst_left"] = randi_range(4, 9)
+		formation["burst_gun"] = randi() % 2
+		formation["burst_due"] = 0.0
+	formation["burst_due"] -= delta
+	if formation["burst_due"] > 0.0:
+		return
+	formation["burst_due"] = 0.11
+	formation["burst_left"] -= 1
+	var target: SkyPlane = planes.pick_random()
+	var gun: Vector3 = formation["guns"][formation["burst_gun"]]
+	# Punto futuro del avión, con el error del artillero.
+	var lead: float = gun.distance_to(target.global_position) / TRACER_SPEED
+	var aim: Vector3 = target.global_position + target.velocity * lead * randf_range(0.7, 1.25) + Vector3(randf_range(-14.0, 14.0), randf_range(-10.0, 10.0), randf_range(-14.0, 14.0))
+	var color: Color = TRACER_AXIS
+	if formation["faction"] == Fronts.Faction.AXIS:
+		color = TRACER_SOVIET if front == Fronts.Id.KURSK else TRACER_ALLIES
+	var from: Vector3 = gun + Vector3.UP * 2.0
+	Fx.on(self).tracer(from, (aim - from).normalized() * TRACER_SPEED, color)
+
+
+## Duelo de artillería más allá del horizonte: una salva de fogonazos que encienden desde abajo
+## las nubes de esa parte del cielo y, segundos después, el retumbar sordo de los cañones.
+func distant_guns() -> void:
+	var heading: float = randf() * TAU
+	var away := Vector3(sin(heading), 0.0, cos(heading))
+	var distance: float = randf_range(1700.0, 3000.0)
+	var at: float = 0.0
+	for i in randi_range(3, 8):
+		at += randf_range(0.1, 0.7)
+		var point: Vector3 = away * distance + Vector3(randf_range(-400.0, 400.0), 0.0, randf_range(-400.0, 400.0))
+		get_tree().create_timer(at).timeout.connect(func() -> void:
+			if is_inside_tree():
+				Fx.on(self).sky_flash(point, Color(1.0, 0.62, 0.32), randf_range(1.2, 2.0), randf_range(300.0, 420.0), randf_range(0.22, 0.42)))
+		# El sonido viaja a 343 m/s: de tan lejos llega tarde y ya solo es un golpe grave.
+		get_tree().create_timer(at + distance / 343.0).timeout.connect(func() -> void:
+			if not is_inside_tree():
+				return
+			var camera: Camera3D = get_viewport().get_camera_3d()
+			var ear: Vector3 = camera.global_position if camera != null else Vector3.ZERO
+			Sfx.play_at(self, Sfx.EXPLOSION, ear + away * 260.0, 8.0, randf_range(0.42, 0.55)))
 
 
 ## Fogonazos de baterías antiaéreas lejanas, cerca del horizonte.

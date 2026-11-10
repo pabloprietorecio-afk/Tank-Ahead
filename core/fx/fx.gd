@@ -17,7 +17,7 @@ extends Node3D
 ## Uso: `Fx.on(nodo).explosion(punto, fuerza)`.
 
 ## Clases de bocanada (cada una con su física y su aspecto; ver _build_cloud).
-enum Puff { FIRE, SMOKE, DUST, JET, CLOD, HAZE }
+enum Puff { FIRE, SMOKE, DUST, JET, CLOD, HAZE, PLUME }
 ## Tipos de luz sumada (ver fx_glow.gdshader).
 enum Glow { FLASH, HALO, EMBER, STAR }
 
@@ -53,6 +53,8 @@ static var _noise: ImageTexture
 
 ## Tanque del jugador: recibe las sacudidas de cámara.
 var player: Tank
+## Techo de nubes de la partida, si lo hay: los destellos grandes lo alumbran.
+var sky: CloudDome
 ## Color del polvo y de la tierra del frente (lineal) y cuánto polvo levanta el suelo
 ## (1 seco, casi nada con lluvia o nieve).
 var dust := Color(0.12, 0.095, 0.07)
@@ -171,13 +173,13 @@ func _family(family_name: String, amount: int, lifetime: float, physics: Diction
 	process.shader = load("res://shaders/fx_particles.gdshader")
 	for key: String in ["gravity_y", "drag", "wind_pull", "swirl"]:
 		var values := PackedFloat32Array()
-		values.resize(6)
+		values.resize(8)
 		var given: Array = physics.get(key, [])
 		for i in given.size():
 			values[i] = given[i]
 		process.set_shader_parameter(key, values)
 	var floors := PackedInt32Array()
-	floors.resize(6)
+	floors.resize(8)
 	var given_floors: Array = physics.get("ground", [])
 	for i in given_floors.size():
 		floors[i] = given_floors[i]
@@ -232,27 +234,29 @@ func _draw_material(path: String, priority: int) -> ShaderMaterial:
 func _build_cloud() -> void:
 	var look := _draw_material("res://shaders/fx_puff.gdshader", 2)
 	look.set_shader_parameter("fx_noise", noise())
-	#                      FUEGO  HUMO  POLVO CHORRO TERRÓN BRUMA
+	# La última clase es la columna de humo de un incendio: sube mucho más alto que el humo
+	# de una explosión, que se frena enseguida.
+	#                      FUEGO  HUMO  POLVO CHORRO TERRÓN BRUMA COLUMNA
 	var table: Dictionary = {
-		"grow": [2.0, 2.6, 3.2, 3.0, 0.5, 1.5],
-		"grow_ease": [3.0, 2.0, 2.5, 2.5, 1.5, 1.5],
-		"spin": [0.5, 0.35, 0.3, 0.5, 0.8, 0.2],
-		"detail": [0.6, 0.55, 0.5, 0.55, 0.9, 0.5],
-		"scroll": [0.6, 0.3, 0.25, 0.4, 0.1, 0.15],
-		"lumps": [0.75, 0.85, 0.95, 0.9, 0.9, 0.8],
-		"erode_from": [0.3, 0.4, 0.2, 0.12, 0.7, 0.5],
-		"thickness": [0.95, 0.9, 0.42, 0.5, 1.0, 0.7],
-		"ground_fade": [0.4, 0.5, 0.6, 0.3, 0.15, 0.5],
-		"softness": [0.32, 0.42, 0.6, 0.6, 0.3, 0.5],
+		"grow": [2.0, 2.6, 3.2, 3.0, 0.5, 1.5, 2.3, 0.0],
+		"grow_ease": [3.0, 2.0, 2.5, 2.5, 1.5, 1.5, 1.5, 1.0],
+		"spin": [0.5, 0.35, 0.3, 0.5, 0.8, 0.2, 0.3, 0.0],
+		"detail": [0.6, 0.55, 0.5, 0.55, 0.9, 0.5, 0.5, 0.5],
+		"scroll": [0.6, 0.3, 0.25, 0.4, 0.1, 0.15, 0.25, 0.0],
+		"lumps": [0.75, 0.85, 0.95, 0.9, 0.9, 0.8, 0.9, 0.5],
+		"erode_from": [0.3, 0.4, 0.2, 0.12, 0.7, 0.5, 0.35, 0.5],
+		"thickness": [0.95, 0.9, 0.42, 0.5, 1.0, 0.7, 0.86, 1.0],
+		"ground_fade": [0.4, 0.5, 0.6, 0.3, 0.15, 0.5, 0.5, 0.5],
+		"softness": [0.32, 0.42, 0.6, 0.6, 0.3, 0.5, 0.46, 0.5],
 	}
 	for key: String in table:
 		look.set_shader_parameter(key, PackedFloat32Array(table[key]))
 	_cloud = _family("Cloud", 1024, 9.0, {
-		"gravity_y": [3.0, 1.3, 0.12, 0.7, -12.0, 0.05],
-		"drag": [2.4, 0.9, 2.6, 3.2, 0.5, 1.5],
-		"wind_pull": [0.25, 0.5, 0.6, 0.9, 0.0, 0.9],
-		"swirl": [2.2, 1.0, 0.7, 1.4, 0.0, 0.3],
-		"ground": [0, 0, 4, 4, 1, 0],
+		"gravity_y": [3.0, 1.3, 0.12, 0.7, -12.0, 0.05, 1.5],
+		"drag": [2.4, 0.9, 2.6, 3.2, 0.5, 1.5, 0.34],
+		"wind_pull": [0.25, 0.5, 0.6, 0.9, 0.0, 0.9, 0.3],
+		"swirl": [2.2, 1.0, 0.7, 1.4, 0.0, 0.3, 0.9],
+		"ground": [0, 0, 4, 4, 1, 0, 0],
 	}, _quad(look))
 
 
@@ -271,10 +275,11 @@ func _build_glow() -> void:
 func _build_spark() -> void:
 	var look := _draw_material("res://shaders/fx_streak.gdshader", 5)
 	# Clase 0: chispas que caen y rebotan. Clase 1: lenguas de fuego que se frenan en seco.
+	# Clase 2: trazadoras antiaéreas, que casi no se frenan ni caen.
 	_spark = _family("Spark", 384, 2.0, {
-		"gravity_y": [-11.0, 0.0],
-		"drag": [0.7, 11.0],
-		"ground": [2, 0],
+		"gravity_y": [-11.0, 0.0, -4.0],
+		"drag": [0.7, 11.0, 0.04],
+		"ground": [2, 0, 1],
 		"bounce": 0.35,
 		"stretch": 0.03,
 		"stretch_range": Vector2(0.05, 2.4),
@@ -472,6 +477,12 @@ func mark(pos: Vector3, radius: float, crater: bool) -> void:
 	_marks.set_instance_custom_data(slot, Color(fposmod(_mark_seed[slot], 1.0), 1.0 if crater else 0.0, 0.0, 1.0))
 
 
+## Destello que se refleja en las nubes (ver CloudDome.flash).
+func sky_flash(point: Vector3, color: Color, energy: float, reach: float, time: float) -> void:
+	if is_instance_valid(sky):
+		sky.flash(point, color, energy, reach, time)
+
+
 ## Sacudida de la cámara del jugador según lo cerca que le pille.
 func shake(pos: Vector3, power: float) -> void:
 	if not is_instance_valid(player) or player.is_destroyed:
@@ -527,6 +538,11 @@ func level() -> int:
 	return _level
 
 
+## Falso en los teléfonos sin Vulkan, donde las partículas las mueve la CPU (ver FxCpuFamily).
+func on_gpu() -> bool:
+	return _gpu
+
+
 # ------------------------------------------------------------------ efectos
 
 ## Explosión de alto explosivo. `s` 1 ≈ granada de cañón; 1,5-2,5 bomba, cohete o un tanque que
@@ -541,6 +557,8 @@ func explosion(pos: Vector3, s: float) -> void:
 	glow(Glow.FLASH, c + up * 0.3 * s, Vector3.ZERO, 9.0 * s, 0.14, FLASH, 1.0)
 	glow(Glow.HALO, c + up * 0.5 * s, Vector3.ZERO, 7.0 * s, 0.5 * slow, FIRE_GLOW, 0.6)
 	light(c + up * (0.8 + s), Color(1.0, 0.62, 0.3), 4.0 + 2.5 * s, 10.0 + 12.0 * s, 0.4 + 0.15 * s)
+	if s >= 1.0:
+		sky_flash(c, Color(1.0, 0.55, 0.25), 0.4 * s, 90.0 + 40.0 * s, 0.5 + 0.2 * s)
 	# Bola de fuego: llamaradas que salen del centro, suben y se enfrían hasta ser hollín.
 	for i in _n((7.0 + 2.5 * s) * lod):
 		var dir: Vector3 = dome(0.1) if grounded else ball()
@@ -576,12 +594,20 @@ func explosion(pos: Vector3, s: float) -> void:
 	shake(pos, 0.9 * s)
 
 
+## Trazadora antiaérea: un trazo de luz que sube hasta apagarse (unos 400 m).
+func tracer(pos: Vector3, velocity: Vector3, color: Color) -> void:
+	# Con el alfa por encima de 1 brilla más que una chispa: tiene que verse contra el cielo.
+	spark(pos, velocity, 1.8, randf_range(1.5, 1.9), Color(color.r, color.g, color.b, 2.4), 0.0, 0.0, 2)
+	glow(Glow.STAR, pos, Vector3.ZERO, 3.0, 0.07, FLASH, 0.6)
+
+
 ## Estallido en el aire (antiaérea, avión tocado): fogonazo, metralla en todas direcciones y
 ## una nube negra que se queda flotando.
 func airburst(pos: Vector3, s: float) -> void:
 	var lod: float = _lod(pos)
 	glow(Glow.FLASH, pos, Vector3.ZERO, 8.0 * s, 0.12, FLASH, 1.0)
 	light(pos, Color(1.0, 0.8, 0.5), 3.0 + s, 18.0 * s, 0.2)
+	sky_flash(pos, Color(1.0, 0.78, 0.5), 0.45 * sqrt(s), 70.0 + 30.0 * minf(s, 3.0), 0.35)
 	for i in _n(4.0 * lod + s):
 		var dir: Vector3 = ball()
 		puff(Puff.FIRE, pos + dir * 0.3 * s, dir * randf_range(2.0, 5.0) * s, randf_range(0.8, 1.2) * s, randf_range(0.35, 0.6), SOOT, randf_range(0.9, 1.3))

@@ -1,7 +1,8 @@
 class_name AirStrike
 extends Node3D
-## Bombardeo aéreo sobre una zona circular. Avisa con una zona coloreada y una cuenta atrás;
-## después los aviones sueltan sus bombas y todo lo que esté dentro recibe daño.
+## Bombardeo aéreo sobre una zona circular. Avisa marcando la zona (un cerco en el suelo con
+## su cuenta atrás y un bote de humo de color en el centro, como se señalaban los blancos a la
+## aviación); después los aviones sueltan sus bombas y todo lo que esté dentro recibe daño.
 
 signal finished
 
@@ -19,7 +20,9 @@ var hostile_to_player: bool = true
 
 var _time: float = 0.0
 var _zone: MeshInstance3D
-var _ring: MeshInstance3D
+var _zone_material: ShaderMaterial
+var _smoke_due: float = 0.0
+var _smoke_color: Color
 var _dropping: bool = false
 var _bombs_left: int = BOMBS
 var _bomb_timer: float = 0.0
@@ -46,10 +49,9 @@ static func launch(host: Node, center: Vector3, enemy_strike: bool, by: Node = n
 func _ready() -> void:
 	add_to_group(&"air_strikes")
 	var color: Color = Color(1.0, 0.1, 0.05) if hostile_to_player else Color(1.0, 0.6, 0.1)
-	_zone = _disc(radius, Color(color, 0.45))
-	_ring = _disc(radius, Color(color.lightened(0.3), 0.95))
-	_ring.position.y = 0.06
-	_ring.scale = Vector3(1.0, 1.0, 1.0)
+	_build_zone(color)
+	# Humo de señales: rojo sobre el blanco del enemigo, anaranjado en el que pide el jugador.
+	_smoke_color = (Color(0.62, 0.05, 0.03) if hostile_to_player else Color(0.8, 0.33, 0.04)).srgb_to_linear()
 	for i in BOMBS:
 		_offsets.append(Vector2.from_angle(randf() * TAU) * sqrt(randf()) * radius)
 	add_to_group(&"radar_marks")
@@ -59,23 +61,20 @@ func _ready() -> void:
 	_heading = Aircraft.fly_over(get_parent(), global_position, hostile_to_player, 60.0).direction
 
 
-func _disc(r: float, color: Color) -> MeshInstance3D:
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = r
-	mesh.bottom_radius = r
-	mesh.height = 0.1
-	mesh.radial_segments = 40
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = color
-	mat.no_depth_test = false
-	var instance := MeshInstance3D.new()
-	instance.mesh = mesh
-	instance.material_override = mat
-	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(instance)
-	return instance
+func _build_zone(color: Color) -> void:
+	var quad := QuadMesh.new()
+	quad.size = Vector2(radius * 2.0, radius * 2.0) / 0.965
+	quad.orientation = PlaneMesh.FACE_Y
+	_zone_material = ShaderMaterial.new()
+	_zone_material.shader = load("res://shaders/strike_zone.gdshader")
+	_zone_material.set_shader_parameter("color", color)
+	_zone_material.render_priority = 1
+	_zone = MeshInstance3D.new()
+	_zone.mesh = quad
+	_zone.material_override = _zone_material
+	_zone.position.y = 0.06
+	_zone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(_zone)
 
 
 ## Segundos que faltan para que caigan las bombas.
@@ -95,14 +94,17 @@ func _process(delta: float) -> void:
 		_released += 1
 		Bomb.drop(get_parent(), global_position + Vector3(offset.x, 0.3, offset.y), _heading, FALL_TIME - maxf(_time - (warning_time - FALL_TIME + (_released - 1) * 0.12), 0.0))
 	if not _dropping:
-		# Anillo que se cierra hacia el centro como cuenta atrás.
-		var t: float = clampf(_time / warning_time, 0.0, 1.0)
-		_ring.scale = Vector3(1.0 - t * 0.95, 1.0, 1.0 - t * 0.95)
-		_zone.visible = fmod(_time, 0.5) < 0.35
+		# Anillo que se cierra hacia el centro como cuenta atrás, y el velo que parpadea.
+		_zone_material.set_shader_parameter("progress", clampf(_time / warning_time, 0.0, 1.0))
+		_zone_material.set_shader_parameter("alert", 1.0 if fmod(_time, 0.5) < 0.35 else 0.0)
+		_smoke_due += delta * 7.0
+		while _smoke_due >= 1.0:
+			_smoke_due -= 1.0
+			Fx.on(self).puff(Fx.Puff.SMOKE, global_position + Vector3(randf_range(-0.3, 0.3), 0.3, randf_range(-0.3, 0.3)), Vector3(randf_range(-0.4, 0.4), randf_range(2.2, 3.4), randf_range(-0.4, 0.4)), randf_range(0.7, 1.1), randf_range(3.0, 4.5), _smoke_color)
 		if _time >= warning_time:
 			_dropping = true
-			_zone.visible = true
-			_ring.visible = false
+			_zone_material.set_shader_parameter("progress", 0.0)
+			_zone_material.set_shader_parameter("alert", 1.0)
 		return
 	_bomb_timer -= delta
 	if _bomb_timer <= 0.0 and _bombs_left > 0:

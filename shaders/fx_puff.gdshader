@@ -28,17 +28,17 @@ uniform sampler2D fx_noise : filter_linear_mipmap, repeat_enable;
 // (tamaño final = inicial × (1 + grow)) y con qué prisa, cuánto gira, a qué escala y con qué
 // deriva se lee el ruido, cuánto abulta el contorno, a qué edad empieza a deshacerse, su
 // opacidad y en cuántos metros se difumina contra el suelo.
-uniform float grow[6];
-uniform float grow_ease[6];
-uniform float spin[6];
-uniform float detail[6];
-uniform float scroll[6];
-uniform float lumps[6];
-uniform float erode_from[6];
-uniform float thickness[6];
-uniform float ground_fade[6];
+uniform float grow[8];
+uniform float grow_ease[8];
+uniform float spin[8];
+uniform float detail[8];
+uniform float scroll[8];
+uniform float lumps[8];
+uniform float erode_from[8];
+uniform float thickness[8];
+uniform float ground_fade[8];
 // Ancho del borde: fino = bola compacta, ancho = nube deshilachada.
-uniform float softness[6];
+uniform float softness[8];
 uniform float fade_in = 0.06;
 uniform float glow_gain = 1.0;
 
@@ -54,7 +54,7 @@ varying vec4 look;
 varying vec4 fades;
 
 void vertex() {
-	int cls = clamp(int(INSTANCE_CUSTOM.x), 0, 5);
+	int cls = clamp(int(INSTANCE_CUSTOM.x), 0, 7);
 	float seed = fract(INSTANCE_CUSTOM.x);
 	float age = INSTANCE_CUSTOM.y;
 	float k = clamp(age, 0.0, 1.0);

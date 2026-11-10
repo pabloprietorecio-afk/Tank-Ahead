@@ -241,6 +241,15 @@ class Runner extends Node:
 			var hill := PropFactory.mountain(14.0, 9.0, 10 if front == Fronts.Id.AFRICA else 7)
 			hill.position = Vector3(60.0, 0.0, -10.0)
 			_stage.add_child(hill)
+			# Casa bombardeada en llamas y árboles quemados (uno ardiendo y otro que solo humea).
+			var bombed := PropFactory.bombed_house(Vector3(7.0, 4.4, 8.0), front)
+			bombed.position = Vector3(-18.0, 0.0, -8.0)
+			bombed.rotation.y = 0.5
+			_stage.add_child(bombed)
+			for i in 2:
+				var burnt := PropFactory.burnt_tree(6.0 if front != Fronts.Id.AFRICA else 8.0, [0, 2, 1][front], i == 0)
+				burnt.position = Vector3(-10.0 - i * 9.0, 0.0, 4.0 + i * 2.0)
+				_stage.add_child(burnt)
 			await get_tree().create_timer(1.0).timeout
 			_look(Vector3(-6.0, 6.0, 20.0), Vector3(20.0, 2.0, -8.0), 60.0)
 			await _snap("props_%d_wide" % front)
@@ -252,6 +261,17 @@ class Runner extends Node:
 			await _snap("props_%d_back" % front)
 			_look(Vector3(40.0, 4.0, 14.0), Vector3(60.0, 4.0, -10.0), 50.0)
 			await _snap("props_%d_hill" % front)
+			await get_tree().create_timer(4.0).timeout
+			_look(Vector3(-6.0, 3.5, 20.0), Vector3(-16.0, 4.5, -6.0), 58.0)
+			await _snap("props_%d_fire" % front)
+			# Derrumbe: la primera casa se viene abajo y el primer árbol cae y arde.
+			_look(Vector3(-6.0, 6.0, 20.0), Vector3(8.0, 2.0, -4.0), 60.0)
+			props[0].take_hit(9999.0, null, props[0].global_position + Vector3(2.0, 2.0, 6.0))
+			props[1].take_hit(9999.0, null, props[1].global_position + Vector3(-1.0, 1.5, 3.0))
+			await get_tree().create_timer(0.7).timeout
+			await _snap("props_%d_collapse" % front)
+			await get_tree().create_timer(5.0).timeout
+			await _snap("props_%d_rubble" % front)
 
 	func _arena(front: int) -> void:
 		GameSession.mode = GameSession.Mode.SURVIVAL
