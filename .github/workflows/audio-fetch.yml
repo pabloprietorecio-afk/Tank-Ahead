@@ -14,12 +14,20 @@ permissions:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
-      - name: Buscar candidatos
-        run: python3 tools/audio_fetch/discover.py | tee discover.txt
-      - uses: actions/upload-artifact@v4
-        with:
-          name: discover
-          path: discover.txt
+      - name: Descargar, convertir y transcribir
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          pip install -q faster-whisper
+          python3 tools/audio_fetch/fetch.py
+          ls -la audio_raw
+      - name: Publicar en la rama audio-raw
+        run: |
+          cd audio_raw
+          git init -q
+          git checkout -q -b audio-raw
+          git add -A
+          git -c user.name="audio" -c user.email="audio@users.noreply.github.com" commit -q -m "Grabaciones descargadas de Wikimedia Commons"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" audio-raw

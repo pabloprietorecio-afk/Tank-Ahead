@@ -4,7 +4,7 @@ name: Verify
 # guarda capturas de tanques, escenarios y partidas, y falla si hay errores de scripts o shaders.
 on:
   push:
-    branches-ignore: [main, audio, verify-shots]
+    branches-ignore: [main, audio, audio-raw, verify-shots]
   workflow_dispatch:
 
 permissions:
