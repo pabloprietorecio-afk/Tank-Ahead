@@ -35,10 +35,10 @@ jobs:
 
       - name: Misiones nuevas, navegación de los aliados y tutorial completo (sin gráficos)
         env:
-          SHOTS_ONLY: "story nav tutorial sky"
+          SHOTS_ONLY: "story nav tutorial sky ai"
         run: |
           timeout 600 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB|TUTORIAL|SKY)" logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB|TUTORIAL|SKY|AI)" logic.log || true
 
       - name: Capturas
         run: |
@@ -54,6 +54,7 @@ jobs:
           grep -q "NAV RESULT fallos de la navegación con rodeo: 0" logic.log || { echo "Algún tanque con rodeo no llegó a su destino"; exit 1; }
           grep -q "REACH RESULT inaccesibles: 0" logic.log || { echo "Hay objetivos u objetos inaccesibles"; exit 1; }
           grep -q "TUTORIAL RESULT lecciones sin completar: 0" logic.log || { echo "Alguna lección del tutorial no se completa"; grep "^TUTORIAL" logic.log; exit 1; }
+          grep -q "AI RESULT tanques que no reaccionan al fuego: 0" logic.log || { echo "Un tanque enemigo no reacciona cuando le disparan"; grep "^AI" logic.log; exit 1; }
           grep -q "SKY RESULT derribos dentro del campo: 0 de" logic.log || { echo "Un avión derribado cae dentro del campo"; exit 1; }
           if grep -q "SKY MAL" logic.log; then exit 1; fi
           grep -q "CLIMB RESULT.*(OK)" logic.log || { echo "Un tanque puede subirse a una colina"; exit 1; }

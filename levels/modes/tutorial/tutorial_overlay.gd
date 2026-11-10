@@ -29,6 +29,7 @@ var _flash: Label
 var _flash_time: float = 0.0
 var _end: PanelContainer
 var _t: float = 0.0
+var _shift: float = 0.0
 
 
 func _ready() -> void:
@@ -110,6 +111,13 @@ func _fit_panel() -> void:
 func set_progress(index: int, total: int) -> void:
 	_progress.text = "LECCIÓN %d / %d" % [index + 1, total]
 	_fraction = float(index) / float(total)
+
+
+## Baja el bloque de progreso y «SALTAR LECCIÓN» para dejar sitio a la lista de objetivos.
+func shift_progress(down: float) -> void:
+	_shift = down
+	_progress.position.y = 84.0 + down
+	_skip.position.y = 136.0 + down
 
 
 func flash_ok() -> void:
@@ -237,7 +245,7 @@ func highlight_rect(key: String) -> Rect2:
 func _draw() -> void:
 	# Barra de progreso bajo «LECCIÓN n / N».
 	if _progress.visible:
-		var bar := Rect2(Vector2(24.0, 116.0), Vector2(230.0, 10.0))
+		var bar := Rect2(Vector2(24.0, 116.0 + _shift), Vector2(230.0, 10.0))
 		draw_rect(bar, Color(0.0, 0.0, 0.0, 0.5), true)
 		draw_rect(Rect2(bar.position, Vector2(bar.size.x * _fraction, bar.size.y)), YELLOW, true)
 		draw_rect(bar, Color(YELLOW, 0.8), false, 1.5)

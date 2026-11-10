@@ -293,7 +293,7 @@ func objective_lines() -> Array[String]:
 	if lesson_id() != "final":
 		return []
 	var kills: int = 0
-	for tank in final_enemies:
+	for tank: Variant in final_enemies:
 		if _dead(tank):
 			kills += 1
 	var depot_done: bool = not is_instance_valid(final_objective) or final_objective.is_destroyed
@@ -414,6 +414,8 @@ func _prepare(index: int) -> void:
 		hud.focus = allowed
 	overlay.clear_pulse()
 	overlay.set_progress(index, LESSONS.size())
+	# En el combate final el HUD pinta la lista de objetivos donde va el progreso: se baja.
+	overlay.shift_progress(84.0 if LESSONS[index] == "final" else 0.0)
 
 
 func _sync_toggles() -> void:
@@ -493,7 +495,9 @@ func _near(point: Vector2, radius: float) -> bool:
 	return _player_xz().distance_to(point) <= radius
 
 
-func _dead(tank: Tank) -> bool:
+## ¿Destruido o ya retirado del campo? (Los restos de un tanque se liberan a los 8 s; por eso
+## el argumento no lleva tipo: una referencia ya liberada no pasa por un parámetro `Tank`.)
+func _dead(tank: Variant) -> bool:
 	return not is_instance_valid(tank) or tank.is_destroyed
 
 
@@ -892,7 +896,7 @@ func _setup_final() -> void:
 
 
 func _check_final(_delta: float) -> bool:
-	for tank in final_enemies:
+	for tank: Variant in final_enemies:
 		if not _dead(tank):
 			return false
 	return not is_instance_valid(final_objective) or final_objective.is_destroyed

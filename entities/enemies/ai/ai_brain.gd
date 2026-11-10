@@ -35,6 +35,14 @@ const PATH_INTERVAL: float = 2.5
 const STUCK_CHECK: float = 1.2
 const STUCK_DISTANCE: float = 0.7
 
+## En alerta: le han disparado (o a un compañero cercano). Mientras dura no suelta a su atacante
+## aunque no lo vea, ve más lejos y va a buscarlo.
+const ALERT_TIME: float = 16.0
+const ALERT_RANGE_BOOST: float = 1.6
+## Los compañeros a esta distancia se enteran cuando a uno le aciertan.
+const ALERT_RADIUS: float = 75.0
+var _alert: float = 0.0
+
 var _avoid_sign: float = 1.0
 var _avoid_timer: float = 0.0
 var _retarget_timer: float = 0.0
@@ -71,6 +79,7 @@ func setup(tank_ref: Tank, initial_target: Tank = null) -> void:
 		var state: State = state_script.new()
 		state.name = state_script.get_global_name().trim_suffix("State")
 		machine.add_child(state)
+	add_to_group(&"ai_brains")
 	tank.damaged.connect(_on_tank_damaged)
 	tank.destroyed.connect(_on_tank_destroyed)
 	_set_target(initial_target)
@@ -80,6 +89,8 @@ func setup(tank_ref: Tank, initial_target: Tank = null) -> void:
 func _physics_process(delta: float) -> void:
 	if tank == null or tank.is_destroyed:
 		return
+	_alert = maxf(_alert - delta, 0.0)
+	perception.range_boost = ALERT_RANGE_BOOST if _alert > 0.0 else 1.0
 	_retarget_timer -= delta
 	if _retarget_timer <= 0.0:
 		_retarget_timer = RETARGET_INTERVAL
@@ -109,10 +120,10 @@ func _choose_target() -> void:
 			nearest_any = other
 		# El objetivo actual tiene ventaja para no cambiar a cada momento.
 		var score: float = dist * (0.7 if other == target else 1.0)
-		if dist <= tank.stats.detect_range and score < best_dist and perception.line_of_sight(other):
+		if dist <= tank.stats.detect_range * perception.range_boost and score < best_dist and perception.line_of_sight(other):
 			best_dist = score
 			best = other
-	if best == null and has_target() and perception.time_since_seen < 6.0:
+	if best == null and has_target() and (perception.time_since_seen < 6.0 or _alert > 0.0):
 		return
 	if best == null and hunt:
 		best = nearest_any
@@ -383,11 +394,38 @@ func _avoidance() -> float:
 	return _avoid_sign
 
 
+func is_alert() -> bool:
+	return _alert > 0.0
+
+
+## Le han acertado: va a por quien le dispara y avisa a los compañeros que tenga cerca.
 func _on_tank_damaged(_amount: float, source: Node) -> void:
 	var attacker: Tank = source as Tank
-	if attacker != null and tank.is_hostile_to(attacker) and not attacker.is_destroyed:
+	if attacker == null or not tank.is_hostile_to(attacker) or attacker.is_destroyed:
+		var current: StringName = machine.current_name
+		if current == &"Idle" or current == &"Patrol":
+			machine.change_to(&"Search")
+		return
+	alert(attacker, true)
+	for node in get_tree().get_nodes_in_group(&"ai_brains"):
+		var other: AIBrain = node as AIBrain
+		if other == null or other == self or other.tank == null or other.tank.is_destroyed or other.tank.team != tank.team:
+			continue
+		if other.tank.global_position.distance_to(tank.global_position) <= ALERT_RADIUS:
+			other.alert(attacker, false)
+
+
+## Pone el tanque en alerta contra `attacker`. Con `direct` (el golpe lo ha recibido él) cambia
+## siempre de objetivo; si solo se lo avisa un compañero, únicamente cuando no está ya
+## combatiendo con alguien a quien ve.
+func alert(attacker: Tank, direct: bool) -> void:
+	if tank == null or tank.is_destroyed or not is_instance_valid(attacker):
+		return
+	if direct or not (has_target() and perception.can_see):
 		_set_target(attacker)
 		perception.reveal(attacker.global_position)
+	_alert = ALERT_TIME
+	perception.range_boost = ALERT_RANGE_BOOST
 	var current: StringName = machine.current_name
 	if current == &"Idle" or current == &"Patrol":
 		machine.change_to(&"Search")

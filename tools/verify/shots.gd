@@ -56,6 +56,8 @@ class Runner extends Node:
 			await _tutorial()
 		if only == "" or only.contains("tutshots"):
 			await _tutorial_shots()
+		if only.contains("ai"):
+			await _ai_reaction()
 		if only.contains("sky"):
 			await _sky()
 		if only == "" or only.contains("skyshots"):
@@ -444,7 +446,7 @@ class Runner extends Node:
 		var mode: TutorialMode = await _start_tutorial()
 		await get_tree().create_timer(2.0).timeout
 		await _snap("tutorial_01_mover")
-		for spec in [[2, "tutorial_03_torreta"], [3, "tutorial_04_disparo"], [6, "tutorial_07_radar"], [8, "tutorial_09_fijar"], [11, "tutorial_12_avion"], [13, "tutorial_14_dano"]]:
+		for spec in [[2, "tutorial_03_torreta"], [3, "tutorial_04_disparo"], [6, "tutorial_07_radar"], [8, "tutorial_09_fijar"], [11, "tutorial_12_avion"], [13, "tutorial_14_dano"], [14, "tutorial_15_final"]]:
 			mode.goto_lesson(spec[0])
 			if spec[0] == 11:
 				mode.player.set_binoculars(true)
@@ -663,6 +665,96 @@ class Runner extends Node:
 		print("CLIMB RESULT altura máxima alcanzada empujando contra una colina y una duna: %.2f m (%s)" % [climb_height, "OK" if climb_height < 1.0 else "SUBE"])
 		stage.queue_free()
 		await _frames(2)
+
+	## Reacción de un tanque enemigo al que le disparan sin que vea a quien lo hace:
+	## a) tapado por una casa, tiene que rodearla; b) atacado desde más lejos de lo que alcanza a
+	## ver, tiene que acercarse. En los dos casos debe acabar devolviendo el fuego. Un tercer
+	## tanque, vecino del primero, debe darse por avisado.
+	func _ai_reaction() -> void:
+		var old_scene: Node = get_tree().current_scene
+		if old_scene != null:
+			old_scene.queue_free()
+		await _frames(2)
+		var stage := Node3D.new()
+		stage.name = "AiStage"
+		get_tree().root.add_child(stage)
+		get_tree().current_scene = stage
+		var floor_body := StaticBody3D.new()
+		floor_body.collision_layer = 1
+		var floor_shape := CollisionShape3D.new()
+		var floor_box := BoxShape3D.new()
+		floor_box.size = Vector3(1600.0, 2.0, 1600.0)
+		floor_shape.shape = floor_box
+		floor_shape.position.y = -1.0
+		floor_body.add_child(floor_shape)
+		stage.add_child(floor_body)
+		GameSession.mode = GameSession.Mode.SURVIVAL
+		GameSession.front = Fronts.Id.NORMANDY
+		GameSession.faction = Fronts.Faction.ALLIES
+		var mode := GameMode.new()
+		mode.set_physics_process(false)
+		stage.add_child(mode)
+		mode.world = stage
+		var cases: Array[Dictionary] = []
+		for c in 2:
+			var origin := Vector3(c * 500.0 - 250.0, 0.0, 0.0)
+			var gap: float = 80.0 if c == 0 else 175.0
+			if c == 0:
+				_wall(stage, origin + Vector3(0.0, 0.0, -gap + 14.0), Vector3(16.0, 5.0, 10.0))
+			var victim: Tank = mode.spawn_tank(Fronts.tank("m4_sherman"), GameMode.PLAYER_TEAM, Vector2(origin.x, origin.z), 0.0)
+			victim.get_node("AIBrain").queue_free()
+			victim.health.invulnerable = true
+			var enemy: Tank = mode.spawn_tank(Fronts.tank("tiger2"), GameMode.ENEMY_TEAM, Vector2(origin.x, origin.z - gap), PI)
+			var brain: AIBrain = enemy.get_node("AIBrain")
+			brain.hunt = false
+			brain.objective = enemy.global_position
+			var buddy: Tank = mode.spawn_tank(Fronts.tank("panzer4"), GameMode.ENEMY_TEAM, Vector2(origin.x + 30.0, origin.z - gap - 10.0), PI)
+			var buddy_brain: AIBrain = buddy.get_node("AIBrain")
+			buddy_brain.hunt = false
+			buddy_brain.objective = buddy.global_position
+			var entry: Dictionary = {"name": "tapado por una casa" if c == 0 else "atacado desde 175 m", "victim": victim, "enemy": enemy, "brain": brain, "buddy": buddy_brain, "seen": -1.0, "fired": -1.0, "buddy_at": -1.0}
+			enemy.weapon.fired.connect(func() -> void:
+				if entry["fired"] < 0.0 and brain.target == victim:
+					entry["fired"] = entry["t"])
+			cases.append(entry)
+		Engine.time_scale = 4.0
+		await get_tree().create_timer(3.0).timeout
+		var time: float = 0.0
+		var hit_timer: float = 0.0
+		while time < 75.0:
+			await get_tree().physics_frame
+			var delta: float = get_physics_process_delta_time()
+			time += delta
+			hit_timer -= delta
+			for entry in cases:
+				entry["t"] = time
+				var brain: AIBrain = entry["brain"]
+				if not is_instance_valid(entry["enemy"]):
+					continue
+				if hit_timer <= 0.0:
+					# El «jugador» acierta un disparo cada 2,5 s.
+					entry["enemy"].health.apply_damage(2.0, entry["victim"])
+				if entry["seen"] < 0.0 and brain.target == entry["victim"] and brain.perception.can_see:
+					entry["seen"] = time
+				var buddy: AIBrain = entry["buddy"]
+				if entry["buddy_at"] < 0.0 and is_instance_valid(buddy) and buddy.target == entry["victim"]:
+					entry["buddy_at"] = time
+			if hit_timer <= 0.0:
+				hit_timer = 2.5
+		Engine.time_scale = 1.0
+		var failures: int = 0
+		for entry in cases:
+			var ok: bool = entry["seen"] >= 0.0 and entry["fired"] >= 0.0 and entry["buddy_at"] >= 0.0
+			if not ok:
+				failures += 1
+			print("AI %-22s ve al atacante: %s | devuelve el fuego: %s | el vecino se da por avisado: %s | estado final %s" % [
+				entry["name"], _secs(entry["seen"]), _secs(entry["fired"]), _secs(entry["buddy_at"]), entry["brain"].state_name() if is_instance_valid(entry["brain"]) else "-"])
+		print("AI RESULT tanques que no reaccionan al fuego: ", failures)
+		stage.queue_free()
+		await _frames(2)
+
+	func _secs(value: float) -> String:
+		return "a los %.0f s" % value if value >= 0.0 else "NUNCA"
 
 	func _wall(stage: Node3D, pos: Vector3, size: Vector3) -> void:
 		var block := PropFactory.block(size)

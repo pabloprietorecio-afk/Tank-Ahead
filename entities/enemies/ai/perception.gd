@@ -11,6 +11,8 @@ var can_see: bool = false
 var last_known: Vector3 = Vector3.ZERO
 var has_last_known: bool = false
 var time_since_seen: float = INF
+## Con el tanque en alerta (le acaban de disparar) alcanza a ver más lejos: busca a quien le tira.
+var range_boost: float = 1.0
 
 var _owner: Tank
 var _target: Tank
@@ -42,7 +44,7 @@ func update(delta: float) -> void:
 		distance = INF
 		return
 	distance = _owner.global_position.distance_to(_target.global_position)
-	can_see = distance <= _owner.stats.detect_range and line_of_sight(_target)
+	can_see = distance <= _owner.stats.detect_range * range_boost and line_of_sight(_target)
 	if can_see:
 		time_since_seen = 0.0
 		last_known = _target.global_position

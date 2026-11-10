@@ -18,7 +18,11 @@ func update(delta: float) -> void:
 		machine.change_to(&"Patrol")
 		return
 	var arrived: bool = brain.drive_to(brain.perception.last_known, 0.8, 8.0)
-	brain.tank.turret_controller.aim_yaw(brain.tank.global_rotation.y + sin(_time * 1.5) * 1.2)
+	if brain.is_alert():
+		# Sabe de dónde le vienen los disparos: lleva el cañón apuntando hacia allí.
+		brain.tank.turret_controller.aim_at(brain.perception.last_known + Vector3.UP * 1.2)
+	else:
+		brain.tank.turret_controller.aim_yaw(brain.tank.global_rotation.y + sin(_time * 1.5) * 1.2)
 	if (arrived and _time > 3.0) or _time > 15.0:
 		brain.perception.forget()
 		machine.change_to(&"Patrol")

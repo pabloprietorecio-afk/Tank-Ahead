@@ -18,6 +18,7 @@ var done: Array[bool] = []
 var _lesson: int = -1
 var _time: float = 0.0
 var _press_timer: float = 0.0
+var _final_pause: float = 0.0
 
 
 func setup(tutorial: TutorialMode) -> void:
@@ -170,8 +171,17 @@ func _do_damage() -> void:
 
 
 func _do_final() -> void:
+	# Tras la primera baja espera a que el tanque destruido desaparezca del campo (los restos
+	# se retiran a los 8 s): la lección tiene que seguir contando bien con tanques ya retirados.
+	var dead: int = 0
+	for tank: Variant in mode.final_enemies:
+		if mode._dead(tank):
+			dead += 1
+	if dead > 0 and _final_pause < 11.0:
+		_final_pause += get_process_delta_time()
+		return
 	var best: Tank = null
-	for tank in mode.final_enemies:
+	for tank: Variant in mode.final_enemies:
 		if mode._dead(tank):
 			continue
 		if best == null or tank.global_position.distance_to(player.global_position) < best.global_position.distance_to(player.global_position):
