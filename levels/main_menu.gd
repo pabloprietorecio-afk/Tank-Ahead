@@ -13,9 +13,13 @@ var _radio_timer: Timer
 ## Partes de radio por bando: [aliados, alemanes].
 var _bulletins: Array = []
 var _radio_side: int = 0
-## Volumen de la radio de fondo por bando (los partes alemanes están grabados más fuertes):
-## queda unos 7 dB por debajo de la música.
-const RADIO_DB: Array[float] = [-3.0, -8.0]
+## Grabaciones de época por bando (ver assets/audio/CREDITS.md). Aliados: Churchill,
+## Eisenhower, Roosevelt, Chamberlain, la BBC y Levitán. Alemanes: cuatro partes militares
+## (locutados para el juego) y cuatro extractos de discursos de Hitler.
+const ALLIED_CLIPS: int = 9
+const GERMAN_CLIPS: int = 8
+## Volumen de la radio de fondo por bando: unos 7 dB por debajo de la música.
+const RADIO_DB: Array[float] = [-4.0, -4.0]
 
 
 func _ready() -> void:
@@ -77,10 +81,10 @@ func _ready() -> void:
 func _start_audio() -> void:
 	AudioSetup.ensure()
 	add_child(AudioSetup.music_player("res://assets/music/menu_theme.ogg"))
-	for lang in ["en", "de"]:
+	for side in [["al", ALLIED_CLIPS], ["de", GERMAN_CLIPS]]:
 		var list: Array[String] = []
-		for i in 4:
-			list.append("res://assets/radio/radio_%s_%d.ogg" % [lang, i])
+		for i in side[1]:
+			list.append("res://assets/radio/radio_%s_%d.ogg" % [side[0], i])
 		list.shuffle()
 		_bulletins.append(list)
 	_radio = AudioStreamPlayer.new()
