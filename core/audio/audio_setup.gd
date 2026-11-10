@@ -30,6 +30,7 @@ static func ensure() -> void:
 
 static func apply_volumes() -> void:
 	GameSettings.ensure_loaded()
+	_set_bus(&"Master", GameSettings.master_volume)
 	_set_bus(MUSIC, GameSettings.music_volume)
 	_set_bus(SFX, GameSettings.sfx_volume)
 	_set_bus(VOICE, GameSettings.voice_volume)

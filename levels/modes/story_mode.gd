@@ -79,7 +79,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		spawn_tank(stats, PLAYER_TEAM, Vector2(spawn.x + (i + 1) * 9.0 * (1 if i % 2 == 0 else -1), spawn.z + 6.0))
 	match kind:
 		"assault":
-			remaining = mission["count"] * 2
+			remaining = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 2)
 			_to_spawn = remaining
 		"destroy":
 			for n in _depot_points.size():
@@ -99,7 +99,8 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		"liberate":
 			for part in StructureFactory.camp(world, TARGET_CENTER, mission["count"]):
 				_track(part)
-			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 5)
+			# La guardia vigila desde fuera de las alambradas, no encerrada en el campo.
+			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 5, 52.0, 78.0)
 			_build_outposts()
 		"defend":
 			time_left = mission["time"]
@@ -122,7 +123,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			_commander.add_to_group(&"radar_marks")
 			_commander.set_meta("radar_color", Color(0.85, 0.3, 1.0))
 			_commander.set_meta("radar_shape", "diamond")
-			_to_spawn = mission["count"] * 2
+			_to_spawn = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 1)
 	remaining = _objectives.size() if not _objectives.is_empty() else remaining
 
 
@@ -146,13 +147,13 @@ func _track(part: Destructible) -> void:
 	part.destroyed.connect(_on_objective_destroyed)
 
 
-func _guards(point: Vector2, count: int) -> void:
+func _guards(point: Vector2, count: int, min_radius: float = 15.0, max_radius: float = 45.0) -> void:
 	for g in count:
-		var guard: Tank = _spawn_enemy(free_point_near(point, 15.0, 45.0))
+		var guard: Tank = _spawn_enemy(free_point_near(point, min_radius, max_radius))
 		var brain: AIBrain = guard.get_node("AIBrain")
 		brain.hunt = false
 		brain.objective = Vector3(point.x, 0.0, point.y)
-		brain.objective_radius = 30.0
+		brain.objective_radius = 30.0 if max_radius <= 45.0 else max_radius
 
 
 func _objective_line() -> String:
@@ -218,35 +219,36 @@ func _process(delta: float) -> void:
 	_spawn_timer -= delta
 	match kind:
 		"assault", "boss":
-			if _to_spawn > 0 and alive < 5 and _spawn_timer <= 0.0:
+			if _to_spawn > 0 and alive < 5 + GameSettings.batch_extra() and _spawn_timer <= 0.0:
 				_spawn_timer = 3.0
 				_to_spawn -= 1
 				_spawn_enemy(edge_point())
 		"destroy", "sabotage", "liberate":
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 2:
-				_reinforce_timer = 25.0
+				_reinforce_timer = 25.0 / minf(GameSettings.total_factor(), 1.0)
 				# Los refuerzos entran por los límites del mapa y van a por el jugador.
 				get_tree().call_group(&"voice", &"say", "reinforcements", VoiceManager.Priority.NORMAL)
-				_spawn_enemy(edge_point())
-				_spawn_enemy(edge_point())
+				for i in GameSettings.batch(2):
+					_spawn_enemy(edge_point())
 		"breakthrough":
 			if _exit_distance() <= EXIT_RADIUS:
 				_win("LÍNEAS ENEMIGAS ATRAVESADAS")
 				return
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 6:
-				_reinforce_timer = 35.0
+				_reinforce_timer = 35.0 / minf(GameSettings.total_factor(), 1.0)
 				# Perseguidores que entran por los límites del mapa.
 				get_tree().call_group(&"voice", &"say", "reinforcements", VoiceManager.Priority.NORMAL)
-				_spawn_enemy(edge_point())
+				for i in GameSettings.batch(1):
+					_spawn_enemy(edge_point())
 		"defend":
 			time_left -= delta
 			if time_left <= 0.0:
 				_win("POSICIÓN DEFENDIDA")
 				return
 			var elapsed: float = mission["time"] - time_left
-			if alive < 4 + int(elapsed / 40.0) and _spawn_timer <= 0.0:
+			if alive < 4 + GameSettings.batch_extra() + int(elapsed / 40.0) and _spawn_timer <= 0.0:
 				_spawn_timer = 4.0
 				var tank: Tank = _spawn_enemy(edge_point(110.0, true))
 				var brain: AIBrain = tank.get_node("AIBrain")

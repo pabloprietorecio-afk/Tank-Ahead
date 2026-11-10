@@ -124,15 +124,43 @@ func _page_mode() -> void:
 	_clear("ELIGE MODO DE JUEGO")
 	_button("HISTORIA — campañas con misiones", func() -> void: _choose_mode(GameSession.Mode.STORY))
 	_button("CAPTURA LA BANDERA — 4 contra 4", func() -> void: _choose_mode(GameSession.Mode.CTF))
-	_button("AJUSTES DE SONIDO", _page_audio)
+	_button("OPCIONES — dificultad, sonido y ayudas", _page_audio)
+	_button("VEHÍCULOS — fichas históricas", _page_vehicles)
 	var best: int = GameSession.best_wave()
 	_button("SUPERVIVENCIA — oleadas sin fin%s" % ("  (récord: oleada %d)" % best if best > 0 else ""), func() -> void: _choose_mode(GameSession.Mode.SURVIVAL))
 
 
 func _page_audio() -> void:
-	_clear("AJUSTES DE SONIDO")
+	_clear("OPCIONES")
+	GameSettings.ensure_loaded()
+	var difficulty: Button = _button("", func() -> void: pass)
+	var refresh: Callable = func() -> void:
+		difficulty.text = "DIFICULTAD: %s\n%s" % [GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty], GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty]]
+	difficulty.custom_minimum_size.y = 96.0
+	difficulty.pressed.connect(func() -> void:
+		GameSettings.difficulty = (GameSettings.difficulty + 1) % 4
+		GameSettings.save()
+		refresh.call())
+	refresh.call()
+	var highlight := CheckButton.new()
+	highlight.text = "Destacar enemigos (borde azul)"
+	highlight.button_pressed = GameSettings.highlight_enemies
+	highlight.add_theme_font_size_override("font_size", 26)
+	highlight.toggled.connect(func(on: bool) -> void:
+		GameSettings.highlight_enemies = on
+		GameSettings.save())
+	_content.add_child(highlight)
 	_content.add_child(VolumeSliders.create())
 	_back(_page_mode)
+
+
+## Fichas históricas de todos los vehículos del juego.
+func _page_vehicles() -> void:
+	_clear("VEHÍCULOS DEL JUEGO")
+	var gallery := VehicleGallery.new()
+	gallery.closed.connect(_page_mode)
+	_content.add_child(gallery)
+	gallery.show_index(0)
 
 
 func _choose_mode(mode: int) -> void:

@@ -96,6 +96,14 @@ func wave_composition(n: int) -> Array[TankStats]:
 		var pick: TankStats = options[_weighted_index(weights)]
 		list.append(pick)
 		budget -= pick.cost
+	# Dificultad: en fácil sale uno menos; en difícil e inferno, uno o dos más por oleada.
+	var extra: int = GameSettings.batch_extra()
+	if extra < 0 and list.size() > 1:
+		list.pop_back()
+	for i in maxi(extra, 0):
+		var unlocked: Array[TankStats] = pool.filter(func(s: TankStats) -> bool: return s.unlock_wave <= n)
+		if not unlocked.is_empty():
+			list.append(unlocked.pick_random())
 	list.shuffle()
 	return list
 

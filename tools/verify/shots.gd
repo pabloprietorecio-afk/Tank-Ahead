@@ -252,6 +252,17 @@ class Runner extends Node:
 		await _snap("arena_%d_player" % front)
 		_look(origin + Vector3(0.0, 45.0, 60.0), origin + Vector3(0.0, 0.0, -30.0), 60.0)
 		await _snap("arena_%d_high" % front)
+		# Enemigos destacados con el borde azul, vistos de cerca.
+		await get_tree().create_timer(5.0).timeout
+		GameSettings.highlight_enemies = true
+		for other in get_tree().get_nodes_in_group(&"tanks"):
+			other.refresh_highlight()
+			if not other.is_player and other.team != 0:
+				var at: Vector3 = other.global_position
+				_look(at + Vector3(9.0, 4.0, 11.0), at + Vector3(0.0, 1.2, 0.0), 45.0)
+				await _snap("arena_%d_outline" % front)
+				break
+		GameSettings.highlight_enemies = false
 		for i in 4:
 			var angle: float = TAU * i / 4.0 + 0.4
 			_look(origin + Vector3(0.0, 3.0, 0.0), origin + Vector3(sin(angle) * 50.0, 4.0, cos(angle) * 50.0), 70.0)
@@ -329,16 +340,29 @@ class Runner extends Node:
 				mountains.append(child)
 		var bad: int = 0
 		for target in targets:
+			if target is Destructible and target.protected_area:
+				continue
 			var point: Vector3 = target.global_position
 			var problem: String = ""
 			if absf(point.x) > 196.0 or absf(point.z) > 196.0:
 				problem = "fuera del muro"
-			elif grid.find_path(origin, point).is_empty():
-				problem = "sin ruta"
 			else:
-				var near: Vector3 = grid.cell_center(grid.nearest_free(grid.cell_of(point)))
-				if Vector2(near.x - point.x, near.z - point.z).length() > 24.0:
-					problem = "encerrado (celda libre más cercana a %.0f m)" % Vector2(near.x - point.x, near.z - point.z).length()
+				# Se puede llegar junto a él: hay ruta hasta algún punto a su alrededor (lo que
+				# está pegado a un edificio o a una alambrada se alcanza por el lado libre).
+				var reachable: bool = false
+				for radius: float in [0.0, 8.0, 14.0, 22.0]:
+					for i in (1 if radius == 0.0 else 8):
+						var around: Vector3 = point + Vector3.FORWARD.rotated(Vector3.UP, TAU * i / 8.0) * radius
+						var path: PackedVector3Array = grid.find_path(origin, around)
+						if not path.is_empty():
+							var end: Vector3 = path[path.size() - 2] if path.size() > 1 else path[0]
+							if Vector2(end.x - point.x, end.z - point.z).length() <= 26.0:
+								reachable = true
+								break
+					if reachable:
+						break
+				if not reachable:
+					problem = "sin ruta"
 			# Bajo la falda de una colina o montaña (salvo la propia).
 			var space: PhysicsDirectSpaceState3D = arena.get_world_3d().direct_space_state
 			var query := PhysicsRayQueryParameters3D.create(Vector3(point.x, 90.0, point.z), Vector3(point.x, 0.3, point.z), 1)

@@ -14,13 +14,10 @@ var _message: Label
 var _end_panel: PanelContainer
 var _pause_panel: PanelContainer
 var _history_panel: PanelContainer
-var _history_text: Label
-var _history_viewer: TankViewer
 var _history_button: Button
 var _version: String = ""
 var _message_time: float = 0.0
 var _flash: float = 0.0
-var _panel: PanelContainer
 var _release: Button
 
 
@@ -45,13 +42,14 @@ func _ready() -> void:
 
 
 func _build_settings() -> void:
+	# ⚙ abre el menú de opciones, que pone el juego en pausa.
 	var gear := Button.new()
 	gear.text = "⚙"
 	gear.add_theme_font_size_override("font_size", 40)
 	gear.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	gear.position = Vector2(-90.0, 14.0)
 	gear.size = Vector2(76.0, 76.0)
-	gear.pressed.connect(func() -> void: _panel.visible = not _panel.visible)
+	gear.pressed.connect(func() -> void: _set_paused(not get_tree().paused))
 	add_child(gear)
 
 	var view_button := Button.new()
@@ -70,32 +68,6 @@ func _build_settings() -> void:
 	add_child(view_button)
 	tank.set_view.call_deferred(GameSettings.camera_view)
 
-	_panel = PanelContainer.new()
-	_panel.visible = false
-	_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_panel.position.y = 100.0
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 14)
-	_panel.add_child(box)
-	box.add_child(VolumeSliders.create())
-	box.add_child(_make_toggle("Sombras (desactivar si va lento)", GameSettings.shadows, func(on: bool) -> void:
-		GameSettings.shadows = on
-		GameSettings.save()
-		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
-		if sun != null:
-			sun.shadow_enabled = on))
-	box.add_child(_make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
-		GameSettings.easy_drive = on
-		GameSettings.save()))
-	box.add_child(_make_toggle("Recentrar el cañón al frente (sin movimiento fácil)", GameSettings.auto_recenter, func(on: bool) -> void:
-		GameSettings.auto_recenter = on
-		GameSettings.save()))
-	box.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
-		GameSettings.aim_assist = on
-		GameSettings.save()))
-	add_child(_panel)
-
 	_release = Button.new()
 	_release.text = "LIBERAR\nOBJETIVO"
 	_release.add_theme_font_size_override("font_size", 24)
@@ -111,7 +83,7 @@ func _build_settings() -> void:
 			input_source.release_lock())
 	add_child(_release)
 	if touch != null:
-		touch.exclusions.append_array([gear, view_button, _panel, _release])
+		touch.exclusions.append_array([gear, view_button, _release])
 
 
 func _button(text: String, font_size: int = 26) -> Button:
@@ -139,6 +111,7 @@ func _centered_panel() -> PanelContainer:
 	return panel
 
 
+## Menú de opciones (pausa): a la izquierda las acciones, a la derecha sonido y ayudas.
 func _build_pause_and_history() -> void:
 	var pause := _button("II", 30)
 	pause.custom_minimum_size = Vector2.ZERO
@@ -152,22 +125,73 @@ func _build_pause_and_history() -> void:
 
 	_pause_panel = _centered_panel()
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 16)
+	box.add_theme_constant_override("separation", 12)
 	_pause_panel.add_child(box)
 	var title := Label.new()
-	title.text = "PAUSA"
+	title.text = "OPCIONES — JUEGO EN PAUSA"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 36)
+	title.add_theme_font_size_override("font_size", 30)
 	box.add_child(title)
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 30)
+	box.add_child(columns)
+	var actions := VBoxContainer.new()
+	actions.add_theme_constant_override("separation", 12)
+	columns.add_child(actions)
+	var options := VBoxContainer.new()
+	options.add_theme_constant_override("separation", 8)
+	columns.add_child(options)
+
 	var resume := _button("CONTINUAR")
 	resume.pressed.connect(func() -> void: _set_paused(false))
-	box.add_child(resume)
+	actions.add_child(resume)
+	var difficulty := _button("", 22)
+	difficulty.custom_minimum_size = Vector2(380.0, 96.0)
+	var refresh: Callable = func() -> void:
+		difficulty.text = "DIFICULTAD: %s\n%s" % [GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty], GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty]]
+	difficulty.pressed.connect(func() -> void:
+		GameSettings.difficulty = (GameSettings.difficulty + 1) % 4
+		GameSettings.save()
+		refresh.call())
+	refresh.call()
+	actions.add_child(difficulty)
+	var vehicles := _button("HISTORIA: VEHÍCULOS DEL JUEGO", 22)
+	vehicles.pressed.connect(func() -> void:
+		_history_from_menu = true
+		_pause_panel.visible = false
+		_history_gallery.show_index(0)
+		move_child(_history_panel, -1)
+		_history_panel.visible = true)
+	actions.add_child(vehicles)
 	var restart := _button("REINICIAR")
 	restart.pressed.connect(_restart)
-	box.add_child(restart)
-	var menu := _button("MENÚ PRINCIPAL")
+	actions.add_child(restart)
+	var menu := _button("ABANDONAR")
+	menu.add_theme_color_override("font_color", VectorMaterials.ORANGE)
 	menu.pressed.connect(_to_menu)
-	box.add_child(menu)
+	actions.add_child(menu)
+
+	options.add_child(VolumeSliders.create())
+	options.add_child(_make_toggle("Destacar enemigos (borde azul)", GameSettings.highlight_enemies, func(on: bool) -> void:
+		GameSettings.highlight_enemies = on
+		GameSettings.save()
+		for node in get_tree().get_nodes_in_group(&"tanks"):
+			(node as Tank).refresh_highlight()))
+	options.add_child(_make_toggle("Sombras (desactivar si va lento)", GameSettings.shadows, func(on: bool) -> void:
+		GameSettings.shadows = on
+		GameSettings.save()
+		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
+		if sun != null:
+			sun.shadow_enabled = on))
+	options.add_child(_make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
+		GameSettings.easy_drive = on
+		GameSettings.save()))
+	options.add_child(_make_toggle("Recentrar el cañón al frente (sin movimiento fácil)", GameSettings.auto_recenter, func(on: bool) -> void:
+		GameSettings.auto_recenter = on
+		GameSettings.save()))
+	options.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
+		GameSettings.aim_assist = on
+		GameSettings.save()))
 
 	# Botón HISTORIA junto a la ficha del objetivo fijado.
 	_history_button = _button("HISTORIA", 20)
@@ -182,24 +206,9 @@ func _build_pause_and_history() -> void:
 	add_child(_history_button)
 
 	_history_panel = _centered_panel()
-	var hbox := VBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 14)
-	_history_panel.add_child(hbox)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 20)
-	hbox.add_child(row)
-	_history_viewer = TankViewer.new()
-	row.add_child(_history_viewer)
-	_history_text = Label.new()
-	_history_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_history_text.custom_minimum_size = Vector2(560.0, 0.0)
-	_history_text.add_theme_font_size_override("font_size", 22)
-	row.add_child(_history_text)
-	var close := _button("CERRAR")
-	close.pressed.connect(func() -> void:
-		_history_panel.visible = false
-		get_tree().paused = false)
-	hbox.add_child(close)
+	_history_gallery = VehicleGallery.new()
+	_history_panel.add_child(_history_gallery)
+	_history_gallery.closed.connect(_close_history)
 
 	_end_panel = _centered_panel()
 	if touch != null:
@@ -211,9 +220,13 @@ var _zoom_button: Button
 var _missile_button: Button
 var _strike_button: Button
 var _binocular_mask: ColorRect
+var _history_gallery: VehicleGallery
+## La ficha se abrió desde el menú de opciones: al cerrarla se vuelve a él.
+var _history_from_menu: bool = false
 
 
-## Botones de prismáticos, misil guiado y bombardeo aliado (columna sobre FIRE).
+## Prismáticos (arriba, lejos de la zona donde se arrastra para mover la torreta) y, solo con
+## ellos puestos, misil guiado y bombardeo aliado (al borde derecho, sobre FIRE).
 func _build_arsenal() -> void:
 	_binocular_mask = ColorRect.new()
 	_binocular_mask.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -222,21 +235,30 @@ func _build_arsenal() -> void:
 	mat.shader = load("res://shaders/binoculars.gdshader")
 	_binocular_mask.material = mat
 	_binocular_mask.visible = false
-	add_child(_binocular_mask)
-	move_child(_binocular_mask, 0)
-	var specs: Array = [["ZOOM", -330.0], ["MISIL", -250.0], ["AVIÓN", -170.0]]
-	var buttons: Array[Button] = []
+	# La máscara va por debajo de los controles táctiles y del resto de la interfaz, para que
+	# el botón FIRE y los demás se sigan viendo con los prismáticos puestos.
+	_place_mask.call_deferred()
+	_zoom_button = _button("ZOOM", 22)
+	_zoom_button.custom_minimum_size = Vector2.ZERO
+	_zoom_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_zoom_button.offset_left = -390.0
+	_zoom_button.offset_right = -280.0
+	_zoom_button.offset_top = 14.0
+	_zoom_button.offset_bottom = 90.0
+	add_child(_zoom_button)
+	var specs: Array = [["MISIL", -430.0], ["AVIÓN", -345.0]]
+	var buttons: Array[Button] = [_zoom_button]
 	for spec in specs:
 		var button := _button(spec[0], 22)
 		button.custom_minimum_size = Vector2.ZERO
 		button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		button.offset_left = -420.0
-		button.offset_right = -270.0
+		button.offset_left = -170.0
+		button.offset_right = -14.0
 		button.offset_top = spec[1]
-		button.offset_bottom = spec[1] + 70.0
+		button.offset_bottom = spec[1] + 75.0
+		button.visible = false
 		add_child(button)
 		buttons.append(button)
-	_zoom_button = buttons[0]
 	_missile_button = buttons[1]
 	_strike_button = buttons[2]
 	_zoom_button.pressed.connect(func() -> void: tank.set_binoculars(not tank.binoculars))
@@ -246,24 +268,41 @@ func _build_arsenal() -> void:
 		touch.exclusions.append_array(buttons)
 
 
+func _place_mask() -> void:
+	var layer: Node = get_parent()
+	layer.add_child(_binocular_mask)
+	layer.move_child(_binocular_mask, 0)
+
+
+## Abrir el menú de opciones pone el juego en pausa; cerrarlo lo reanuda.
 func _set_paused(paused: bool) -> void:
 	if director.is_over:
 		return
 	get_tree().paused = paused
 	move_child(_pause_panel, -1)
 	_pause_panel.visible = paused
+	_history_panel.visible = false
 
 
 func _show_history() -> void:
 	var target: Tank = tank.aim_lock
 	if target == null or not is_instance_valid(target):
 		return
-	var stats: TankStats = target.stats
-	_history_text.text = "%s\n\n%s\n\nBLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h" % [stats.display_name, stats.history if stats.history != "" else stats.description, roundi(stats.max_armor), roundi(stats.damage), roundi(stats.max_speed * 3.6)]
-	_history_viewer.show_tank(stats, target.paint)
+	_history_from_menu = false
+	_history_gallery.show_stats(target.stats, target.paint)
 	move_child(_history_panel, -1)
 	_history_panel.visible = true
 	get_tree().paused = true
+
+
+func _close_history() -> void:
+	_history_panel.visible = false
+	if _history_from_menu:
+		_history_from_menu = false
+		move_child(_pause_panel, -1)
+		_pause_panel.visible = true
+	else:
+		get_tree().paused = false
 
 
 func _restart() -> void:
@@ -346,6 +385,9 @@ func _process(delta: float) -> void:
 	_strike_button.text = "AVIÓN %d" % director.strikes
 	_strike_button.disabled = director.strikes <= 0
 	_zoom_button.text = "NORMAL" if tank.binoculars else "ZOOM"
+	# Misil y aviación solo se ofrecen con los prismáticos puestos.
+	_missile_button.visible = tank.binoculars and not director.is_over
+	_strike_button.visible = tank.binoculars and not director.is_over
 	_binocular_mask.visible = tank.binoculars
 	if _binocular_mask.visible:
 		(_binocular_mask.material as ShaderMaterial).set_shader_parameter("screen_size", size)

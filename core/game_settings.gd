@@ -22,6 +22,21 @@ static var shadows: bool = true
 static var music_volume: float = 0.3
 static var sfx_volume: float = 1.0
 static var voice_volume: float = 0.9
+## Volumen general: sube o baja todo a la vez.
+static var master_volume: float = 1.0
+
+## Dificultad: 0 fácil, 1 normal, 2 difícil, 3 inferno.
+const DIFFICULTY_NAMES: Array[String] = ["FÁCIL", "NORMAL", "DIFÍCIL", "INFERNO"]
+const DIFFICULTY_HINTS: Array[String] = [
+	"Aparecen pocos enemigos nuevos en cada misión",
+	"Los enemigos de siempre",
+	"Un enemigo más en cada tanda de refuerzos",
+	"Dos enemigos más en cada tanda de refuerzos",
+]
+static var difficulty: int = 1
+
+## Dibuja un borde azul alrededor de los tanques enemigos para verlos mejor.
+static var highlight_enemies: bool = false
 
 static var _loaded: bool = false
 
@@ -38,6 +53,9 @@ static func ensure_loaded() -> void:
 		music_volume = cfg.get_value("audio", "music", music_volume)
 		sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
 		voice_volume = cfg.get_value("audio", "voice", voice_volume)
+		master_volume = cfg.get_value("audio", "master", master_volume)
+		difficulty = clampi(cfg.get_value("game", "difficulty", difficulty), 0, 3)
+		highlight_enemies = cfg.get_value("game", "highlight_enemies", highlight_enemies)
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 
@@ -50,6 +68,26 @@ static func save() -> void:
 	cfg.set_value("audio", "music", music_volume)
 	cfg.set_value("audio", "sfx", sfx_volume)
 	cfg.set_value("audio", "voice", voice_volume)
+	cfg.set_value("audio", "master", master_volume)
+	cfg.set_value("game", "difficulty", difficulty)
+	cfg.set_value("game", "highlight_enemies", highlight_enemies)
 	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.save(PATH)
+
+
+## Enemigos de más (o de menos) en cada tanda de refuerzos: -1, 0, +1 o +2.
+static func batch_extra() -> int:
+	ensure_loaded()
+	return difficulty - 1
+
+
+## Tamaño de una tanda de `base` enemigos con la dificultad actual (nunca menos de uno).
+static func batch(base: int) -> int:
+	return maxi(base + batch_extra(), 1)
+
+
+## Factor para el total de enemigos de una misión y, en fácil, para espaciar los refuerzos.
+static func total_factor() -> float:
+	ensure_loaded()
+	return [0.6, 1.0, 1.25, 1.5][difficulty]

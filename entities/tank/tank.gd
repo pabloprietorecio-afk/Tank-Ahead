@@ -63,6 +63,9 @@ var _tracks_sound: AudioStreamPlayer3D
 var _engine_pitch: float = 1.0
 var _engine_level: float = 0.0
 var _tracks_level: float = 0.0
+## Borde azul que destaca a los enemigos (ajuste «Destacar enemigos»): el mismo modelo, un poco
+## más gordo y dibujado solo por sus caras traseras, asoma alrededor de la silueta.
+static var _outline: StandardMaterial3D
 
 
 func _ready() -> void:
@@ -80,6 +83,7 @@ func _ready() -> void:
 	_build_components()
 	_build_effects()
 	_build_sound()
+	refresh_highlight()
 	health.damaged.connect(_on_damaged)
 	health.died.connect(_on_died)
 
@@ -214,6 +218,22 @@ func _animate_tracks(delta: float) -> void:
 	_track_material.set_shader_parameter("track_offset", _track_scroll)
 
 
+## Pone o quita el borde azul según el ajuste. Solo en tanques enemigos enteros.
+func refresh_highlight() -> void:
+	var on: bool = GameSettings.highlight_enemies and team != 0 and not is_player and not is_destroyed
+	if on and _outline == null:
+		_outline = StandardMaterial3D.new()
+		_outline.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_outline.albedo_color = Color(0.25, 0.6, 1.0)
+		_outline.cull_mode = BaseMaterial3D.CULL_FRONT
+		_outline.grow = true
+		_outline.grow_amount = 0.07
+		_outline.disable_fog = true
+	for mesh in _meshes:
+		if is_instance_valid(mesh):
+			mesh.material_overlay = _outline if on else null
+
+
 ## Motor y orugas. El tanque propio suena más bajo y sin apagarse al alejar la cámara; los
 ## demás se oyen según la distancia, así que se les oye llegar. Los pesados usan un motor más
 ## grave y los blindados de ruedas uno más agudo y sin orugas.
@@ -337,6 +357,7 @@ func _on_died(source: Node) -> void:
 	trigger_held = false
 	remove_from_group(&"tanks")
 	_set_sound_running(false)
+	refresh_highlight()
 	hurtbox.set_deferred("monitorable", false)
 	hurtbox.collision_layer = 0
 	Explosion.spawn(self, global_position + Vector3.UP * 1.0, 1.0 * _scale_factor + 0.5)
