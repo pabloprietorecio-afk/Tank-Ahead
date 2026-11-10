@@ -16,7 +16,6 @@ FILES = {
     "hitler_1945": ("Adolf Hitler’s last speech.ogg", "de", None),
     "hitler_1943": ("Hit43.ogg", "de", None),
     "hitler_x": ("Hit.ogg", "de", None),
-    "hitler_1935": ("Adolf Hitler Speech in 1935.ogg", "de", None),
     "tank_centurion_ride": ("Centurion tank, starten, rijden en stoppen - SoundCloud - Beeld en Geluid.ogg", None, None),
     "tank_centurion_idle": ("Centurion tank, stationair, pompen en afschakelen - SoundCloud - Beeld en Geluid.ogg", None, None),
     "tank_sherman_idle": ("Sherman tank, rijden, stationair en stoppen - SoundCloud - Beeld en Geluid.ogg", None, None),
@@ -30,17 +29,37 @@ FILES = {
     "gun_sexton": ("Sexton artillery firing.oga", None, None),
 }
 
+MODE = sys.argv[1] if len(sys.argv) > 1 else "download"
 os.makedirs("audio_raw", exist_ok=True)
+
+if MODE == "transcribe":
+    import numpy as np
+    from faster_whisper import WhisperModel
+    model = WhisperModel("small", device="cpu", compute_type="int8")
+    for key, (name, lang, window) in FILES.items():
+        out = f"audio_raw/{key}.ogg"
+        if not lang or not os.path.exists(out) or os.path.exists(f"audio_raw/{key}.txt"):
+            continue
+        try:
+            raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", out, "-ac", "1", "-ar", "16000", "-f", "f32le", "-"], capture_output=True, check=True).stdout
+            segments, _info = model.transcribe(np.frombuffer(raw, dtype=np.float32), language=lang, vad_filter=True)
+            with open(f"audio_raw/{key}.txt", "w") as text:
+                for segment in segments:
+                    text.write("%7.1f %7.1f %s\n" % (segment.start, segment.end, segment.text.strip()))
+            print("TRANSCRITO", key, flush=True)
+        except Exception as error:
+            print("ERROR transcripción", key, error, flush=True)
+    sys.exit(0)
+
 log = open("audio_raw/README.txt", "a")
-model = None
-for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][1] is not None):
+for key, (name, lang, window) in FILES.items():
     if os.path.exists(f"audio_raw/{key}.ogg"):
         continue
     url = "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(name)
     source = "source_" + key
     ok = False
-    for attempt in range(6):
-        time.sleep(20 + attempt * 50)
+    for attempt in range(3):
+        time.sleep(15 + attempt * 40)
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=180) as response, open(source, "wb") as out:
                 out.write(response.read())
@@ -57,16 +76,5 @@ for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][
     duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True, text=True).stdout.strip()
     print("OK", key, duration, flush=True)
     log.write(f"{key}: {duration} s | {name}\n")
-    if lang:
-        try:
-            if model is None:
-                from faster_whisper import WhisperModel
-                model = WhisperModel("small", device="cpu", compute_type="int8")
-            segments, _info = model.transcribe(out, language=lang, vad_filter=True)
-            with open(f"audio_raw/{key}.txt", "w") as text:
-                for segment in segments:
-                    text.write("%7.1f %7.1f %s\n" % (segment.start, segment.end, segment.text.strip()))
-        except Exception as error:
-            print("ERROR transcripción", key, error, flush=True)
     os.remove(source)
 log.close()
