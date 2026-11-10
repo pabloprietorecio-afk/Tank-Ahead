@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Sintetiza por código los bucles de motor del juego (no va en el APK).
 
-Genera en assets/audio: engine_tank.wav, engine_heavy.wav, tracks.wav,
-plane_bomber.wav, plane_fighter.wav y helicopter.wav, con su .import en bucle.
+Genera en assets/audio helicopter.wav con su .import en bucle. (Los motores de tanque y de
+avión eran sintéticos; ahora son grabaciones reales, ver real_loop.py.)
 
 Todo se filtra en el dominio de la frecuencia (FFT circular) y todos los eventos se
 colocan módulo la duración, así que el final de cada archivo enlaza con su principio
@@ -228,11 +228,8 @@ def save(name, samples):
 
 def main():
     rng = np.random.default_rng(1944)
-    save("engine_tank", piston_engine(3.0, 34.0, 12, [150.0, 330.0, 700.0, 1400.0], rng, grit=0.55, whine_hz=610.0))
-    save("engine_heavy", piston_engine(3.0, 26.0, 12, [120.0, 260.0, 540.0, 1100.0], rng, grit=0.7, whine_hz=470.0))
-    save("tracks", tracks(2.0, 14.0, rng))
-    save("plane_bomber", propeller_plane(4.0, [82.0, 84.5, 86.25, 88.75], rng, wash=0.3))
-    save("plane_fighter", propeller_plane(3.0, [118.0], rng, harmonics=26, growl=0.7, wash=0.35))
+    # Motores de tanque y de avión: ya no se sintetizan. Son bucles sacados de grabaciones
+    # reales con tools/sound_gen/real_loop.py (ver assets/audio/CREDITS.md).
     save("helicopter", helicopter(2.0, 13.0, rng))
 
 

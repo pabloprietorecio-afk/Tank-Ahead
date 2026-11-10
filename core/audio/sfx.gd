@@ -11,12 +11,16 @@ const BELL := preload("res://assets/audio/bell.ogg")
 ## bombardero, caza y helicóptero.
 const ENGINE_TANK := preload("res://assets/audio/engine_tank.wav")
 const ENGINE_HEAVY := preload("res://assets/audio/engine_heavy.wav")
-const TRACKS := preload("res://assets/audio/tracks.wav")
+## Tanque del jugador: ralentí y motor en marcha (grabados a bordo de tanques reales).
+const ENGINE_IDLE := preload("res://assets/audio/engine_idle.wav")
+const ENGINE_DRIVE := preload("res://assets/audio/engine_drive.wav")
 const PLANE_BOMBER := preload("res://assets/audio/plane_bomber.wav")
 const PLANE_FIGHTER := preload("res://assets/audio/plane_fighter.wav")
 const HELICOPTER := preload("res://assets/audio/helicopter.wav")
 const MISSILE := preload("res://assets/audio/missile.ogg")
 const THUNDER := preload("res://assets/audio/thunder.wav")
+## Estampido de un proyectil antiaéreo en el aire.
+const FLAK: AudioStream = EXPLOSION
 
 
 static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: float = 0.0, pitch: float = 1.0) -> void:

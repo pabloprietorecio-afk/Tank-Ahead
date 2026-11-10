@@ -40,6 +40,12 @@ func _ready() -> void:
 		return true
 	add_child(_mode)
 	_build_weather()
+	if _mode.wants_scenery():
+		# Aviones de paso, antiaérea y algún derribo lejano: solo ambiente.
+		var sky := SkyWar.new()
+		sky.name = "SkyWar"
+		sky.front = GameSession.front
+		add_child(sky)
 	if _mode.wants_pickups():
 		var spawner := PickupSpawner.new()
 		spawner.name = "PickupSpawner"
