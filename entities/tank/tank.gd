@@ -224,10 +224,10 @@ func refresh_highlight() -> void:
 	if on and _outline == null:
 		_outline = StandardMaterial3D.new()
 		_outline.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_outline.albedo_color = Color(0.25, 0.6, 1.0)
+		_outline.albedo_color = Color(0.3, 0.62, 1.0)
 		_outline.cull_mode = BaseMaterial3D.CULL_FRONT
 		_outline.grow = true
-		_outline.grow_amount = 0.07
+		_outline.grow_amount = 0.03
 		_outline.disable_fog = true
 	for mesh in _meshes:
 		if is_instance_valid(mesh):

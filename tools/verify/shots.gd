@@ -263,6 +263,24 @@ class Runner extends Node:
 				await _snap("arena_%d_outline" % front)
 				break
 		GameSettings.highlight_enemies = false
+		if front == 0:
+			# Menú de opciones (pausa), la galería de vehículos y la vista con zoom.
+			var hud: Hud = arena._hud
+			hud._set_paused(true)
+			await _snap("options_menu")
+			hud._history_from_menu = true
+			hud._pause_panel.visible = false
+			hud._history_gallery.show_index(3)
+			hud.move_child(hud._history_panel, -1)
+			hud._history_panel.visible = true
+			await _snap("options_vehicles")
+			hud._set_paused(false)
+			_camera.current = false
+			player.camera.current = true
+			player.set_binoculars(true)
+			await _snap("zoom_buttons")
+			player.set_binoculars(false)
+			_camera.current = true
 		for i in 4:
 			var angle: float = TAU * i / 4.0 + 0.4
 			_look(origin + Vector3(0.0, 3.0, 0.0), origin + Vector3(sin(angle) * 50.0, 4.0, cos(angle) * 50.0), 70.0)
