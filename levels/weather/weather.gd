@@ -128,8 +128,8 @@ func _setup_effects(top: Color, horizon: Color, light: Color, energy: float, fog
 
 func display_name() -> String:
 	if kind == Kind.FOG and _front == Fronts.Id.AFRICA:
-		return "TORMENTA DE ARENA"
-	return NAMES[kind]
+		return Loc.t("TORMENTA DE ARENA")
+	return Loc.t(NAMES[kind])
 
 
 func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float, fog_color: Color) -> void:

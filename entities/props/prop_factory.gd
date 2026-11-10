@@ -370,7 +370,7 @@ static func church() -> Node3D:
 
 	var tower := _base(160.0, Color(0.6, 0.58, 0.52), 5.0)
 	tower.prize_points = 400
-	tower.prize_name = "CAMPANARIO"
+	tower.prize_name = Loc.t("CAMPANARIO")
 	tower.destroy_sound = Sfx.BELL
 	tower.position = Vector3(0.0, 0.0, 9.5)
 	var shaft := VectorMaterials.make_box(Vector3(4.0, 12.0, 4.0), stone, 2, 1.8)

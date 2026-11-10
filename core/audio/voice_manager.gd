@@ -67,7 +67,11 @@ func _ready() -> void:
 	add_child(_player)
 	for event in EVENTS:
 		for id in EVENTS[event]:
-			_streams[id] = load("res://assets/voice/%s.ogg" % id)
+			# Voces del idioma activo; si falta alguna, la española antes que ninguna.
+			var path: String = "%s/%s.ogg" % [Loc.voice_dir(), id]
+			if not ResourceLoader.exists(path):
+				path = "res://assets/voice/%s.ogg" % id
+			_streams[id] = load(path)
 	if player != null:
 		player.damaged.connect(_on_player_damaged)
 

@@ -5,6 +5,12 @@ const GOLD := Color(0.96, 0.82, 0.5)
 const AMBER := Color(1.0, 0.75, 0.35)
 const GREEN := GOLD
 
+## Color de cada categoría del menú principal.
+const TINT_PLAY := Color(0.45, 0.72, 0.38)
+const TINT_TUTORIAL := Color(0.36, 0.64, 0.95)
+const TINT_OPTIONS := Color(0.72, 0.6, 0.9)
+const TINT_HISTORY := Color(0.92, 0.55, 0.32)
+
 ## Alto de fila normal y mínimo al que se encoge una página que no cabe en la pantalla.
 const ROW_HEIGHT: float = 68.0
 const ROW_MIN: float = 54.0
@@ -19,6 +25,8 @@ var _content: VBoxContainer
 var _center: MarginContainer
 var _title: Label
 var _subtitle: Label
+var _era: Label
+var _version: Label
 var _radio: AudioStreamPlayer
 var _radio_timer: Timer
 ## Partes de radio por bando: [aliados, alemanes].
@@ -34,6 +42,7 @@ const RADIO_DB: Array[float] = [-4.0, -4.0]
 
 
 func _ready() -> void:
+	GameSettings.ensure_loaded()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# Portada en 3D detrás del menú y un velo oscuro para que se lea el texto.
 	add_child(CoverDiorama.new())
@@ -65,17 +74,18 @@ func _ready() -> void:
 	_title.add_theme_constant_override("shadow_offset_x", 4)
 	_title.add_theme_constant_override("shadow_offset_y", 5)
 	column.add_child(_title)
-	var era := _label("SEGUNDA GUERRA MUNDIAL  ·  1941 — 1945", 22, Color(0.9, 0.88, 0.8))
-	era.add_theme_color_override("font_outline_color", Color.BLACK)
-	era.add_theme_constant_override("outline_size", 6)
-	column.add_child(era)
+	_era = _label("", 22, Color(0.9, 0.88, 0.8))
+	_era.add_theme_color_override("font_outline_color", Color.BLACK)
+	_era.add_theme_constant_override("outline_size", 6)
+	column.add_child(_era)
 	_subtitle = _label("", 26, AMBER)
 	column.add_child(_subtitle)
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override("separation", ROW_GAP)
 	column.add_child(_content)
-	var version := _label("versión %s" % str(ProjectSettings.get_setting("application/config/version", "dev")), 16, Color(0.5, 0.6, 0.5))
-	column.add_child(version)
+	_version = _label("", 16, Color(0.5, 0.6, 0.5))
+	column.add_child(_version)
+	_retranslate()
 	_start_audio()
 	var page: String = GameSession.menu_page
 	GameSession.menu_page = ""
@@ -185,9 +195,35 @@ func _fit() -> void:
 				row.add_theme_font_size_override("font_size", 24)
 
 
-func _button(text: String, action: Callable, enabled: bool = true) -> Button:
+## Fila de la categoría `tint`: fondo y borde izquierdo del color, y letra clara del mismo tono.
+func _tint_button(button: Button, tint: Color) -> void:
+	var states := {"normal": 0.22, "hover": 0.34, "pressed": 0.45, "focus": 0.22, "disabled": 0.12}
+	for state in states:
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(tint.r * 0.5, tint.g * 0.5, tint.b * 0.5, 0.35 + float(states[state]))
+		box.border_color = tint
+		box.border_width_left = 10
+		box.set_corner_radius_all(3)
+		box.content_margin_left = 16.0
+		box.content_margin_right = 16.0
+		button.add_theme_stylebox_override(state, box)
+	var text_color: Color = tint.lerp(Color.WHITE, 0.55)
+	for color_name in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		button.add_theme_color_override(color_name, text_color)
+
+
+## Separación entre grupos de categorías.
+func _group_gap() -> void:
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 6.0
+	_content.add_child(gap)
+
+
+func _button(text: String, action: Callable, enabled: bool = true, tint: Color = Color(0.0, 0.0, 0.0, 0.0)) -> Button:
 	var button := Button.new()
 	button.text = text
+	if tint.a > 0.0:
+		_tint_button(button, tint)
 	button.custom_minimum_size = Vector2(620.0, ROW_HEIGHT)
 	button.add_theme_font_size_override("font_size", 28)
 	button.disabled = not enabled
@@ -198,32 +234,36 @@ func _button(text: String, action: Callable, enabled: bool = true) -> Button:
 
 
 func _back(action: Callable) -> void:
-	var button := _button("◀ VOLVER", action)
+	var button := _button(Loc.t("◀ VOLVER"), action)
 	button.add_theme_font_size_override("font_size", 22)
 	button.custom_minimum_size.y = 56.0
 
 
 func _page_mode() -> void:
-	_clear("ELIGE MODO DE JUEGO")
-	_button("%sTUTORIAL — aprende a manejar el tanque" % ("✔ " if GameSession.tutorial_completed() else ""), _play_tutorial)
-	_button("HISTORIA — campañas con misiones", func() -> void: _choose_mode(GameSession.Mode.STORY))
-	_button("CAPTURA LA BANDERA — 4 contra 4", func() -> void: _choose_mode(GameSession.Mode.CTF))
-	_button("OPCIONES — dificultad, sonido y ayudas", _page_audio)
-	_button("VEHÍCULOS — fichas históricas", _page_vehicles)
+	_clear(Loc.t("ELIGE MODO DE JUEGO"))
+	# Jugables, tutorial, opciones y fichas históricas: cada grupo con su color.
+	_button(Loc.t("HISTORIA — campañas con misiones"), func() -> void: _choose_mode(GameSession.Mode.STORY), true, TINT_PLAY)
+	_button(Loc.t("CAPTURA LA BANDERA — 4 contra 4"), func() -> void: _choose_mode(GameSession.Mode.CTF), true, TINT_PLAY)
 	var best: int = GameSession.best_wave()
-	_button("SUPERVIVENCIA — oleadas sin fin%s" % ("  (récord: oleada %d)" % best if best > 0 else ""), func() -> void: _choose_mode(GameSession.Mode.SURVIVAL))
+	_button(Loc.t("SUPERVIVENCIA — oleadas sin fin%s") % (Loc.t("  (récord: oleada %d)") % best if best > 0 else ""), func() -> void: _choose_mode(GameSession.Mode.SURVIVAL), true, TINT_PLAY)
+	_group_gap()
+	_button(Loc.t("%sTUTORIAL — aprende a manejar el tanque") % ("✔ " if GameSession.tutorial_completed() else ""), _play_tutorial, true, TINT_TUTORIAL)
+	_group_gap()
+	_button(Loc.t("OPCIONES — dificultad, sonido y ayudas"), _page_audio, true, TINT_OPTIONS)
+	_group_gap()
+	_button(Loc.t("VEHÍCULOS — fichas históricas"), _page_vehicles, true, TINT_HISTORY)
 
 
 ## Primera vez que se abre el juego: se ofrece el tutorial (solo una vez).
 func _page_tutorial_offer() -> void:
-	_clear("¿QUIERES APRENDER A MANEJAR EL TANQUE?")
-	_button("SÍ — tutorial de prácticas", func() -> void:
+	_clear(Loc.t("¿QUIERES APRENDER A MANEJAR EL TANQUE?"))
+	_button(Loc.t("SÍ — tutorial de prácticas"), func() -> void:
 		GameSession.mark_tutorial("offered")
 		_play_tutorial())
-	_button("AHORA NO", func() -> void:
+	_button(Loc.t("AHORA NO"), func() -> void:
 		GameSession.mark_tutorial("offered")
 		_page_mode())
-	_content.add_child(_label("Podrás hacerlo cuando quieras desde el menú: TUTORIAL", 20, Color(0.85, 0.9, 0.85)))
+	_content.add_child(_label(Loc.t("Podrás hacerlo cuando quieras desde el menú: TUTORIAL"), 20, Color(0.85, 0.9, 0.85)))
 
 
 ## El tutorial se juega siempre con el Sherman en Normandía.
@@ -234,12 +274,18 @@ func _play_tutorial() -> void:
 	_play()
 
 
+## Vuelve a poner los textos fijos de la portada en el idioma activo.
+func _retranslate() -> void:
+	_era.text = Loc.t("SEGUNDA GUERRA MUNDIAL  ·  1941 — 1945")
+	_version.text = Loc.t("versión %s") % str(ProjectSettings.get_setting("application/config/version", "dev"))
+
+
 func _page_audio() -> void:
-	_clear("OPCIONES")
+	_clear(Loc.t("OPCIONES"))
 	GameSettings.ensure_loaded()
 	var difficulty: Button = _button("", func() -> void: pass)
 	var refresh: Callable = func() -> void:
-		difficulty.text = "DIFICULTAD: %s\n%s" % [GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty], GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty]]
+		difficulty.text = Loc.t("DIFICULTAD: %s\n%s") % [Loc.t(GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty]), Loc.t(GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty])]
 	difficulty.custom_minimum_size.y = 96.0
 	difficulty.pressed.connect(func() -> void:
 		GameSettings.difficulty = (GameSettings.difficulty + 1) % 4
@@ -248,7 +294,7 @@ func _page_audio() -> void:
 	refresh.call()
 	var effects: Button = _button("", func() -> void: pass)
 	var refresh_effects: Callable = func() -> void:
-		effects.text = "EFECTOS GRÁFICOS: %s" % GameSettings.EFFECTS_NAMES[GameSettings.effects]
+		effects.text = Loc.t("EFECTOS GRÁFICOS: %s") % Loc.t(GameSettings.EFFECTS_NAMES[GameSettings.effects])
 	effects.pressed.connect(func() -> void:
 		# ALTOS → MEDIOS → BAJOS → ALTOS.
 		GameSettings.effects = (GameSettings.effects + 2) % 3
@@ -258,7 +304,7 @@ func _page_audio() -> void:
 		refresh_effects.call())
 	refresh_effects.call()
 	var highlight := CheckButton.new()
-	highlight.text = "Destacar enemigos (borde amarillo)"
+	highlight.text = Loc.t("Destacar enemigos (borde amarillo)")
 	highlight.button_pressed = GameSettings.highlight_enemies
 	highlight.add_theme_font_size_override("font_size", 26)
 	highlight.toggled.connect(func(on: bool) -> void:
@@ -266,12 +312,28 @@ func _page_audio() -> void:
 		GameSettings.save())
 	_content.add_child(highlight)
 	_content.add_child(VolumeSliders.create())
-	_back(_page_mode)
+	# Pie: idioma y volver en la misma fila (así la página cabe en pantallas bajas). El idioma se
+	# rotula en los dos idiomas para encontrarlo aunque se haya cambiado sin querer.
+	var footer := HBoxContainer.new()
+	footer.add_theme_constant_override("separation", ROW_GAP)
+	_content.add_child(footer)
+	var language: Button = _button("IDIOMA / LANGUAGE: %s" % Loc.LANGUAGE_NAMES[GameSettings.language], func() -> void:
+		var next: int = (Loc.LANGUAGES.find(GameSettings.language) + 1) % Loc.LANGUAGES.size()
+		GameSettings.set_language(Loc.LANGUAGES[next])
+		_retranslate()
+		_page_audio())
+	language.reparent(footer)
+	language.add_theme_font_size_override("font_size", 22)
+	language.custom_minimum_size = Vector2(400.0, 56.0)
+	var back: Button = _button(Loc.t("◀ VOLVER"), _page_mode)
+	back.reparent(footer)
+	back.add_theme_font_size_override("font_size", 22)
+	back.custom_minimum_size = Vector2(210.0, 56.0)
 
 
 ## Fichas históricas de todos los vehículos del juego.
 func _page_vehicles() -> void:
-	_clear("VEHÍCULOS DEL JUEGO")
+	_clear(Loc.t("VEHÍCULOS DEL JUEGO"))
 	var gallery := VehicleGallery.new()
 	gallery.compact()
 	gallery.closed.connect(_page_mode)
@@ -285,9 +347,9 @@ func _choose_mode(mode: int) -> void:
 
 
 func _page_faction() -> void:
-	_clear("%s — ELIGE BANDO" % GameSession.MODE_NAMES[GameSession.mode])
-	_button("ALIADOS — Estados Unidos, Reino Unido y Unión Soviética", func() -> void: _choose_faction(Fronts.Faction.ALLIES))
-	_button("ALEMANIA — Wehrmacht", func() -> void: _choose_faction(Fronts.Faction.AXIS))
+	_clear(Loc.t("%s — ELIGE BANDO") % Loc.t(GameSession.MODE_NAMES[GameSession.mode]))
+	_button(Loc.t("ALIADOS — Estados Unidos, Reino Unido y Unión Soviética"), func() -> void: _choose_faction(Fronts.Faction.ALLIES))
+	_button(Loc.t("ALEMANIA — Wehrmacht"), func() -> void: _choose_faction(Fronts.Faction.AXIS))
 	_back(_page_mode)
 
 
@@ -297,11 +359,11 @@ func _choose_faction(faction: int) -> void:
 
 
 func _page_front() -> void:
-	_clear("%s — %s — ELIGE FRENTE" % [GameSession.MODE_NAMES[GameSession.mode], Fronts.FACTION_NAMES[GameSession.faction]])
+	_clear(Loc.t("%s — %s — ELIGE FRENTE") % [Loc.t(GameSession.MODE_NAMES[GameSession.mode]), Loc.t(Fronts.FACTION_NAMES[GameSession.faction])])
 	for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
 		var tank_name: String = Fronts.tank(Fronts.PLAYER_TANK[front][GameSession.faction]).display_name
-		_button("%s  ·  tu tanque: %s" % [Fronts.NAMES[front], tank_name], _choose_front.bind(front))
-	_button("MEZCLA — todos los frentes", _choose_front.bind(GameSession.FRONT_MIXED))
+		_button(Loc.t("%s  ·  tu tanque: %s") % [Loc.t(Fronts.NAMES[front]), tank_name], _choose_front.bind(front))
+	_button(Loc.t("MEZCLA — todos los frentes"), _choose_front.bind(GameSession.FRONT_MIXED))
 	_back(_page_faction)
 
 
@@ -314,27 +376,27 @@ func _choose_front(front: int) -> void:
 
 
 func _page_missions() -> void:
-	_clear("CAMPAÑA — %s — %s" % [Fronts.FACTION_NAMES[GameSession.faction], "MEZCLA" if GameSession.front_choice == GameSession.FRONT_MIXED else Fronts.NAMES[GameSession.front_choice]])
+	_clear(Loc.t("CAMPAÑA — %s — %s") % [Loc.t(Fronts.FACTION_NAMES[GameSession.faction]), Loc.t("MEZCLA") if GameSession.front_choice == GameSession.FRONT_MIXED else Loc.t(Fronts.NAMES[GameSession.front_choice])])
 	var done: int = GameSession.completed_missions()
 	var list: Array[Dictionary] = GameSession.missions()
 	for i in list.size():
 		var mission: Dictionary = list[i]
 		var unlocked: bool = i <= done
 		var mark: String = "✔ " if i < done else ("" if unlocked else "🔒 ")
-		_button("%s%d. %s  ·  %s" % [mark, i + 1, mission["title"], Fronts.NAMES[mission["front"]]], _page_briefing.bind(i), unlocked)
+		_button("%s%d. %s  ·  %s" % [mark, i + 1, Loc.t(mission["title"]), Loc.t(Fronts.NAMES[mission["front"]])], _page_briefing.bind(i), unlocked)
 	_back(_page_front)
 
 
 func _page_briefing(index: int) -> void:
 	GameSession.mission_index = index
 	var mission: Dictionary = GameSession.current_mission()
-	_clear("MISIÓN %d — %s" % [index + 1, mission["title"]])
-	var text := _label(mission["briefing"], 26, Color(0.85, 0.9, 0.85))
+	_clear(Loc.t("MISIÓN %d — %s") % [index + 1, Loc.t(mission["title"])])
+	var text := _label(Loc.t(mission["briefing"]), 26, Color(0.85, 0.9, 0.85))
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.custom_minimum_size = Vector2(760.0, 0.0)
 	_content.add_child(text)
-	_content.add_child(_label("Frente: %s" % Fronts.NAMES[mission["front"]], 22, AMBER))
-	_button("▶ COMENZAR", _play)
+	_content.add_child(_label(Loc.t("Frente: %s") % Loc.t(Fronts.NAMES[mission["front"]]), 22, AMBER))
+	_button(Loc.t("▶ COMENZAR"), _play)
 	_back(_page_missions)
 
 

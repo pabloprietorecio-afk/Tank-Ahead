@@ -70,7 +70,7 @@ func _build_settings() -> void:
 	add_child(gear)
 
 	var view_button := Button.new()
-	view_button.text = "CÁM"
+	view_button.text = Loc.t("CÁM")
 	view_button.add_theme_font_size_override("font_size", 22)
 	view_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	view_button.offset_left = -180.0
@@ -81,12 +81,12 @@ func _build_settings() -> void:
 		GameSettings.camera_view = (GameSettings.camera_view + 1) % 3
 		GameSettings.save()
 		tank.set_view(GameSettings.camera_view)
-		_show_message(["VISTA CABINA", "VISTA TRASERA", "VISTA TRASERA LEJANA"][GameSettings.camera_view], false))
+		_show_message([Loc.t("VISTA CABINA"), Loc.t("VISTA TRASERA"), Loc.t("VISTA TRASERA LEJANA")][GameSettings.camera_view], false))
 	add_child(view_button)
 	tank.set_view.call_deferred(GameSettings.camera_view)
 
 	_release = Button.new()
-	_release.text = "LIBERAR\nOBJETIVO"
+	_release.text = Loc.t("LIBERAR\nOBJETIVO")
 	_release.add_theme_font_size_override("font_size", 24)
 	_release.add_theme_color_override("font_color", VectorMaterials.ORANGE)
 	_release.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -114,10 +114,11 @@ func _button(text: String, font_size: int = 26) -> Button:
 	return button
 
 
-func _centered_panel() -> PanelContainer:
+## `alpha` es la opacidad del fondo (el panel de fin de partida es semitransparente).
+func _centered_panel(alpha: float = 0.97) -> PanelContainer:
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.07, 0.08, 0.07, 0.97)
+	style.bg_color = Color(0.07, 0.08, 0.07, alpha)
 	style.border_color = Color(0.6, 0.5, 0.3)
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(6)
@@ -149,7 +150,7 @@ func _build_pause_and_history() -> void:
 	box.add_theme_constant_override("separation", 12)
 	_pause_panel.add_child(box)
 	var title := Label.new()
-	title.text = "OPCIONES — JUEGO EN PAUSA"
+	title.text = Loc.t("OPCIONES — JUEGO EN PAUSA")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 30)
 	box.add_child(title)
@@ -163,20 +164,20 @@ func _build_pause_and_history() -> void:
 	options.add_theme_constant_override("separation", 8)
 	columns.add_child(options)
 
-	var resume := _button("CONTINUAR")
+	var resume := _button(Loc.t("CONTINUAR"))
 	resume.pressed.connect(func() -> void: _set_paused(false))
 	actions.add_child(resume)
 	var difficulty := _button("", 22)
 	difficulty.custom_minimum_size = Vector2(380.0, 96.0)
 	var refresh: Callable = func() -> void:
-		difficulty.text = "DIFICULTAD: %s\n%s" % [GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty], GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty]]
+		difficulty.text = Loc.t("DIFICULTAD: %s\n%s") % [Loc.t(GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty]), Loc.t(GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty])]
 	difficulty.pressed.connect(func() -> void:
 		GameSettings.difficulty = (GameSettings.difficulty + 1) % 4
 		GameSettings.save()
 		refresh.call())
 	refresh.call()
 	actions.add_child(difficulty)
-	var vehicles := _button("HISTORIA: VEHÍCULOS DEL JUEGO", 22)
+	var vehicles := _button(Loc.t("HISTORIA: VEHÍCULOS DEL JUEGO"), 22)
 	vehicles.pressed.connect(func() -> void:
 		_history_from_menu = true
 		_pause_panel.visible = false
@@ -184,16 +185,16 @@ func _build_pause_and_history() -> void:
 		move_child(_history_panel, -1)
 		_history_panel.visible = true)
 	actions.add_child(vehicles)
-	var restart := _button("REINICIAR")
+	var restart := _button(Loc.t("REINICIAR"))
 	restart.pressed.connect(_restart)
 	actions.add_child(restart)
-	var menu := _button("ABANDONAR")
+	var menu := _button(Loc.t("ABANDONAR"))
 	menu.add_theme_color_override("font_color", VectorMaterials.ORANGE)
 	menu.pressed.connect(_to_menu)
 	actions.add_child(menu)
 
 	options.add_child(VolumeSliders.create())
-	options.add_child(_make_toggle("Destacar enemigos (borde amarillo)", GameSettings.highlight_enemies, func(on: bool) -> void:
+	options.add_child(_make_toggle(Loc.t("Destacar enemigos (borde amarillo)"), GameSettings.highlight_enemies, func(on: bool) -> void:
 		GameSettings.highlight_enemies = on
 		GameSettings.save()
 		for node in get_tree().get_nodes_in_group(&"tanks"):
@@ -201,11 +202,11 @@ func _build_pause_and_history() -> void:
 	var effects := _button("", 22)
 	effects.custom_minimum_size = Vector2(0.0, 54.0)
 	_refresh_effects = func() -> void:
-		var text: String = "EFECTOS GRÁFICOS: %s" % GameSettings.EFFECTS_NAMES[GameSettings.effects]
+		var text: String = Loc.t("EFECTOS GRÁFICOS: %s") % Loc.t(GameSettings.EFFECTS_NAMES[GameSettings.effects])
 		var in_use: int = Fx.on(self).level()
 		if in_use < GameSettings.effects:
 			# El juego los ha bajado solo porque el teléfono no llegaba.
-			text += " (ahora en %s: iba lento)" % GameSettings.EFFECTS_NAMES[in_use]
+			text += Loc.t(" (ahora en %s: iba lento)") % Loc.t(GameSettings.EFFECTS_NAMES[in_use])
 		effects.text = text
 	effects.pressed.connect(func() -> void:
 		# ALTOS → MEDIOS → BAJOS → ALTOS.
@@ -216,26 +217,26 @@ func _build_pause_and_history() -> void:
 		_refresh_effects.call())
 	_refresh_effects.call()
 	options.add_child(effects)
-	options.add_child(_make_toggle("Sombras (desactivar si va lento)", GameSettings.shadows, func(on: bool) -> void:
+	options.add_child(_make_toggle(Loc.t("Sombras (desactivar si va lento)"), GameSettings.shadows, func(on: bool) -> void:
 		GameSettings.shadows = on
 		GameSettings.save()
 		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
 		if sun != null:
 			sun.shadow_enabled = on))
-	toggles["easy_drive"] = _make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
+	toggles["easy_drive"] = _make_toggle(Loc.t("Movimiento fácil (el tanque se alinea con el cañón)"), GameSettings.easy_drive, func(on: bool) -> void:
 		GameSettings.easy_drive = on
 		GameSettings.save())
 	options.add_child(toggles["easy_drive"])
-	options.add_child(_make_toggle("Recentrar el cañón al frente (sin movimiento fácil)", GameSettings.auto_recenter, func(on: bool) -> void:
+	options.add_child(_make_toggle(Loc.t("Recentrar el cañón al frente (sin movimiento fácil)"), GameSettings.auto_recenter, func(on: bool) -> void:
 		GameSettings.auto_recenter = on
 		GameSettings.save()))
-	toggles["aim_assist"] = _make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
+	toggles["aim_assist"] = _make_toggle(Loc.t("Apuntado automático (cerca del enemigo)"), GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
 		GameSettings.save())
 	options.add_child(toggles["aim_assist"])
 
 	# Botón HISTORIA junto a la ficha del objetivo fijado.
-	_history_button = _button("HISTORIA", 20)
+	_history_button = _button(Loc.t("HISTORIA"), 20)
 	_history_button.custom_minimum_size = Vector2(130.0, 48.0)
 	_history_button.set_anchors_preset(Control.PRESET_CENTER)
 	_history_button.offset_left = 150.0
@@ -251,7 +252,7 @@ func _build_pause_and_history() -> void:
 	_history_panel.add_child(_history_gallery)
 	_history_gallery.closed.connect(_close_history)
 
-	_end_panel = _centered_panel()
+	_end_panel = _centered_panel(0.55)
 	if touch != null:
 		touch.exclusions.append_array([pause, _pause_panel, _history_button, _history_panel, _end_panel])
 	_build_arsenal()
@@ -289,7 +290,7 @@ func _build_arsenal() -> void:
 	_zoom_button.offset_top = 14.0
 	_zoom_button.offset_bottom = 90.0
 	add_child(_zoom_button)
-	var specs: Array = [["MISIL", -430.0], ["AVIÓN", -345.0]]
+	var specs: Array = [[Loc.t("MISIL"), -430.0], [Loc.t("AVIÓN"), -345.0]]
 	var buttons: Array[Button] = [_zoom_button]
 	for spec in specs:
 		var button := _button(spec[0], 22)
@@ -381,15 +382,15 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 	info.add_theme_font_size_override("font_size", 24)
 	box.add_child(info)
 	if victory and director is StoryMode and (director as StoryMode).has_next_mission():
-		var next := _button("SIGUIENTE MISIÓN")
+		var next := _button(Loc.t("SIGUIENTE MISIÓN"))
 		next.pressed.connect(func() -> void:
 			GameSession.mission_index += 1
 			_restart())
 		box.add_child(next)
-	var retry := _button("REINTENTAR" if not victory else "JUGAR OTRA VEZ")
+	var retry := _button(Loc.t("REINTENTAR") if not victory else Loc.t("JUGAR OTRA VEZ"))
 	retry.pressed.connect(_restart)
 	box.add_child(retry)
-	var menu := _button("MENÚ PRINCIPAL")
+	var menu := _button(Loc.t("MENÚ PRINCIPAL"))
 	menu.pressed.connect(_to_menu)
 	box.add_child(menu)
 	# Deja ver la escena unos instantes antes de mostrar el panel.
@@ -434,9 +435,9 @@ func _process(delta: float) -> void:
 		(_overlay.material as ShaderMaterial).set_shader_parameter("vignette", 0.3 if vignette else 0.0)
 	_release.visible = tank.aim_lock != null and not director.is_over
 	_history_button.visible = _release.visible and not get_tree().paused
-	_missile_button.text = "MISIL %d" % director.missiles
+	_missile_button.text = Loc.t("MISIL %d") % director.missiles
 	_missile_button.disabled = director.missiles <= 0
-	_strike_button.text = "AVIÓN %d" % director.strikes
+	_strike_button.text = Loc.tc("AVIÓN %d", "boton") % director.strikes
 	_strike_button.disabled = director.strikes <= 0
 	_zoom_button.text = "NORMAL" if tank.binoculars else "ZOOM"
 	# Misil y aviación solo se ofrecen con los prismáticos puestos.
@@ -448,7 +449,7 @@ func _process(delta: float) -> void:
 	if _binocular_mask.visible:
 		(_binocular_mask.material as ShaderMaterial).set_shader_parameter("screen_size", size)
 	var sky: String = weather.display_name() if weather != null else ""
-	_info.text = "v%s  %d FPS   %s   %s\n%s" % [_version, Engine.get_frames_per_second(), Fronts.NAMES[director.front], sky, director.status_text()]
+	_info.text = "v%s  %d FPS   %s   %s\n%s" % [_version, Engine.get_frames_per_second(), Loc.t(Fronts.NAMES[director.front]), sky, director.status_text()]
 	queue_redraw()
 
 
@@ -483,11 +484,11 @@ func _draw() -> void:
 		draw_string(font, center + Vector2(-140.0, -60.0), label, HORIZONTAL_ALIGNMENT_CENTER, 280.0, 18, target.stats.color)
 		# Blindaje restante y potencia de ataque del objetivo.
 		var armor_bar := Rect2(center + Vector2(-60.0, -46.0), Vector2(120.0, 6.0))
-		draw_string(font, armor_bar.position + Vector2(-78.0, 7.0), "BLINDAJE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.8, 0.9, 0.8))
+		draw_string(font, armor_bar.position + Vector2(-78.0, 7.0), Loc.t("BLINDAJE"), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.8, 0.9, 0.8))
 		draw_rect(armor_bar, Color(0.3, 1.0, 0.4, 0.3), false, 1.0)
 		draw_rect(Rect2(armor_bar.position, Vector2(armor_bar.size.x * target.health.fraction(), armor_bar.size.y)), Color(0.3, 1.0, 0.4), true)
 		var attack_bar := Rect2(center + Vector2(-60.0, -36.0), Vector2(120.0, 6.0))
-		draw_string(font, attack_bar.position + Vector2(-78.0, 7.0), "ATAQUE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.9, 0.8, 0.8))
+		draw_string(font, attack_bar.position + Vector2(-78.0, 7.0), Loc.t("ATAQUE"), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 12, Color(0.9, 0.8, 0.8))
 		draw_rect(attack_bar, Color(1.0, 0.3, 0.2, 0.3), false, 1.0)
 		var power: float = clampf(target.stats.damage / 25.0, 0.0, 1.0)
 		draw_rect(Rect2(attack_bar.position, Vector2(attack_bar.size.x * power, attack_bar.size.y)), Color(1.0, 0.3, 0.2), true)
@@ -559,10 +560,10 @@ func _draw_armor(center: Vector2) -> void:
 	for i in range(1, 10):
 		var x: float = bar.position.x + bar.size.x * i / 10.0
 		draw_line(Vector2(x, bar.position.y), Vector2(x, bar.position.y + 6.0), Color(1.0, 1.0, 1.0, 0.4), 1.0)
-	var text: String = "BLINDAJE %d / %d" % [roundi(tank.health.current), roundi(tank.health.max_health)]
+	var text: String = Loc.t("BLINDAJE %d / %d") % [roundi(tank.health.current), roundi(tank.health.max_health)]
 	draw_string(font, Vector2(bar.position.x, bar.position.y + 20.0), text, HORIZONTAL_ALIGNMENT_CENTER, bar.size.x, 20, Color.BLACK)
 	# Mejoras activas encima de la barra.
-	var buff_names: Dictionary = {"reload": "RECARGA RÁPIDA", "damage": "CAÑÓN PESADO", "shield": "BLINDAJE EXTRA"}
+	var buff_names: Dictionary = {"reload": Loc.t("RECARGA RÁPIDA"), "damage": Loc.t("CAÑÓN PESADO"), "shield": Loc.t("BLINDAJE EXTRA")}
 	var x0: float = bar.position.x
 	for kind in tank.buffs:
 		var label: String = "%s %d s" % [buff_names.get(kind, kind), ceili(tank.buffs[kind])]
@@ -579,7 +580,7 @@ func _draw_flag_board() -> void:
 	var origin := Vector2(18.0, 82.0)
 	var rows: Array = board["flags"]
 	draw_rect(Rect2(origin, Vector2(430.0, 34.0 + rows.size() * 34.0)), Color(0.0, 0.0, 0.0, 0.5), true)
-	draw_string(font, origin + Vector2(10.0, 24.0), "CAPTURAS", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color(1.0, 0.85, 0.1))
+	draw_string(font, origin + Vector2(10.0, 24.0), Loc.t("CAPTURAS"), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color(1.0, 0.85, 0.1))
 	draw_string(font, origin + Vector2(110.0, 26.0), board["score"], HORIZONTAL_ALIGNMENT_LEFT, -1.0, 24, Color.WHITE)
 	var blink: bool = fmod(Time.get_ticks_msec() / 1000.0, 0.7) < 0.45
 	for i in rows.size():
@@ -602,7 +603,7 @@ func _draw_objectives() -> void:
 	var font: Font = ThemeDB.fallback_font
 	var y: float = 100.0
 	draw_rect(Rect2(Vector2(18.0, y - 22.0), Vector2(330.0, 26.0 + lines.size() * 24.0)), Color(0.0, 0.0, 0.0, 0.45), true)
-	draw_string(font, Vector2(26.0, y), "OBJETIVOS", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(1.0, 0.85, 0.1))
+	draw_string(font, Vector2(26.0, y), Loc.t("OBJETIVOS"), HORIZONTAL_ALIGNMENT_LEFT, -1.0, 18, Color(1.0, 0.85, 0.1))
 	for line in lines:
 		y += 24.0
 		var done: bool = line.begins_with("✔")
@@ -618,7 +619,7 @@ func _draw_raid_warning(center: Vector2) -> void:
 		if not strike.contains(tank.global_position):
 			continue
 		var font: Font = ThemeDB.fallback_font
-		var text: String = "¡BOMBARDEO! SAL DE LA ZONA  %d" % ceili(strike.time_left())
+		var text: String = Loc.t("¡BOMBARDEO! SAL DE LA ZONA  %d") % ceili(strike.time_left())
 		var pulse: float = 0.6 + 0.4 * sin(Time.get_ticks_msec() / 80.0)
 		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.0, 0.0, 0.12 * pulse), true)
 		draw_string(font, Vector2(0.0, center.y - 120.0), text, HORIZONTAL_ALIGNMENT_CENTER, size.x, 40, Color(1.0, 0.25, 0.2, pulse))

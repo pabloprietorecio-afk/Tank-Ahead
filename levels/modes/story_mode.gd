@@ -71,7 +71,7 @@ func reserved_zones() -> Array[Rect2]:
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
-	message.emit("%s — %s" % [mission["title"], _objective_line()], true)
+	message.emit("%s — %s" % [Loc.t(mission["title"]), _objective_line()], true)
 	get_tree().call_group(&"voice", &"say", "mission_start", VoiceManager.Priority.HIGH)
 	for i in mission.get("allies", 0):
 		var stats: TankStats = roster(PLAYER_TEAM).filter(func(s: TankStats) -> bool: return s.tier <= 2).pick_random()
@@ -86,7 +86,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 				var point: Vector2 = _depot_points[n]
 				var depot := PropFactory.supply_depot()
 				depot.remove_from_group(&"radar_marks")
-				StructureFactory._objective(depot, "DEPÓSITO %d" % (n + 1))
+				StructureFactory._objective(depot, Loc.t("DEPÓSITO %d") % (n + 1))
 				depot.position = Vector3(point.x, 0.0, point.y)
 				world.add_child(depot)
 				_track(depot)
@@ -117,7 +117,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 					heaviest = stats
 			var boss_stats: TankStats = heaviest.duplicate()
 			boss_stats.max_armor *= 1.5
-			boss_stats.display_name = "COMANDANTE (%s)" % heaviest.display_name
+			boss_stats.display_name = Loc.t("COMANDANTE (%s)") % heaviest.display_name
 			boss_stats.score_value *= 3
 			_commander = spawn_tank(boss_stats, ENEMY_TEAM, Vector2(randf_range(-60.0, 60.0), -150.0), 0.0)
 			_commander.add_to_group(&"radar_marks")
@@ -129,12 +129,12 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 
 ## Puestos secundarios: antiaéreo, antena de radio y puesto de mando, cada uno con guardia.
 func _build_outposts() -> void:
-	var builders: Array = [[StructureFactory.flak_gun, "ANTIAÉREO"], [StructureFactory.radio_mast, "ANTENA"], [StructureFactory.command_tent, "PUESTO AVANZADO"]]
+	var builders: Array = [[StructureFactory.flak_gun, Loc.t("ANTIAÉREO")], [StructureFactory.radio_mast, Loc.t("ANTENA")], [StructureFactory.command_tent, Loc.t("PUESTO AVANZADO")]]
 	for i in _outposts.size():
 		var point: Vector2 = _outposts[i]
 		var prop: Destructible = builders[i % builders.size()][0].call()
 		prop.prize_points = 0
-		StructureFactory._objective(prop, "%s (SECUNDARIO)" % builders[i % builders.size()][1])
+		StructureFactory._objective(prop, Loc.t("%s (SECUNDARIO)") % builders[i % builders.size()][1])
 		prop.position = Vector3(point.x, 0.0, point.y)
 		world.add_child(prop)
 		_track(prop)
@@ -159,33 +159,33 @@ func _guards(point: Vector2, count: int, min_radius: float = 15.0, max_radius: f
 func _objective_line() -> String:
 	match kind:
 		"assault":
-			return "DESTRUYE %d BLINDADOS" % mission["count"]
+			return Loc.t("DESTRUYE %d BLINDADOS") % mission["count"]
 		"destroy":
-			return "DESTRUYE LOS DEPÓSITOS (ROMBOS EN EL RADAR)"
+			return Loc.t("DESTRUYE LOS DEPÓSITOS (ROMBOS EN EL RADAR)")
 		"sabotage":
-			return "DESTRUYE EL %s (ROMBOS EN EL RADAR)" % StructureFactory.COMPLEX_NAMES[mission["target"]]
+			return Loc.t("DESTRUYE EL %s (ROMBOS EN EL RADAR)") % Loc.t(StructureFactory.COMPLEX_NAMES[mission["target"]])
 		"liberate":
-			return "DERRIBA LAS ALAMBRADAS. NO DISPARES A LOS BARRACONES"
+			return Loc.t("DERRIBA LAS ALAMBRADAS. NO DISPARES A LOS BARRACONES")
 		"defend":
-			return "RESISTE EN LA POSICIÓN %d s" % int(mission["time"])
+			return Loc.t("RESISTE EN LA POSICIÓN %d s") % int(mission["time"])
 		"breakthrough":
-			return "CRUZA LAS LÍNEAS ENEMIGAS HASTA LA SALIDA (ROMBO AZUL EN EL RADAR)"
+			return Loc.t("CRUZA LAS LÍNEAS ENEMIGAS HASTA LA SALIDA (ROMBO AZUL EN EL RADAR)")
 		_:
-			return "DESTRUYE AL COMANDANTE (ROMBO VIOLETA EN EL RADAR)"
+			return Loc.t("DESTRUYE AL COMANDANTE (ROMBO VIOLETA EN EL RADAR)")
 
 
 func status_text() -> String:
 	match kind:
 		"assault":
-			return "%s   ENEMIGOS RESTANTES %d" % [mission["title"], remaining]
+			return Loc.t("%s   ENEMIGOS RESTANTES %d") % [Loc.t(mission["title"]), remaining]
 		"destroy", "sabotage", "liberate":
-			return "%s   OBJETIVOS %d / %d" % [mission["title"], _objectives.size() - remaining, _objectives.size()]
+			return Loc.t("%s   OBJETIVOS %d / %d") % [Loc.t(mission["title"]), _objectives.size() - remaining, _objectives.size()]
 		"defend":
-			return "%s   RESISTE %d s" % [mission["title"], ceili(time_left)]
+			return Loc.t("%s   RESISTE %d s") % [Loc.t(mission["title"]), ceili(time_left)]
 		"breakthrough":
-			return "%s   SALIDA A %d m" % [mission["title"], roundi(_exit_distance())]
+			return Loc.t("%s   SALIDA A %d m") % [Loc.t(mission["title"]), roundi(_exit_distance())]
 		_:
-			return "%s   COMANDANTE %d%%" % [mission["title"], roundi(_commander.health.fraction() * 100.0) if is_instance_valid(_commander) else 0]
+			return Loc.t("%s   COMANDANTE %d%%") % [Loc.t(mission["title"]), roundi(_commander.health.fraction() * 100.0) if is_instance_valid(_commander) else 0]
 
 
 ## Lista de objetivos para el HUD: ✔ cumplido, ▢ pendiente.
@@ -195,9 +195,9 @@ func objective_lines() -> Array[String]:
 		var done: bool = not is_instance_valid(_objectives[i]) or _objectives[i].is_destroyed
 		lines.append("%s %s" % ["✔" if done else "▢", _objective_names[i]])
 	if kind == "breakthrough":
-		lines.append("%s ALCANZAR LA SALIDA (NORTE)" % ("✔" if is_over and _exit_distance() <= EXIT_RADIUS else "▢"))
+		lines.append(Loc.t("%s ALCANZAR LA SALIDA (NORTE)") % ("✔" if is_over and _exit_distance() <= EXIT_RADIUS else "▢"))
 	if kind == "boss":
-		lines.append("%s %s" % ["▢" if is_instance_valid(_commander) and not _commander.is_destroyed else "✔", "COMANDANTE"])
+		lines.append("%s %s" % ["▢" if is_instance_valid(_commander) and not _commander.is_destroyed else "✔", Loc.t("COMANDANTE")])
 	return lines
 
 
@@ -208,7 +208,7 @@ func penalize(_source: Node) -> void:
 	_penalty_cooldown = 1.0
 	player.health.apply_damage(PENALTY_ARMOR, null)
 	score = maxi(score - PENALTY_POINTS, 0)
-	message.emit("¡ALTO EL FUEGO! HAY PRISIONEROS EN LOS BARRACONES  −%d" % PENALTY_POINTS, true)
+	message.emit(Loc.t("¡ALTO EL FUEGO! HAY PRISIONEROS EN LOS BARRACONES  −%d") % PENALTY_POINTS, true)
 	get_tree().call_group(&"voice", &"say", "cease_fire", VoiceManager.Priority.CRITICAL)
 
 
@@ -233,7 +233,7 @@ func _process(delta: float) -> void:
 					_spawn_enemy(edge_point())
 		"breakthrough":
 			if _exit_distance() <= EXIT_RADIUS:
-				_win("LÍNEAS ENEMIGAS ATRAVESADAS")
+				_win(Loc.t("LÍNEAS ENEMIGAS ATRAVESADAS"))
 				return
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 6:
@@ -245,7 +245,7 @@ func _process(delta: float) -> void:
 		"defend":
 			time_left -= delta
 			if time_left <= 0.0:
-				_win("POSICIÓN DEFENDIDA")
+				_win(Loc.t("POSICIÓN DEFENDIDA"))
 				return
 			var elapsed: float = mission["time"] - time_left
 			if alive < 4 + GameSettings.batch_extra() + int(elapsed / 40.0) and _spawn_timer <= 0.0:
@@ -313,11 +313,11 @@ func _build_zone() -> void:
 func _on_objective_destroyed(prop: Destructible) -> void:
 	remaining -= 1
 	score += 300
-	message.emit("%s DESTRUIDO — QUEDAN %d" % [prop.objective_name, remaining], true)
+	message.emit(Loc.t("%s DESTRUIDO — QUEDAN %d") % [prop.objective_name, remaining], true)
 	if remaining > 0:
 		get_tree().call_group(&"voice", &"say", "objective", VoiceManager.Priority.HIGH)
 	if remaining <= 0:
-		_win("LAS ALAMBRADAS HAN CAÍDO. LOS PRISIONEROS SON LIBRES" if kind == "liberate" else "OBJETIVOS CUMPLIDOS")
+		_win(Loc.t("LAS ALAMBRADAS HAN CAÍDO. LOS PRISIONEROS SON LIBRES") if kind == "liberate" else Loc.t("OBJETIVOS CUMPLIDOS"))
 
 
 func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
@@ -328,22 +328,22 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 	if tank == _commander:
 		_commander.remove_from_group(&"radar_marks")
 		get_tree().call_group(&"voice", &"say", "commander", VoiceManager.Priority.HIGH)
-		_win("COMANDANTE ABATIDO")
+		_win(Loc.t("COMANDANTE ABATIDO"))
 	elif kind == "assault":
 		remaining -= 1
 		if remaining <= 0:
-			_win("ZONA DESPEJADA")
+			_win(Loc.t("ZONA DESPEJADA"))
 
 
 func _win(detail: String) -> void:
 	if kind == "liberate":
 		get_tree().call_group(&"voice", &"say", "liberation", VoiceManager.Priority.CRITICAL)
-	finish(true, "¡MISIÓN CUMPLIDA!", "%s — %s" % [mission["title"], detail])
+	finish(true, Loc.t("¡MISIÓN CUMPLIDA!"), "%s — %s" % [Loc.t(mission["title"]), detail])
 	GameSession.mark_mission_completed(GameSession.mission_index)
 
 
 func _on_player_destroyed(_tank: Tank, _killer: Node) -> void:
-	finish(false, "MISIÓN FRACASADA", "%s — TU TANQUE HA SIDO DESTRUIDO" % mission["title"])
+	finish(false, Loc.t("MISIÓN FRACASADA"), Loc.t("%s — TU TANQUE HA SIDO DESTRUIDO") % Loc.t(mission["title"]))
 
 
 func has_next_mission() -> bool:

@@ -48,6 +48,9 @@ static var difficulty: int = 1
 ## Dibuja un borde amarillo alrededor de los tanques enemigos para verlos mejor.
 static var highlight_enemies: bool = false
 
+## Idioma del juego: "es" (por defecto) o "en".
+static var language: String = "es"
+
 static var _loaded: bool = false
 
 
@@ -69,6 +72,8 @@ static func ensure_loaded() -> void:
 		highlight_enemies = cfg.get_value("game", "highlight_enemies", highlight_enemies)
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
+		language = str(cfg.get_value("game", "language", language))
+	Loc.apply(language)
 	Fx.quality = effects
 
 
@@ -86,7 +91,16 @@ static func save() -> void:
 	cfg.set_value("game", "highlight_enemies", highlight_enemies)
 	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
+	cfg.set_value("game", "language", language)
 	cfg.save(PATH)
+
+
+## Cambia el idioma y lo guarda.
+static func set_language(code: String) -> void:
+	ensure_loaded()
+	language = code if code in Loc.LANGUAGES else "es"
+	Loc.apply(language)
+	save()
 
 
 ## Enemigos de más (o de menos) en cada tanda de refuerzos: -1, 0, +1 o +2.

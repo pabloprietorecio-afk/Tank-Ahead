@@ -102,7 +102,7 @@ func enemy_air_raid() -> void:
 		return
 	AirStrike.launch(world, player.global_position, true)
 	get_tree().call_group(&"voice", &"say", "raid", VoiceManager.Priority.CRITICAL)
-	message.emit("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA", true)
+	message.emit(Loc.t("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA"), true)
 
 
 ## Premio por derribar un avión enemigo: blindaje, misil o bombardeo.
@@ -112,13 +112,13 @@ func air_reward(_where: Vector3) -> void:
 	match randi() % 3:
 		0:
 			player.health.heal(40.0)
-			message.emit("¡DERRIBADO! +40 DE BLINDAJE", false)
+			message.emit(Loc.t("¡DERRIBADO! +40 DE BLINDAJE"), false)
 		1:
 			missiles += 1
-			message.emit("¡DERRIBADO! +1 MISIL", false)
+			message.emit(Loc.t("¡DERRIBADO! +1 MISIL"), false)
 		_:
 			strikes += 1
-			message.emit("¡DERRIBADO! +1 BOMBARDEO", false)
+			message.emit(Loc.t("¡DERRIBADO! +1 BOMBARDEO"), false)
 
 
 ## Misil guiado: va a por el objetivo fijado (si lo hay).
@@ -128,7 +128,7 @@ func fire_missile() -> bool:
 	missiles -= 1
 	Missile.fire(player, player.aim_lock)
 	get_tree().call_group(&"voice", &"say", "missile", VoiceManager.Priority.NORMAL)
-	message.emit("MISIL LANZADO — QUEDAN %d" % missiles, false)
+	message.emit(Loc.t("MISIL LANZADO — QUEDAN %d") % missiles, false)
 	return true
 
 
@@ -147,13 +147,13 @@ func call_air_strike() -> bool:
 		var hit: Dictionary = player.get_world_3d().direct_space_state.intersect_ray(query)
 		point = hit["position"] if not hit.is_empty() else from - player.muzzle.global_transform.basis.z * 150.0
 	if Vector2(point.x - player.global_position.x, point.z - player.global_position.z).length() < 30.0:
-		message.emit("DEMASIADO CERCA PARA BOMBARDEAR: APUNTA MÁS LEJOS", true)
+		message.emit(Loc.t("DEMASIADO CERCA PARA BOMBARDEAR: APUNTA MÁS LEJOS"), true)
 		get_tree().call_group(&"voice", &"say", "strike_denied", VoiceManager.Priority.HIGH)
 		return false
 	strikes -= 1
 	AirStrike.launch(world, point, false, player)
 	get_tree().call_group(&"voice", &"say", "strike", VoiceManager.Priority.HIGH)
-	message.emit("BOMBARDEO ALIADO EN CAMINO", false)
+	message.emit(Loc.t("BOMBARDEO ALIADO EN CAMINO"), false)
 	return true
 
 
@@ -179,7 +179,7 @@ func objective_lines() -> Array[String]:
 
 
 func status_text() -> String:
-	return "PUNTOS %d" % score
+	return Loc.t("PUNTOS %d") % score
 
 
 ## Crea un tanque controlado por la máquina.
@@ -359,8 +359,8 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 		get_tree().call_group(&"voice", &"say", "kill", VoiceManager.Priority.NORMAL)
 	if killer == player and tank.team != PLAYER_TEAM:
 		score += tank.stats.score_value
-		message.emit("%s DESTRUIDO  +%d" % [tank.stats.display_name, tank.stats.score_value], false)
+		message.emit(Loc.t("%s DESTRUIDO  +%d") % [tank.stats.display_name, tank.stats.score_value], false)
 
 
 func _on_player_destroyed(_tank: Tank, _killer: Node) -> void:
-	finish(false, "TANQUE DESTRUIDO", "PUNTOS %d" % score)
+	finish(false, Loc.t("TANQUE DESTRUIDO"), Loc.t("PUNTOS %d") % score)

@@ -86,7 +86,7 @@ func _destroy() -> void:
 	if prize_points > 0 and by_player:
 		get_tree().call_group(&"game_mode", &"add_score", prize_points)
 		get_tree().call_group(&"voice", &"say", "bonus", VoiceManager.Priority.NORMAL)
-		get_tree().call_group(&"game_mode", &"announce", "%s DESTRUIDO  +%d" % [prize_name, prize_points], false)
+		get_tree().call_group(&"game_mode", &"announce", Loc.t("%s DESTRUIDO  +%d") % [prize_name, prize_points], false)
 		# Además suelta un premio en el sitio.
 		get_tree().call_group(&"pickup_spawner", &"spawn", Pickup.random_kind(), Vector2(global_position.x, global_position.z) + Vector2(4.0, 4.0))
 	if blast_radius > 0.0:

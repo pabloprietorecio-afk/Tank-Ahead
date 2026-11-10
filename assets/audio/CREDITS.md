@@ -39,3 +39,4 @@
     pasajes de odio. Se usan como documento histórico de ambiente, igual que en un documental.
 - Voces en español de tripulación y radio: Kokoro TTS (Apache 2.0), voces «em_alex» y «em_santa»,
   con efecto de radio añadido.
+- Voces en inglés de tripulación, radio y tutorial (`assets/voice_en`): Kokoro TTS (Apache 2.0), voces «am_michael» y «bm_george», con el mismo efecto de radio.

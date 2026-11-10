@@ -65,7 +65,7 @@ func _ready() -> void:
 	add_child(_progress)
 
 	_skip = Button.new()
-	_skip.text = "SALTAR LECCIÓN"
+	_skip.text = Loc.t("SALTAR LECCIÓN")
 	_skip.add_theme_font_size_override("font_size", 20)
 	_skip.position = Vector2(24.0, 136.0)
 	_skip.size = Vector2(230.0, 54.0)
@@ -74,7 +74,7 @@ func _ready() -> void:
 	add_child(_skip)
 
 	_flash = Label.new()
-	_flash.text = "✔ BIEN"
+	_flash.text = Loc.t("✔ BIEN")
 	_flash.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_flash.add_theme_font_size_override("font_size", 64)
 	_flash.add_theme_color_override("font_color", Color(0.35, 1.0, 0.45))
@@ -109,7 +109,7 @@ func _fit_panel() -> void:
 
 
 func set_progress(index: int, total: int) -> void:
-	_progress.text = "LECCIÓN %d / %d" % [index + 1, total]
+	_progress.text = Loc.t("LECCIÓN %d / %d") % [index + 1, total]
 	_fraction = float(index) / float(total)
 
 
@@ -147,7 +147,7 @@ func show_summary() -> void:
 	box.add_theme_constant_override("separation", 10)
 	_end.add_child(box)
 	var title := Label.new()
-	title.text = "TUTORIAL COMPLETADO"
+	title.text = Loc.t("TUTORIAL COMPLETADO")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 38)
 	title.add_theme_color_override("font_color", VectorMaterials.GREEN)
@@ -158,16 +158,16 @@ func show_summary() -> void:
 	grid.add_theme_constant_override("v_separation", 3)
 	box.add_child(grid)
 	var rows: Array = [
-		["JOYSTICK IZQUIERDO", "AVANZAR, RETROCEDER Y GIRAR EL CASCO"],
-		["ARRASTRAR A LA DERECHA", "MOVER LA TORRETA Y APUNTAR"],
-		["FIRE", "DISPARAR; LA BARRA BAJO LA MIRA ES LA RECARGA"],
-		["CÁM", "CABINA, TRASERA Y TRASERA LEJANA"],
-		["RADAR", "PUNTO ENEMIGO · CUADRO ALIADO · ROMBO OBJETIVO · CRUZ PREMIO"],
-		["ZOOM", "PRISMÁTICOS; CON ELLOS APARECEN MISIL Y AVIÓN"],
-		["MISIL", "PERSIGUE AL ENEMIGO FIJADO"],
-		["AVIÓN", "BOMBARDEO ALIADO A MÁS DE 30 M DE TI"],
-		["ZONA ROJA", "BOMBARDEO ENEMIGO: SAL ANTES DE QUE LLEGUE A CERO"],
-		["⚙", "MOVIMIENTO FÁCIL, APUNTADO AUTOMÁTICO, SONIDO Y ABANDONAR"],
+		[Loc.t("JOYSTICK IZQUIERDO"), Loc.t("AVANZAR, RETROCEDER Y GIRAR EL CASCO")],
+		[Loc.t("ARRASTRAR A LA DERECHA"), Loc.t("MOVER LA TORRETA Y APUNTAR")],
+		["FIRE", Loc.t("DISPARAR; LA BARRA BAJO LA MIRA ES LA RECARGA")],
+		[Loc.t("CÁM"), Loc.t("CABINA, TRASERA Y TRASERA LEJANA")],
+		["RADAR", Loc.t("PUNTO ENEMIGO · CUADRO ALIADO · ROMBO OBJETIVO · CRUZ PREMIO")],
+		["ZOOM", Loc.t("PRISMÁTICOS; CON ELLOS APARECEN MISIL Y AVIÓN")],
+		[Loc.t("MISIL"), Loc.t("PERSIGUE AL ENEMIGO FIJADO")],
+		[Loc.t("AVIÓN"), Loc.t("BOMBARDEO ALIADO A MÁS DE 30 M DE TI")],
+		[Loc.t("ZONA ROJA"), Loc.t("BOMBARDEO ENEMIGO: SAL ANTES DE QUE LLEGUE A CERO")],
+		["⚙", Loc.t("MOVIMIENTO FÁCIL, APUNTADO AUTOMÁTICO, SONIDO Y ABANDONAR")],
 	]
 	for row in rows:
 		for column in 2:
@@ -180,7 +180,7 @@ func show_summary() -> void:
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 14)
 	box.add_child(buttons)
-	var specs: Array = [["EMPEZAR LA CAMPAÑA", campaign_pressed, 28], ["REPETIR TUTORIAL", repeat_pressed, 20], ["MENÚ PRINCIPAL", menu_pressed, 20]]
+	var specs: Array = [[Loc.t("EMPEZAR LA CAMPAÑA"), campaign_pressed, 28], [Loc.t("REPETIR TUTORIAL"), repeat_pressed, 20], [Loc.t("MENÚ PRINCIPAL"), menu_pressed, 20]]
 	for spec in specs:
 		var button := Button.new()
 		button.text = spec[0]

@@ -11,7 +11,6 @@ signal lesson_completed(index: int, skipped: bool)
 const FIELD: float = 100.0
 ## Segundos sin lograrlo antes de dar la pista detallada.
 const HINT_TIME: float = 20.0
-const VOICE_DIR: String = "res://assets/voice/tutorial/"
 
 const LESSONS: Array[String] = [
 	"move", "turn", "turret", "fire", "easy", "camera", "radar", "enemy",
@@ -207,7 +206,7 @@ func bind_ui(new_hud: Hud, new_touch: TouchControls, new_radar: Radar, new_input
 
 
 func status_text() -> String:
-	return "CAMPO DE PRÁCTICAS"
+	return Loc.t("CAMPO DE PRÁCTICAS")
 
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
@@ -298,13 +297,13 @@ func objective_lines() -> Array[String]:
 			kills += 1
 	var depot_done: bool = not is_instance_valid(final_objective) or final_objective.is_destroyed
 	return [
-		"%sTANQUES ENEMIGOS %d / %d" % ["✔ " if kills == final_enemies.size() else "", kills, final_enemies.size()],
-		"%sDEPÓSITO ENEMIGO" % ("✔ " if depot_done else ""),
+		Loc.t("%sTANQUES ENEMIGOS %d / %d") % ["✔ " if kills == final_enemies.size() else "", kills, final_enemies.size()],
+		Loc.t("%sDEPÓSITO ENEMIGO") % ("✔ " if depot_done else ""),
 	]
 
 
 func announce(text: String, urgent: bool) -> void:
-	if text.begins_with("PREMIO"):
+	if text.begins_with(Loc.t("PREMIO")):
 		_picked += 1
 	super(text, urgent)
 
@@ -317,7 +316,7 @@ func fire_missile() -> bool:
 			_missile_ok = true
 		else:
 			missiles += 1
-			message.emit("SIN OBJETIVO FIJADO EL MISIL VA RECTO: FÍJALO ANTES", true)
+			message.emit(Loc.t("SIN OBJETIVO FIJADO EL MISIL VA RECTO: FÍJALO ANTES"), true)
 	return fired
 
 
@@ -347,7 +346,7 @@ func _physics_process(delta: float) -> void:
 		_hint_timer = 0.0
 		_hint_on = not _hint_on
 		var data: Dictionary = STEPS[lesson_id()][step]
-		overlay.set_instruction(data["hint"] if _hint_on else data["text"])
+		overlay.set_instruction(Loc.t(data["hint"]) if _hint_on else Loc.t(data["text"]))
 		# La locución se repite una sola vez, con la primera pista.
 		if not _hint_spoken:
 			_hint_spoken = true
@@ -370,7 +369,7 @@ func _enter_step(new_step: int) -> void:
 	_hint_on = false
 	_hint_spoken = false
 	var data: Dictionary = STEPS[lesson_id()][step]
-	overlay.set_instruction(data["text"])
+	overlay.set_instruction(Loc.t(data["text"]))
 	var show: Array[String] = []
 	show.assign(data["show"])
 	overlay.highlights = show
@@ -379,7 +378,7 @@ func _enter_step(new_step: int) -> void:
 
 ## Locución pregenerada de la instrucción; si no existe el audio, queda solo el texto.
 func _speak(id: String) -> void:
-	var path: String = VOICE_DIR + "tut_%s.ogg" % id
+	var path: String = "%s/tutorial/tut_%s.ogg" % [Loc.voice_dir(), id]
 	if not ResourceLoader.exists(path):
 		return
 	var stream: AudioStream = load(path)
@@ -773,7 +772,7 @@ func _check_missile(_delta: float) -> bool:
 	if _dead(enemy):
 		if _missile_ok:
 			return true
-		message.emit("ASÍ NO VALE: DESTRÚYELO CON UN MISIL", true)
+		message.emit(Loc.t("ASÍ NO VALE: DESTRÚYELO CON UN MISIL"), true)
 		_spawn_missile_enemy()
 	if missiles <= 0 and not _missile_ok:
 		missiles = 2
@@ -801,7 +800,7 @@ func _setup_strike() -> void:
 func _check_strike(_delta: float) -> bool:
 	if not _bombed and (not is_instance_valid(depot_far) or depot_far.is_destroyed):
 		# Destruido a cañonazos: se repone, la lección es pedir el bombardeo.
-		message.emit("ASÍ NO VALE: PIDE EL BOMBARDEO CON AVIÓN", true)
+		message.emit(Loc.t("ASÍ NO VALE: PIDE EL BOMBARDEO CON AVIÓN"), true)
 		_spawn_far_depot()
 	strikes = maxi(strikes, 3)
 	match step:
@@ -829,7 +828,7 @@ func _check_raid(delta: float) -> bool:
 			raid = AirStrike.launch(world, player.global_position, true)
 			_raid_judged = false
 			get_tree().call_group(&"voice", &"say", "raid", VoiceManager.Priority.CRITICAL)
-			message.emit("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA", true)
+			message.emit(Loc.t("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA"), true)
 		return false
 	if not is_instance_valid(raid):
 		raid = null
@@ -839,7 +838,7 @@ func _check_raid(delta: float) -> bool:
 		_raid_judged = true
 		if not raid.contains(player.global_position):
 			return true
-		message.emit("TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ", true)
+		message.emit(Loc.t("TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ"), true)
 	return false
 
 

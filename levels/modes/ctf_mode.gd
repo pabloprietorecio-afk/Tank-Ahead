@@ -65,7 +65,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		var attackers: int = 2 if team == PLAYER_TEAM else ENEMY_ATTACKERS[GameSettings.difficulty]
 		for i in count:
 			_spawn_unit(team, "attack" if i < attackers else "defend")
-	message.emit("CAPTURA LA BANDERA ENEMIGA Y TRÁELA A TU BASE", true)
+	message.emit(Loc.t("CAPTURA LA BANDERA ENEMIGA Y TRÁELA A TU BASE"), true)
 
 
 func _build_base(team: int) -> void:
@@ -109,29 +109,29 @@ func flag_board() -> Dictionary:
 	for team in [PLAYER_TEAM, ENEMY_TEAM]:
 		var flag: Flag = flags[team]
 		var ours: bool = team == PLAYER_TEAM
-		var state: String = "EN SU BASE"
+		var state: String = Loc.t("EN SU BASE")
 		var alert: bool = false
 		match flag.state:
 			Flag.Status.CARRIED:
 				if flag.carrier == player:
-					state = "¡LA LLEVAS TÚ!"
+					state = Loc.t("¡LA LLEVAS TÚ!")
 				elif is_instance_valid(flag.carrier):
-					state = "LA LLEVA %s %s" % ["EL ENEMIGO:" if ours else "UN ALIADO:", flag.carrier.stats.display_name]
+					state = Loc.t("LA LLEVA %s %s") % [Loc.t("EL ENEMIGO:") if ours else Loc.t("UN ALIADO:"), flag.carrier.stats.display_name]
 				alert = true
 			Flag.Status.DROPPED:
-				state = "CAÍDA — VUELVE SOLA EN %d s" % ceili(Flag.RETURN_TIME - flag.dropped_time)
+				state = Loc.t("CAÍDA — VUELVE SOLA EN %d s") % ceili(Flag.RETURN_TIME - flag.dropped_time)
 				alert = true
 		rows.append({
 			"color": Color(0.35, 0.65, 1.0) if ours else Color(1.0, 0.25, 0.2),
-			"title": "TU BANDERA" if ours else "BANDERA ENEMIGA", "state": state, "alert": alert,
+			"title": Loc.t("TU BANDERA") if ours else Loc.t("BANDERA ENEMIGA"), "state": state, "alert": alert,
 		})
-	return {"score": "TÚ %d — %d ENEMIGO" % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]], "flags": rows}
+	return {"score": Loc.t("TÚ %d — %d ENEMIGO") % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]], "flags": rows}
 
 
 func status_text() -> String:
 	var minutes: int = int(time_left) / 60
 	var seconds: int = int(time_left) % 60
-	return "%s %d — %d %s   %d:%02d" % [Fronts.FACTION_NAMES[faction_of(PLAYER_TEAM)], captures[PLAYER_TEAM], captures[ENEMY_TEAM], Fronts.FACTION_NAMES[faction_of(ENEMY_TEAM)], minutes, seconds]
+	return "%s %d — %d %s   %d:%02d" % [Loc.t(Fronts.FACTION_NAMES[faction_of(PLAYER_TEAM)]), captures[PLAYER_TEAM], captures[ENEMY_TEAM], Loc.t(Fronts.FACTION_NAMES[faction_of(ENEMY_TEAM)]), minutes, seconds]
 
 
 func _process(delta: float) -> void:
@@ -158,7 +158,7 @@ func _update_flags() -> void:
 			Flag.Status.CARRIED:
 				if not is_instance_valid(flag.carrier) or flag.carrier.is_destroyed:
 					flag.drop()
-					message.emit("BANDERA %s CAÍDA" % ("ALIADA" if flag.team == PLAYER_TEAM else "ENEMIGA"), false)
+					message.emit(Loc.t("BANDERA %s CAÍDA") % (Loc.t("ALIADA") if flag.team == PLAYER_TEAM else Loc.t("ENEMIGA")), false)
 				else:
 					_check_capture(flag)
 			_:
@@ -174,19 +174,19 @@ func _update_flags() -> void:
 						break
 					elif flag.state == Flag.Status.DROPPED:
 						flag.return_home()
-						message.emit("BANDERA %s RECUPERADA" % ("ALIADA" if flag.team == PLAYER_TEAM else "ENEMIGA"), false)
+						message.emit(Loc.t("BANDERA %s RECUPERADA") % (Loc.t("ALIADA") if flag.team == PLAYER_TEAM else Loc.t("ENEMIGA")), false)
 						break
 
 
 func _announce_pickup(flag: Flag, tank: Tank) -> void:
 	if tank == player:
-		message.emit("¡TIENES LA BANDERA ENEMIGA! VUELVE A TU BASE (CON ELLA VAS MÁS LENTO)", true)
+		message.emit(Loc.t("¡TIENES LA BANDERA ENEMIGA! VUELVE A TU BASE (CON ELLA VAS MÁS LENTO)"), true)
 		get_tree().call_group(&"voice", &"say", "flag_taken", VoiceManager.Priority.HIGH)
 	elif flag.team == PLAYER_TEAM:
-		message.emit("¡EL ENEMIGO TIENE NUESTRA BANDERA!", true)
+		message.emit(Loc.t("¡EL ENEMIGO TIENE NUESTRA BANDERA!"), true)
 		get_tree().call_group(&"voice", &"say", "flag_lost", VoiceManager.Priority.HIGH)
 	else:
-		message.emit("UN ALIADO TIENE LA BANDERA ENEMIGA: ESCÓLTALO", false)
+		message.emit(Loc.t("UN ALIADO TIENE LA BANDERA ENEMIGA: ESCÓLTALO"), false)
 
 
 func _check_capture(flag: Flag) -> void:
@@ -203,12 +203,12 @@ func _check_capture(flag: Flag) -> void:
 	var ours: bool = carrier.team == PLAYER_TEAM
 	if ours:
 		get_tree().call_group(&"voice", &"say", "flag_capture", VoiceManager.Priority.HIGH)
-	message.emit("¡CAPTURA %s!  %d — %d" % ["ALIADA" if ours else "ENEMIGA", captures[PLAYER_TEAM], captures[ENEMY_TEAM]], true)
+	message.emit(Loc.t("¡CAPTURA %s!  %d — %d") % [Loc.t("ALIADA") if ours else Loc.t("ENEMIGA"), captures[PLAYER_TEAM], captures[ENEMY_TEAM]], true)
 	if captures[carrier.team] >= CAPTURES_TO_WIN:
 		if ours:
-			finish(true, "¡VICTORIA!", "CAPTURAS %d — %d" % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]])
+			finish(true, Loc.t("¡VICTORIA!"), Loc.t("CAPTURAS %d — %d") % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]])
 		else:
-			finish(false, "DERROTA", "CAPTURAS %d — %d" % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]])
+			finish(false, Loc.t("DERROTA"), Loc.t("CAPTURAS %d — %d") % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]])
 
 
 ## Reparte órdenes a los tanques de la máquina de los dos bandos. Prioridades de cada equipo:
@@ -257,13 +257,13 @@ func _nearest(units: Array[Tank], point: Vector3, except: Tank) -> Tank:
 
 
 func _time_up() -> void:
-	var detail: String = "CAPTURAS %d — %d" % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]]
+	var detail: String = Loc.t("CAPTURAS %d — %d") % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]]
 	if captures[PLAYER_TEAM] > captures[ENEMY_TEAM]:
-		finish(true, "¡VICTORIA POR TIEMPO!", detail)
+		finish(true, Loc.t("¡VICTORIA POR TIEMPO!"), detail)
 	elif captures[PLAYER_TEAM] < captures[ENEMY_TEAM]:
-		finish(false, "DERROTA POR TIEMPO", detail)
+		finish(false, Loc.t("DERROTA POR TIEMPO"), detail)
 	else:
-		finish(false, "EMPATE", detail)
+		finish(false, Loc.t("EMPATE"), detail)
 
 
 func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
@@ -279,8 +279,8 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 
 
 func _on_player_destroyed(_tank: Tank, _killer: Node) -> void:
-	message.emit("TANQUE DESTRUIDO — REAPARECES EN %d s" % int(RESPAWN_TIME), true)
+	message.emit(Loc.t("TANQUE DESTRUIDO — REAPARECES EN %d s") % int(RESPAWN_TIME), true)
 	get_tree().create_timer(RESPAWN_TIME).timeout.connect(func() -> void:
 		if not is_over:
 			player.revive(player_spawn())
-			message.emit("DE VUELTA AL COMBATE", false))
+			message.emit(Loc.t("DE VUELTA AL COMBATE"), false))

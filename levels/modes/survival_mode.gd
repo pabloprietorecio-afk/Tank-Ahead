@@ -30,7 +30,7 @@ var _air_spawned: int = 0
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
-	message.emit("%s — PREPÁRATE" % Fronts.NAMES[front], false)
+	message.emit(Loc.t("%s — PREPÁRATE") % Loc.t(Fronts.NAMES[front]), false)
 
 
 func raids_active() -> bool:
@@ -38,7 +38,7 @@ func raids_active() -> bool:
 
 
 func _status_normal() -> String:
-	return "PUNTOS %d   OLEADA %d   ENEMIGOS %d" % [score, wave, alive]
+	return Loc.t("PUNTOS %d   OLEADA %d   ENEMIGOS %d") % [score, wave, alive]
 
 
 func _process(delta: float) -> void:
@@ -57,7 +57,7 @@ func _process(delta: float) -> void:
 	_intro_timer -= delta
 	if _intro_timer <= 0.0 and not _intro_queue.is_empty():
 		var stats: TankStats = _intro_queue.pop_front()
-		message.emit("NUEVO ENEMIGO: %s — %s" % [stats.display_name, stats.description], true)
+		message.emit(Loc.t("NUEVO ENEMIGO: %s — %s") % [stats.display_name, Loc.t(stats.description)], true)
 		_intro_timer = 4.0
 	while alive < max_alive() and not _pending.is_empty():
 		_spawn(_pending.pop_back())
@@ -129,7 +129,7 @@ func _begin_wave() -> void:
 			_intro_queue.append(stats)
 	_intro_timer = 3.0
 	_wave_active = true
-	message.emit("OLEADA %d — %d ENEMIGOS" % [wave, _pending.size()], true)
+	message.emit(Loc.t("OLEADA %d — %d ENEMIGOS") % [wave, _pending.size()], true)
 	get_tree().call_group(&"voice", &"say", "wave_start", VoiceManager.Priority.HIGH)
 
 
@@ -139,7 +139,7 @@ func _end_wave() -> void:
 	score += WAVE_BONUS
 	player.health.heal(REPAIR_PER_WAVE)
 	GameSession.record_wave(wave)
-	message.emit("OLEADA %d SUPERADA  +%d  BLINDAJE REPARADO" % [wave, WAVE_BONUS], false)
+	message.emit(Loc.t("OLEADA %d SUPERADA  +%d  BLINDAJE REPARADO") % [wave, WAVE_BONUS], false)
 	get_tree().call_group(&"voice", &"say", "wave_clear", VoiceManager.Priority.HIGH)
 	if wave >= 3:
 		_start_air_phase()
@@ -147,7 +147,7 @@ func _end_wave() -> void:
 	if wave % 4 == 0:
 		missiles = 2
 		strikes = 1
-		message.emit("ARSENAL REPUESTO: 2 MISILES Y 1 BOMBARDEO", false)
+		message.emit(Loc.t("ARSENAL REPUESTO: 2 MISILES Y 1 BOMBARDEO"), false)
 
 
 func _start_air_phase() -> void:
@@ -157,7 +157,7 @@ func _start_air_phase() -> void:
 	_air_spawned = 0
 	Engine.time_scale = SLOW_MOTION
 	player.set_air_mode(true)
-	message.emit("¡ATAQUE AÉREO! DERRIBA CAZAS, AVIONES DE ATAQUE Y BOMBARDEROS", true)
+	message.emit(Loc.t("¡ATAQUE AÉREO! DERRIBA CAZAS, AVIONES DE ATAQUE Y BOMBARDEROS"), true)
 	get_tree().call_group(&"voice", &"say", "air_phase", VoiceManager.Priority.CRITICAL)
 
 
@@ -189,13 +189,13 @@ func _end_air_phase() -> void:
 	for node in get_tree().get_nodes_in_group(&"air_targets"):
 		(node as AirTarget).leave()
 	if not is_over:
-		message.emit("CIELO DESPEJADO — PREPÁRATE", false)
+		message.emit(Loc.t("CIELO DESPEJADO — PREPÁRATE"), false)
 		get_tree().call_group(&"voice", &"say", "air_clear", VoiceManager.Priority.NORMAL)
 
 
 func status_text() -> String:
 	if air_phase:
-		return "PUNTOS %d   OLEADA %d   ATAQUE AÉREO %d s" % [score, wave, ceili(air_seconds_left())]
+		return Loc.t("PUNTOS %d   OLEADA %d   ATAQUE AÉREO %d s") % [score, wave, ceili(air_seconds_left())]
 	return _status_normal()
 
 
@@ -215,4 +215,4 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 
 func _on_player_destroyed(_tank: Tank, _killer: Node) -> void:
 	GameSession.record_wave(wave)
-	finish(false, "TANQUE DESTRUIDO", "PUNTOS %d   OLEADA %d   (RÉCORD %d)" % [score, wave, GameSession.best_wave()])
+	finish(false, Loc.t("TANQUE DESTRUIDO"), Loc.t("PUNTOS %d   OLEADA %d   (RÉCORD %d)") % [score, wave, GameSession.best_wave()])

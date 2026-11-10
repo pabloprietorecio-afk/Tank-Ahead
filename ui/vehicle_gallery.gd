@@ -45,7 +45,7 @@ func _init() -> void:
 	_browse_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_browse_row.add_theme_constant_override("separation", 24)
 	add_child(_browse_row)
-	var previous := _make_button("◀ ANTERIOR")
+	var previous := _make_button(Loc.t("◀ ANTERIOR"))
 	previous.pressed.connect(func() -> void: show_index(_index - 1))
 	_browse_row.add_child(previous)
 	_counter = Label.new()
@@ -53,10 +53,10 @@ func _init() -> void:
 	_counter.custom_minimum_size = Vector2(110.0, 0.0)
 	_counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_browse_row.add_child(_counter)
-	var following := _make_button("SIGUIENTE ▶")
+	var following := _make_button(Loc.t("SIGUIENTE ▶"))
 	following.pressed.connect(func() -> void: show_index(_index + 1))
 	_browse_row.add_child(following)
-	var close := _make_button("CERRAR")
+	var close := _make_button(Loc.t("CERRAR"))
 	close.pressed.connect(func() -> void: closed.emit())
 	add_child(close)
 
@@ -78,7 +78,7 @@ func _make_button(text: String) -> Button:
 
 ## Muestra un vehículo concreto (el objetivo fijado), sin botones de pasar.
 func show_stats(stats: TankStats, paint: Dictionary, browsing: bool = false) -> void:
-	_text.text = "%s\n\n%s\n\nBLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h" % [stats.display_name, stats.history if stats.history != "" else stats.description, roundi(stats.max_armor), roundi(stats.damage), roundi(stats.max_speed * 3.6)]
+	_text.text = Loc.t("%s\n\n%s\n\nBLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h") % [stats.display_name, Loc.t(stats.history) if Loc.t(stats.history) != "" else Loc.t(stats.description), roundi(stats.max_armor), roundi(stats.damage), roundi(stats.max_speed * 3.6)]
 	_viewer.show_tank(stats, paint)
 	_browse_row.visible = browsing
 
