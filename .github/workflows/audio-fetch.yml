@@ -1,0 +1,25 @@
+name: Audio fetch
+
+# Herramienta puntual: busca o descarga grabaciones de época (dominio público o licencia libre)
+# desde Wikimedia Commons, porque solo las máquinas de GitHub tienen salida libre a internet.
+on:
+  push:
+    branches: [audio]
+    paths: ["tools/audio_fetch/**", ".github/workflows/audio-fetch.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Buscar candidatos
+        run: python3 tools/audio_fetch/discover.py | tee discover.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: discover
+          path: discover.txt
