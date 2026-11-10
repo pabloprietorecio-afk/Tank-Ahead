@@ -56,17 +56,6 @@ static func _shader_material(path: String) -> ShaderMaterial:
 	return mat
 
 
-static var _effects: Dictionary = {}
-
-
-## Material compartido de un efecto (fuego, humo, quemaduras); cada malla ajusta sus
-## parámetros de instancia.
-static func effect(path: String) -> ShaderMaterial:
-	if not _effects.has(path):
-		_effects[path] = _shader_material(path)
-	return _effects[path]
-
-
 static func ground() -> ShaderMaterial:
 	if _ground == null:
 		_ground = _shader_material("res://shaders/grid_ground.gdshader")

@@ -18,6 +18,10 @@ static var camera_view: int = 0
 ## Sombras en tiempo real (desactivar en móviles lentos).
 static var shadows: bool = true
 
+## Detalle de los efectos (explosiones, humo, polvo, fuego): 0 bajos, 1 medios, 2 altos.
+const EFFECTS_NAMES: Array[String] = ["BAJOS", "MEDIOS", "ALTOS"]
+static var effects: int = 2
+
 ## Volúmenes (0..1). La música va bajita por defecto.
 static var music_volume: float = 0.3
 static var sfx_volume: float = 1.0
@@ -56,6 +60,7 @@ static func ensure_loaded() -> void:
 		aim_assist = cfg.get_value("controls", "aim_assist", aim_assist)
 		camera_view = cfg.get_value("controls", "camera_view", camera_view)
 		shadows = cfg.get_value("graphics", "shadows", shadows)
+		effects = clampi(cfg.get_value("graphics", "effects", effects), 0, 2)
 		music_volume = cfg.get_value("audio", "music", music_volume)
 		sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
 		voice_volume = cfg.get_value("audio", "voice", voice_volume)
@@ -64,6 +69,7 @@ static func ensure_loaded() -> void:
 		highlight_enemies = cfg.get_value("game", "highlight_enemies", highlight_enemies)
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
+	Fx.quality = effects
 
 
 static func save() -> void:
@@ -71,6 +77,7 @@ static func save() -> void:
 	cfg.set_value("controls", "aim_assist", aim_assist)
 	cfg.set_value("controls", "camera_view", camera_view)
 	cfg.set_value("graphics", "shadows", shadows)
+	cfg.set_value("graphics", "effects", effects)
 	cfg.set_value("audio", "music", music_volume)
 	cfg.set_value("audio", "sfx", sfx_volume)
 	cfg.set_value("audio", "voice", voice_volume)

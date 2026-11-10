@@ -14,7 +14,13 @@ const MAX_SLOPE_DEG: float = 10.0
 const VISUAL_LAYER_OWN: int = 2
 ## Distancia hacia atrás y altura de las vistas exteriores [cerca, lejos].
 const CHASE_OFFSETS: Array[Vector2] = [Vector2(10.0, 4.5), Vector2(20.0, 9.0)]
-const WRECK_TIME: float = 8.0
+## Segundos que arden los restos de un tanque de la máquina antes de hundirse y desaparecer.
+const WRECK_TIME: float = 25.0
+const WRECK_SINK: float = 2.5
+## Retroceso del cañón al disparar (m, por la escala del vehículo).
+const RECOIL_TRAVEL: float = 0.3
+## Probabilidad de que la munición reviente y la torreta salga despedida.
+const TURRET_TOSS_CHANCE: float = 0.35
 
 signal destroyed(tank: Tank, killer: Node)
 signal damaged(amount: float, source: Node)
@@ -50,10 +56,26 @@ var _view: int = 0
 var _meshes: Array[MeshInstance3D] = []
 ## Mejoras temporales activas: nombre → segundos restantes.
 var buffs: Dictionary = {}
-var _exhaust: GPUParticles3D
-var _dust: GPUParticles3D
-var _flash_light: OmniLight3D
-var _flash_time: float = 0.0
+## Efectos: puntos del casco de donde salen (en coordenadas del tanque) y cuentas de emisión.
+var _fx: Fx
+var _exhaust_at: Vector3
+var _track_at: Vector3
+var _deck_at: Vector3
+var _exhaust_due: float = 0.0
+var _dust_due: float = 0.0
+var _smoke_due: float = 0.0
+var _recoil: float = 0.0
+var _gun_mesh: MeshInstance3D
+## Restos: segundos desde que lo destruyeron (-1 = entero), viveza del incendio y torreta
+## arrancada por la explosión de la munición.
+var _wreck_age: float = -1.0
+var _wreck_fire: float = 1.0
+var _pop_timer: float = 0.0
+var _light_timer: float = 0.0
+var _turret_home: Vector3
+var _turret_flying: bool = false
+var _turret_velocity: Vector3
+var _turret_spin: Vector3
 var _materials: Array[Material] = []
 ## Material del modelo: con él se animan las orugas.
 var _track_material: ShaderMaterial
@@ -181,15 +203,9 @@ func _chase_transform() -> Transform3D:
 
 
 func _process(delta: float) -> void:
-	if _flash_time > 0.0:
-		_flash_time -= delta
-		if _flash_time <= 0.0:
-			_flash_light.light_energy = 0.0
-	if _dust != null:
-		var moving: bool = not is_destroyed and velocity.length() > 3.0
-		_dust.emitting = moving
-		_exhaust.amount_ratio = 1.0 if moving else 0.4
-		_exhaust.emitting = not is_destroyed
+	if _wreck_age >= 0.0 and _update_wreck(delta):
+		return
+	_update_effects(delta)
 	_animate_tracks(delta)
 	_update_sound(delta)
 	if camera != null and _view > 0:
@@ -200,6 +216,11 @@ func _process(delta: float) -> void:
 		_shake = maxf(_shake - delta * 2.5, 0.0)
 		camera.h_offset = randf_range(-1.0, 1.0) * _shake * 0.25
 		camera.v_offset = randf_range(-1.0, 1.0) * _shake * 0.25
+
+
+## Sacudida de la cámara (explosiones cercanas, impactos); solo la nota el tanque del jugador.
+func add_shake(amount: float) -> void:
+	_shake = minf(_shake + amount, 1.5)
 
 
 ## Las orugas corren según el avance y el giro del casco (una gira más que la otra al virar).
@@ -289,54 +310,137 @@ func _set_sound_running(running: bool) -> void:
 
 
 func _build_effects() -> void:
-	var rear: float = TankModel.HULL_SIZE.z * stats.hull_proportions.z * _scale_factor * 0.5
-	_exhaust = _puffs(Color(0.2, 0.2, 0.2, 0.45), 14, 1.6, Vector3(0.0, 1.4 * _scale_factor, rear), Vector3(0.0, 1.0, 0.6))
-	_dust = _puffs(Color(0.45, 0.38, 0.28, 0.4), 18, 1.2, Vector3(0.0, 0.3, rear * 0.9), Vector3(0.0, 0.6, 1.0))
-	_dust.emitting = false
-	_flash_light = OmniLight3D.new()
-	_flash_light.light_color = Color(1.0, 0.75, 0.4)
-	_flash_light.omni_range = 9.0
-	_flash_light.light_energy = 0.0
-	muzzle.add_child(_flash_light)
+	var k: float = _scale_factor
+	var rear: float = TankModel.HULL_SIZE.z * stats.hull_proportions.z * k * 0.5
+	var half_width: float = TankModel.HULL_SIZE.x * stats.hull_proportions.x * k * 0.5
+	_exhaust_at = Vector3(half_width * 0.45, 1.15 * k, rear * 0.98)
+	_track_at = Vector3(half_width + 0.2 * k, 0.3 * k, rear * 0.85)
+	_deck_at = Vector3(0.0, 1.3 * k, rear * 0.5)
+	_turret_home = turret.position
+	for mesh in _meshes:
+		if mesh.get_parent() == gun_pivot:
+			_gun_mesh = mesh
 
 
-func _puffs(color: Color, amount: int, lifetime: float, pos: Vector3, direction: Vector3) -> GPUParticles3D:
-	var particles := GPUParticles3D.new()
-	particles.amount = amount
-	particles.lifetime = lifetime
-	particles.local_coords = false
-	particles.position = pos
-	particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var process := ParticleProcessMaterial.new()
-	process.direction = direction
-	process.spread = 25.0
-	process.initial_velocity_min = 0.8
-	process.initial_velocity_max = 1.8
-	process.gravity = Vector3(0.0, 0.5, 0.0)
-	process.scale_min = 0.6
-	process.scale_max = 1.6 * _scale_factor
-	particles.process_material = process
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.35
-	mesh.height = 0.7
-	mesh.radial_segments = 6
-	mesh.rings = 3
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh.material = mat
-	particles.draw_pass_1 = mesh
-	if is_player:
-		particles.layers = VISUAL_LAYER_OWN
-	add_child(particles)
-	return particles
+## Efectos que acompañan al tanque: el cañón que vuelve del retroceso, el humo del escape (más
+## y más negro al acelerar), el polvo que levantan las orugas y el humo de las averías.
+## A los tanques lejanos no se les pinta nada de esto.
+func _update_effects(delta: float) -> void:
+	if not is_instance_valid(_fx):
+		_fx = Fx.on(self)
+	if _recoil > 0.0 and _gun_mesh != null:
+		_recoil = maxf(_recoil - delta * 2.2, 0.0)
+		_gun_mesh.position.z = _recoil * _recoil * RECOIL_TRAVEL * _scale_factor
+	var near: float = _fx.nearness(global_position)
+	if near <= 0.0 or is_destroyed:
+		return
+	var k: float = _scale_factor
+	var speed: float = velocity.length()
+	var throttle: float = clampf(maxf(absf(drive_input.y), absf(drive_input.x) * 0.6), 0.0, 1.0)
+	_exhaust_due += delta * lerpf(4.0, 14.0, throttle) * near
+	while _exhaust_due >= 1.0:
+		_exhaust_due -= 1.0
+		_fx.exhaust(global_transform * _exhaust_at, global_basis.z * randf_range(1.0, 2.5) + Vector3.UP * randf_range(0.5, 1.2) + velocity * 0.4, k, throttle * randf_range(0.6, 1.0))
+	if speed > 2.0 and _fx.dustiness > 0.05:
+		_dust_due += delta * minf(speed, 14.0) * 1.0 * near * minf(_fx.dustiness, 1.5)
+		while _dust_due >= 1.0:
+			_dust_due -= 1.0
+			var side: float = -1.0 if randf() < 0.5 else 1.0
+			var at: Vector3 = global_transform * Vector3(_track_at.x * side, _track_at.y, _track_at.z)
+			_fx.track_dust(at, -velocity * 0.12 + Vector3(randf_range(-0.6, 0.6), randf_range(0.5, 1.4), randf_range(-0.6, 0.6)), k, clampf(speed / 9.0, 0.3, 0.85))
+	var armor: float = health.fraction()
+	if armor < 0.5:
+		var level: float = 1.0 - armor / 0.5
+		_smoke_due += delta * lerpf(2.5, 7.0, level) * near
+		while _smoke_due >= 1.0:
+			_smoke_due -= 1.0
+			_fx.damage_smoke(global_transform * _deck_at, velocity * 0.3, k, level)
+
+
+## Restos ardiendo: llamas en la cubierta del motor y en el anillo de la torreta, columna de
+## humo negro, resplandor que parpadea y munición que va estallando. Los restos de un tanque
+## de la máquina se apagan, se hunden y desaparecen. Devuelve `true` si el tanque se ha borrado.
+func _update_wreck(delta: float) -> bool:
+	_wreck_age += delta
+	if _turret_flying:
+		_fly_turret(delta)
+	var fire: float = _wreck_fire
+	if not is_player:
+		if _wreck_age >= WRECK_TIME:
+			queue_free()
+			return true
+		if _wreck_age > WRECK_TIME - WRECK_SINK:
+			if collision_layer != 0:
+				collision_layer = 0
+				collision_mask = 0
+				get_node("TankMovement").set_physics_process(false)
+			global_position.y -= delta * 1.1
+		fire *= clampf((WRECK_TIME - WRECK_SINK - 3.0 - _wreck_age) / 6.0, 0.0, 1.0)
+	if not is_instance_valid(_fx):
+		_fx = Fx.on(self)
+	var near: float = _fx.nearness(global_position)
+	if near <= 0.0:
+		return false
+	var k: float = _scale_factor
+	var ring: Vector3 = global_transform * Vector3(_turret_home.x, _turret_home.y - 0.2 * k, _turret_home.z)
+	var deck: Vector3 = global_transform * _deck_at
+	if fire > 0.02:
+		_exhaust_due += delta * 20.0 * fire * near
+		while _exhaust_due >= 1.0:
+			_exhaust_due -= 1.0
+			var source: Vector3 = ring if randf() < 0.55 else deck
+			_fx.flame(source + Vector3(randf_range(-0.5, 0.5), 0.0, randf_range(-0.5, 0.5)) * k, Vector3(randf_range(-0.4, 0.4), 0.0, randf_range(-0.4, 0.4)), randf_range(0.6, 1.0) * k * (0.6 + 0.4 * fire))
+			if randf() < 0.14:
+				_fx.ember(source + Vector3.UP * 0.5, Vector3(randf_range(-1.0, 1.0), randf_range(2.0, 5.0), randf_range(-1.0, 1.0)))
+		_light_timer -= delta
+		if _light_timer <= 0.0 and near > 0.55:
+			_light_timer = 0.1
+			_fx.light(ring + Vector3.UP * 0.8, Color(1.0, 0.5, 0.18), randf_range(1.2, 2.4) * fire, 9.0 * k, 0.22)
+		_pop_timer -= delta
+		if _pop_timer <= 0.0 and _wreck_age < 14.0:
+			_pop_timer = randf_range(1.8, 4.5)
+			_fx.cook_off(ring, k)
+			Sfx.play_at(self, Sfx.HIT, ring, -4.0, randf_range(1.2, 1.6))
+	# El humo sigue saliendo cuando el fuego ya se apaga, cada vez más ralo.
+	var smoke: float = maxf(fire, 0.25) if _wreck_age < WRECK_TIME - WRECK_SINK else 0.0
+	_smoke_due += delta * 5.5 * smoke * near
+	while _smoke_due >= 1.0:
+		_smoke_due -= 1.0
+		_fx.black_smoke(ring + Vector3(randf_range(-0.4, 0.4), randf_range(0.6, 1.4), randf_range(-0.4, 0.4)) * k, Vector3(randf_range(-0.3, 0.3), randf_range(2.2, 3.6), randf_range(-0.3, 0.3)), randf_range(1.1, 1.7) * k, randf_range(4.0, 6.5))
+	return false
+
+
+## La torreta arrancada sube dando vueltas y cae al suelo junto a los restos.
+func _toss_turret() -> void:
+	_turret_flying = true
+	var side: float = -1.0 if randf() < 0.5 else 1.0
+	_turret_velocity = Vector3(side * randf_range(2.8, 4.6), randf_range(8.0, 11.5), randf_range(-2.5, 2.5))
+	_turret_spin = Vector3(randf_range(-3.0, 3.0), randf_range(-2.0, 2.0), side * randf_range(1.5, 4.0))
+
+
+func _fly_turret(delta: float) -> void:
+	_turret_velocity.y -= 20.0 * delta
+	turret.position += _turret_velocity * delta
+	turret.rotation += _turret_spin * delta
+	var rest: float = TankModel.TURRET_SIZE.y * stats.turret_scale * _scale_factor * 0.5 + 0.05
+	if turret.position.y <= rest and _turret_velocity.y < 0.0:
+		turret.position.y = rest
+		_turret_flying = false
+		# Queda tumbada, de lado o boca abajo.
+		turret.rotation = Vector3(randf_range(-0.25, 0.25), turret.rotation.y, PI + randf_range(-0.5, 0.5) if randf() < 0.4 else randf_range(-0.6, 0.6))
+		if is_instance_valid(_fx):
+			var point: Vector3 = turret.global_position
+			_fx.rubble(Vector3(point.x, 0.3, point.z), 1.2, Fronts.ground_colors(GameSession.front)[2])
+			_fx.shake(point, 0.5)
+		Sfx.play_at(self, Sfx.HIT_TANK, turret.global_position, 2.0, 0.7)
 
 
 func _on_fired() -> void:
-	_flash_time = 0.08
-	_flash_light.light_energy = 6.0
-	Explosion.spawn(self, muzzle.global_position, 0.3, Color(1.0, 0.85, 0.5), true)
+	if not is_instance_valid(_fx):
+		_fx = Fx.on(self)
+	# El fogonazo crece con el calibre: el del Tiger no es el de un blindado de exploración.
+	_fx.muzzle(muzzle.global_transform, clampf(_scale_factor * (0.65 + 0.35 * stats.barrel_thickness), 0.55, 1.7), velocity, stats.muzzle_brake)
+	_recoil = 1.0
 	if is_player:
 		Sfx.play_2d(self, Sfx.CANNON, 2.0)
 		_shake = maxf(_shake, 0.35)
@@ -361,18 +465,31 @@ func _on_died(source: Node) -> void:
 	refresh_highlight()
 	hurtbox.set_deferred("monitorable", false)
 	hurtbox.collision_layer = 0
-	Explosion.spawn(self, global_position + Vector3.UP * 1.0, 1.0 * _scale_factor + 0.5)
+	var blast: float = 1.0 * _scale_factor + 0.5
+	var center: Vector3 = global_position + Vector3.UP * 1.0
+	if not is_instance_valid(_fx):
+		_fx = Fx.on(self)
+	_fx.tank_blast(center, blast)
+	Sfx.play_at(self, Sfx.EXPLOSION, center, 6.0, 1.1 / clampf(blast, 0.8, 2.0))
 	destroyed.emit(self, source)
 	if is_player:
 		_shake = 1.5
-	# Queda un casco calcinado unos segundos.
+	# Quedan los restos calcinados, ardiendo.
 	for i in _meshes.size():
 		if is_instance_valid(_meshes[i]):
 			_meshes[i].material_override = VectorMaterials.burnt(_materials[i])
+	_wreck_age = 0.0
+	_wreck_fire = randf_range(0.65, 1.0)
+	_pop_timer = randf_range(1.2, 3.0)
+	_exhaust_due = 0.0
+	_smoke_due = 0.0
+	if _gun_mesh != null:
+		_gun_mesh.position.z = 0.0
 	if turret != null:
-		turret.rotation += Vector3(randf_range(-0.2, 0.2), randf_range(-0.6, 0.6), randf_range(-0.3, 0.3))
-	if not is_player:
-		get_tree().create_timer(WRECK_TIME).timeout.connect(queue_free)
+		if not is_player and not stats.casemate and randf() < TURRET_TOSS_CHANCE:
+			_toss_turret()
+		else:
+			turret.rotation += Vector3(randf_range(-0.2, 0.2), randf_range(-0.6, 0.6), randf_range(-0.3, 0.3))
 
 
 ## Reaparece (solo el jugador: los tanques de la máquina se crean de nuevo).
@@ -386,6 +503,9 @@ func revive(spawn: Transform3D) -> void:
 	for i in _meshes.size():
 		if is_instance_valid(_meshes[i]):
 			_meshes[i].material_override = _materials[i]
+	_wreck_age = -1.0
+	_turret_flying = false
+	turret.position = _turret_home
 	turret.rotation = Vector3.ZERO
 	turret_controller.setup(self)
 	global_transform = spawn

@@ -45,6 +45,12 @@ func _ready() -> void:
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 80.0
 	add_child(sun)
+	# El humo y el polvo de los efectos se iluminan con esta misma luz.
+	Fx.set_lighting(sun.global_basis.z, sun.light_color.srgb_to_linear() * sun.light_energy, sky_material.sky_top_color.lerp(sky_material.sky_horizon_color, 0.55).srgb_to_linear() * 0.6, env.fog_density)
+	var fx: Fx = Fx.on(self)
+	var dirt: Color = Fronts.ground_colors(Fronts.Id.NORMANDY)[2]
+	fx.soil = dirt.darkened(0.3).srgb_to_linear()
+	fx.dust = dirt.lerp(Color(0.56, 0.53, 0.48), 0.4).srgb_to_linear()
 
 	var ground_mat: ShaderMaterial = VectorMaterials.ground().duplicate()
 	var colors: Array[Color] = Fronts.ground_colors(Fronts.Id.NORMANDY)
@@ -112,32 +118,16 @@ func _tank(id: String, faction: int, pos: Vector3, yaw: float, turret_yaw: float
 	return holder
 
 
+## Los restos del Panzer IV arden: llamas y una columna de humo negro.
 func _smoke(at: Vector3) -> void:
-	var particles := GPUParticles3D.new()
-	particles.amount = 60
-	particles.lifetime = 6.0
-	particles.preprocess = 6.0
-	particles.position = at
-	var process := ParticleProcessMaterial.new()
-	process.direction = Vector3(0.2, 1.0, 0.0)
-	process.spread = 12.0
-	process.initial_velocity_min = 1.5
-	process.initial_velocity_max = 2.5
-	process.gravity = Vector3(0.4, 0.3, 0.0)
-	process.scale_min = 1.0
-	process.scale_max = 3.5
-	particles.process_material = process
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.8
-	mesh.height = 1.6
-	mesh.radial_segments = 6
-	mesh.rings = 3
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.12, 0.11, 0.1, 0.55)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mesh.material = mat
-	particles.draw_pass_1 = mesh
-	add_child(particles)
+	var vent := FxVent.new()
+	vent.position = at
+	vent.rate = 6.0
+	vent.flames = 9.0
+	vent.size = 1.5
+	vent.rise = 3.0
+	vent.life = 6.0
+	add_child(vent)
 
 
 func _process(delta: float) -> void:

@@ -14,6 +14,8 @@ var shooter: Tank
 var velocity: Vector3
 var _life: float = LIFETIME
 var _ignore: Array[RID] = []
+var _fx: Fx
+var _trail_due: float = 0.0
 
 
 static func fire(from: Tank, lock: Tank) -> Missile:
@@ -27,6 +29,11 @@ static func fire(from: Tank, lock: Tank) -> Missile:
 	missile.global_position = from.muzzle.global_position + Vector3.UP * 0.4
 	missile.velocity = dir * SPEED
 	Sfx.play_2d(from, Sfx.MISSILE, 0.0)
+	# Rebufo del lanzamiento: humo blanco y un fogonazo junto al tanque.
+	var fx: Fx = Fx.on(from)
+	fx.glow(Fx.Glow.FLASH, missile.global_position, Vector3.ZERO, 4.0, 0.12, Fx.FLASH, 0.9)
+	for i in 8:
+		fx.puff(Fx.Puff.JET, missile.global_position - dir * randf_range(0.5, 2.5), -dir * randf_range(4.0, 12.0) + Fx.ball() * 2.0, randf_range(0.6, 1.0), randf_range(1.2, 2.2), Color(0.55, 0.54, 0.52, 0.8), -0.8, i * 0.01)
 	return missile
 
 
@@ -43,31 +50,27 @@ func _ready() -> void:
 	add_child(body)
 	var flame := OmniLight3D.new()
 	flame.light_color = Color(1.0, 0.6, 0.2)
-	flame.omni_range = 6.0
+	flame.omni_range = 7.0
 	flame.light_energy = 3.0
 	add_child(flame)
-	var trail := GPUParticles3D.new()
-	trail.amount = 40
-	trail.lifetime = 1.2
-	trail.local_coords = false
-	var process := ParticleProcessMaterial.new()
-	process.gravity = Vector3(0.0, 0.6, 0.0)
-	process.scale_min = 0.6
-	process.scale_max = 1.4
-	process.initial_velocity_max = 0.5
-	trail.process_material = process
-	var puff := SphereMesh.new()
-	puff.radius = 0.4
-	puff.height = 0.8
-	puff.radial_segments = 6
-	puff.rings = 3
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.85, 0.85, 0.85, 0.5)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	puff.material = mat
-	trail.draw_pass_1 = puff
-	trail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(trail)
+
+
+## Llama del motor y estela de humo blanco que se queda flotando detrás.
+func _process(delta: float) -> void:
+	if not is_instance_valid(_fx):
+		_fx = Fx.on(self)
+	var dir: Vector3 = velocity.normalized()
+	var tail: Vector3 = global_position - dir * 0.9
+	_fx.glow(Fx.Glow.HALO, tail, velocity, randf_range(1.5, 2.0), 0.07, Fx.FLASH, 1.0)
+	_fx.spark(tail, -dir * randf_range(18.0, 30.0) + velocity, 0.34, 0.07, Fx.FLASH, 0.0, 0.0, 1)
+	# Una bocanada por metro recorrido, repartidas por el tramo de este fotograma: la estela
+	# queda continua vaya el misil a la velocidad que vaya.
+	var step: float = velocity.length() * delta
+	_trail_due += step / 1.1
+	var count: int = int(_trail_due)
+	_trail_due -= count
+	for i in count:
+		_fx.puff(Fx.Puff.HAZE, tail - dir * step * (i + randf()) / count, -dir * randf_range(1.0, 4.0) + Fx.ball() * 0.8, randf_range(0.7, 1.0), randf_range(1.4, 2.2), Color(0.42, 0.41, 0.4, 0.8), -0.9)
 
 
 func _physics_process(delta: float) -> void:

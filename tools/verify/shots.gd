@@ -19,6 +19,8 @@ class Runner extends Node:
 
 	func _ready() -> void:
 		process_mode = Node.PROCESS_MODE_ALWAYS
+		# Con el renderizador por software todo va lento: que los efectos no se rebajen solos.
+		Fx.governor = false
 		_dir = ProjectSettings.globalize_path("res://shots_out")
 		DirAccess.make_dir_recursive_absolute(_dir)
 		_run.call_deferred()
@@ -123,6 +125,12 @@ class Runner extends Node:
 		sun.shadow_enabled = true
 		sun.directional_shadow_max_distance = 80.0
 		_stage.add_child(sun)
+		# El humo y el polvo de los efectos se iluminan con la luz de este escenario.
+		Fx.set_lighting(sun.global_basis.z, sun.light_color.srgb_to_linear() * sun.light_energy, sky_material.sky_top_color.lerp(sky_material.sky_horizon_color, 0.55).srgb_to_linear() * 0.6, 0.0)
+		var fx: Fx = Fx.on(_stage)
+		var dirt: Color = Fronts.ground_colors(front)[2]
+		fx.soil = dirt.darkened(0.3).srgb_to_linear()
+		fx.dust = dirt.lerp(Color(0.56, 0.53, 0.48), 0.4).srgb_to_linear()
 		var ground_mat: ShaderMaterial = VectorMaterials.ground().duplicate()
 		var colors: Array[Color] = Fronts.ground_colors(front)
 		ground_mat.set_shader_parameter("grass", colors[0])

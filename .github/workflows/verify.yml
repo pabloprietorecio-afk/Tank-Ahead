@@ -1,7 +1,8 @@
 name: Verify
 
-# Comprobación visual en ramas de trabajo: ejecuta el juego con un renderizador por software,
-# guarda capturas de tanques, escenarios y partidas, y falla si hay errores de scripts o shaders.
+# Comprobación visual en ramas de trabajo: ejecuta el juego con un renderizador por software
+# (con el mismo método de dibujo que usa el teléfono, «mobile»), guarda capturas de tanques,
+# escenarios y partidas, y falla si hay errores de scripts o shaders.
 on:
   push:
     branches-ignore: [main, audio, audio-raw, verify-shots]
@@ -42,7 +43,7 @@ jobs:
 
       - name: Capturas
         run: |
-          timeout 1500 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --audio-driver Dummy --rendering-driver vulkan --resolution 1280x720 res://tools/verify/shots.tscn 2>&1 | tee run.log || true
+          timeout 1500 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --audio-driver Dummy --rendering-driver vulkan --rendering-method mobile --resolution 1280x720 res://tools/verify/shots.tscn 2>&1 | tee run.log || true
           ls -la shots_out || true
 
       - name: Errores de scripts y shaders

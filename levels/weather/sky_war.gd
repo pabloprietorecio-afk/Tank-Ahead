@@ -220,14 +220,16 @@ class SkyPlane extends Node3D:
 	var falling: bool = false
 	var model: String = ""
 	var _props: Array[Node3D] = []
-	var _smoke: GPUParticles3D
-	var _fire: OmniLight3D
+	var _fx: Fx
+	var _trail_due: float = 0.0
+	var _span: float = 11.0
 	var _owner_sky: Node
 	var _roll_rate: float = 0.0
 
 	func build(model_name: String, spec: Dictionary, top: Color, belly: Color, faction: int) -> void:
 		model = model_name
 		var span: float = spec["span"]
+		_span = span
 		var length: float = spec["length"]
 		var top_mat: ShaderMaterial = VectorMaterials.textured(top, top.darkened(0.35), 4, 0.5)
 		var fuselage := MeshInstance3D.new()
@@ -304,51 +306,9 @@ class SkyPlane extends Node3D:
 		falling = true
 		_owner_sky = sky
 		_roll_rate = randf_range(0.6, 1.4) * (1.0 if randf() < 0.5 else -1.0)
-		Explosion.spawn(self, global_position, 1.3, VectorMaterials.ORANGE, true)
+		_fx = Fx.on(self)
+		_fx.airburst(global_position, 1.3)
 		Sfx.play_at(self, Sfx.EXPLOSION, global_position, 16.0, 0.9)
-		_fire = OmniLight3D.new()
-		_fire.light_color = Color(1.0, 0.55, 0.15)
-		_fire.omni_range = 40.0
-		_fire.light_energy = 6.0
-		add_child(_fire)
-		var flame := MeshInstance3D.new()
-		var ball := SphereMesh.new()
-		ball.radius = 1.6
-		ball.height = 3.2
-		ball.radial_segments = 8
-		ball.rings = 4
-		flame.mesh = ball
-		var flame_mat := StandardMaterial3D.new()
-		flame_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		flame_mat.albedo_color = Color(1.0, 0.6, 0.15)
-		flame_mat.disable_fog = true
-		flame.material_override = flame_mat
-		flame.position = Vector3(randf_range(-2.0, 2.0), 0.0, -1.0)
-		add_child(flame)
-		_smoke = GPUParticles3D.new()
-		_smoke.amount = 60
-		_smoke.lifetime = 5.0
-		_smoke.local_coords = false
-		_smoke.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var process := ParticleProcessMaterial.new()
-		process.gravity = Vector3(0.0, 1.0, 0.0)
-		process.initial_velocity_max = 2.0
-		process.spread = 180.0
-		process.scale_min = 2.0
-		process.scale_max = 5.0
-		_smoke.process_material = process
-		var puff := SphereMesh.new()
-		puff.radius = 1.0
-		puff.height = 2.0
-		puff.radial_segments = 6
-		puff.rings = 3
-		var mat := StandardMaterial3D.new()
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = Color(0.06, 0.06, 0.06, 0.6)
-		puff.material = mat
-		_smoke.draw_pass_1 = puff
-		add_child(_smoke)
 
 	func _process(delta: float) -> void:
 		for prop in _props:
@@ -362,6 +322,15 @@ class SkyPlane extends Node3D:
 				look_at(global_position + heading, Vector3.UP)
 				rotation.z = roll
 		global_position += velocity * delta
+		if falling and is_instance_valid(_fx):
+			# Cae envuelto en llamas, dejando una estela de humo negro.
+			var size: float = _span * 0.16
+			_trail_due += delta * 26.0
+			while _trail_due >= 1.0:
+				_trail_due -= 1.0
+				var at: Vector3 = global_position - velocity * delta * randf() + Fx.ball() * size * 0.4
+				_fx.flame(at, velocity * 0.75, size * 1.3, 1.4)
+				_fx.black_smoke(at, velocity * 0.25 + Vector3.UP * 1.5, size * 1.5, randf_range(4.0, 6.5))
 		if falling and global_position.y <= 1.0:
 			var point := Vector3(global_position.x, 0.5, global_position.z)
 			Explosion.spawn(self, point, 3.0, VectorMaterials.ORANGE, true)
@@ -372,122 +341,61 @@ class SkyPlane extends Node3D:
 			queue_free()
 
 
-## Columna de humo negro donde ha caído un avión.
-class SmokeColumn extends GPUParticles3D:
-	var _life: float = 30.0
+## Columna de humo negro donde ha caído un avión: arde un rato y se va apagando.
+class SmokeColumn extends Node3D:
+	const TIME: float = 30.0
+
+	var _life: float = TIME
+	var _due: float = 0.0
+	var _fx: Fx
 
 	static func spawn(host: Node, point: Vector3) -> void:
 		var column := SmokeColumn.new()
-		column.amount = 40
-		column.lifetime = 9.0
-		column.local_coords = false
-		column.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		column.visibility_aabb = AABB(Vector3(-60.0, -5.0, -60.0), Vector3(120.0, 140.0, 120.0))
-		var process := ParticleProcessMaterial.new()
-		process.direction = Vector3(0.25, 1.0, 0.0)
-		process.spread = 12.0
-		process.gravity = Vector3.ZERO
-		process.initial_velocity_min = 6.0
-		process.initial_velocity_max = 10.0
-		process.scale_min = 4.0
-		process.scale_max = 11.0
-		column.process_material = process
-		var puff := SphereMesh.new()
-		puff.radius = 1.0
-		puff.height = 2.0
-		puff.radial_segments = 6
-		puff.rings = 3
-		var mat := StandardMaterial3D.new()
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = Color(0.05, 0.05, 0.05, 0.55)
-		puff.material = mat
-		column.draw_pass_1 = puff
 		host.add_child(column)
 		column.global_position = point
 
 	func _process(delta: float) -> void:
 		_life -= delta
-		if _life <= 9.0:
-			emitting = false
 		if _life <= 0.0:
 			queue_free()
+			return
+		if not is_instance_valid(_fx):
+			_fx = Fx.on(self)
+		var burn: float = clampf(_life / (TIME * 0.5), 0.0, 1.0)
+		_due += delta * 5.0 * maxf(burn, 0.3)
+		while _due >= 1.0:
+			_due -= 1.0
+			var at: Vector3 = global_position + Vector3(randf_range(-3.0, 3.0), randf_range(1.0, 3.0), randf_range(-3.0, 3.0))
+			_fx.black_smoke(at, Vector3(randf_range(-0.5, 0.5), randf_range(5.0, 8.0), randf_range(-0.5, 0.5)), randf_range(4.5, 7.5), randf_range(7.0, 9.0))
+			if burn > 0.3:
+				_fx.flame(at, Vector3.ZERO, randf_range(3.0, 5.0) * burn, 1.3)
 
 
-## Estallido de un proyectil antiaéreo: fogonazo, nubecilla negra que se queda flotando y el
-## estampido, que llega más tarde cuanto más lejos está (el sonido viaja a 343 m/s).
+## Estallido de un proyectil antiaéreo: fogonazo, metralla y nubecilla negra que se queda
+## flotando (los pone Fx), y el estampido, que llega más tarde cuanto más lejos está (el sonido
+## viaja a 343 m/s).
 class FlakBurst extends Node3D:
 	var _time: float = 0.0
-	var _flash: MeshInstance3D
-	var _flash_mat: StandardMaterial3D
-	var _puff: MeshInstance3D
-	var _puff_mat: StandardMaterial3D
-	var _light: OmniLight3D
 	var _size: float = 1.0
 	var _boom_at: float = 0.0
-	var _boomed: bool = false
 
 	static func spawn(host: Node, point: Vector3, size: float) -> void:
 		var burst := FlakBurst.new()
 		burst._size = size
+		# Antes de entrar en el árbol: _ready ya necesita saber dónde estalla.
+		burst.position = point
 		host.add_child(burst)
-		burst.global_position = point
 
 	func _ready() -> void:
-		_flash = MeshInstance3D.new()
-		var ball := SphereMesh.new()
-		ball.radius = 2.2 * _size
-		ball.height = 4.4 * _size
-		ball.radial_segments = 8
-		ball.rings = 4
-		_flash.mesh = ball
-		_flash_mat = StandardMaterial3D.new()
-		_flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_flash_mat.albedo_color = Color(1.0, 0.92, 0.65)
-		_flash_mat.disable_fog = true
-		_flash.material_override = _flash_mat
-		_flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(_flash)
-		_puff = MeshInstance3D.new()
-		var cloud := SphereMesh.new()
-		cloud.radius = 1.8 * _size
-		cloud.height = 3.2 * _size
-		cloud.radial_segments = 8
-		cloud.rings = 4
-		_puff.mesh = cloud
-		_puff_mat = StandardMaterial3D.new()
-		_puff_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_puff_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_puff_mat.albedo_color = Color(0.07, 0.07, 0.07, 0.0)
-		_puff.material_override = _puff_mat
-		_puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(_puff)
-		_light = OmniLight3D.new()
-		_light.light_color = Color(1.0, 0.85, 0.55)
-		_light.omni_range = 70.0 * _size
-		_light.light_energy = 5.0
-		add_child(_light)
+		Fx.on(self).airburst(global_position, _size)
 		var camera: Camera3D = get_viewport().get_camera_3d()
 		if camera != null:
 			_boom_at = camera.global_position.distance_to(global_position) / 343.0
 
 	func _process(delta: float) -> void:
 		_time += delta
-		var flash: float = clampf(1.0 - _time / 0.14, 0.0, 1.0)
-		_flash.visible = flash > 0.0
-		_flash_mat.albedo_color.a = flash
-		_light.light_energy = 5.0 * flash
-		_light.visible = flash > 0.0
-		# La nubecilla aparece con el fogonazo, crece despacio y se deshace.
-		var age: float = _time / 6.0
-		_puff.scale = Vector3.ONE * (1.0 + age * 2.2)
-		_puff_mat.albedo_color.a = clampf(_time / 0.1, 0.0, 1.0) * 0.75 * (1.0 - age)
-		_puff.position.x += delta * 1.2
-		if not _boomed and _time >= _boom_at:
-			_boomed = true
+		if _time >= _boom_at:
 			var distance: float = _boom_at * 343.0
 			# Estampido seco de cerca, sordo y grave de lejos.
 			Sfx.play_at(self, Sfx.FLAK, global_position, 14.0 if distance < 320.0 else 20.0, 1.0 if distance < 320.0 else 0.7)
-		if _time >= 6.0:
 			queue_free()

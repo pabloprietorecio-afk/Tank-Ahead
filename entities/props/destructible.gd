@@ -44,7 +44,10 @@ func take_hit(amount: float, _source: Node = null, point: Vector3 = Vector3.ZERO
 		get_tree().call_group(&"game_mode", &"penalize", _source)
 	if point == Vector3.ZERO:
 		point = global_position + Vector3.UP
-	Explosion.spawn(self, point, 0.35, debris_color, true)
+	# Polvo y astillas del material, que saltan hacia fuera del objeto.
+	var away: Vector3 = point - (global_position + Vector3.UP * size_hint * 0.5)
+	away.y = maxf(away.y, 0.0)
+	Fx.on(self).chips(point, away.normalized() if away.length_squared() > 0.01 else Vector3.UP, debris_color, clampf(size_hint * 0.5, 0.6, 1.3))
 	if indestructible:
 		return
 	_last_source = _source
@@ -56,7 +59,18 @@ func take_hit(amount: float, _source: Node = null, point: Vector3 = Vector3.ZERO
 func _destroy() -> void:
 	is_destroyed = true
 	collision_layer = 0
-	Explosion.spawn(self, global_position + Vector3.UP * size_hint, clampf(size_hint * 0.6, 0.5, 2.0), debris_color)
+	var strength: float = clampf(size_hint * 0.6, 0.5, 2.0)
+	var center: Vector3 = global_position + Vector3.UP * size_hint * 0.5
+	if blast_radius > 0.0:
+		# Combustible: revienta con fuego.
+		Fx.on(self).fuel_blast(center, maxf(strength, 1.0))
+	else:
+		# Lo demás se viene abajo entre polvo y cascotes de su material.
+		Fx.on(self).rubble(center, size_hint, debris_color)
+	if strength < 0.8 and blast_radius <= 0.0:
+		Sfx.play_at(self, Sfx.HIT, center, 2.0)
+	else:
+		Sfx.play_at(self, Sfx.EXPLOSION, center, 6.0, 1.1 / clampf(strength, 0.8, 2.0))
 	destroyed.emit(self)
 	remove_from_group(&"radar_marks")
 	if destroy_sound != null:

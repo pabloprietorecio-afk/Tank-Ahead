@@ -16,6 +16,8 @@ static var mission_index: int = 0
 static var front: int = Fronts.Id.NORMANDY
 ## Página con la que debe abrirse el menú principal la próxima vez ("" = la normal).
 static var menu_page: String = ""
+## Clima forzado para pruebas y capturas (Weather.Kind); -1 = el que toque.
+static var debug_weather: int = -1
 
 
 static func enemy_faction() -> int:

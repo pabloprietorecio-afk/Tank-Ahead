@@ -188,6 +188,24 @@ func _build_pause_and_history() -> void:
 		GameSettings.save()
 		for node in get_tree().get_nodes_in_group(&"tanks"):
 			(node as Tank).refresh_highlight()))
+	var effects := _button("", 22)
+	effects.custom_minimum_size = Vector2(0.0, 54.0)
+	_refresh_effects = func() -> void:
+		var text: String = "EFECTOS GRÁFICOS: %s" % GameSettings.EFFECTS_NAMES[GameSettings.effects]
+		var in_use: int = Fx.on(self).level()
+		if in_use < GameSettings.effects:
+			# El juego los ha bajado solo porque el teléfono no llegaba.
+			text += " (ahora en %s: iba lento)" % GameSettings.EFFECTS_NAMES[in_use]
+		effects.text = text
+	effects.pressed.connect(func() -> void:
+		# ALTOS → MEDIOS → BAJOS → ALTOS.
+		GameSettings.effects = (GameSettings.effects + 2) % 3
+		GameSettings.save()
+		Fx.quality = GameSettings.effects
+		Fx.on(self).set_level(GameSettings.effects)
+		_refresh_effects.call())
+	_refresh_effects.call()
+	options.add_child(effects)
 	options.add_child(_make_toggle("Sombras (desactivar si va lento)", GameSettings.shadows, func(on: bool) -> void:
 		GameSettings.shadows = on
 		GameSettings.save()
@@ -230,6 +248,8 @@ func _build_pause_and_history() -> void:
 
 
 var _zoom_button: Button
+## Pone al día el texto del botón EFECTOS (el nivel puede haber bajado solo durante la partida).
+var _refresh_effects: Callable
 var _missile_button: Button
 var _strike_button: Button
 var _binocular_mask: ColorRect
@@ -295,6 +315,8 @@ func _set_paused(paused: bool) -> void:
 	if director.is_over:
 		return
 	get_tree().paused = paused
+	if paused and _refresh_effects.is_valid():
+		_refresh_effects.call()
 	move_child(_pause_panel, -1)
 	_pause_panel.visible = paused
 	_history_panel.visible = false

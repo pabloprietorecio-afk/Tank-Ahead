@@ -33,6 +33,7 @@ func _ready() -> void:
 	if _mode.wants_scenery():
 		_build_scenery()
 	_spawn_player(spawn)
+	Fx.on(self).player = _player
 	_mode.is_free_point = func(p: Vector2) -> bool:
 		for rect in _obstacle_rects:
 			if rect.has_point(p):
@@ -385,6 +386,8 @@ func _build_weather() -> void:
 	add_child(weather)
 	var options: Array[int] = Fronts.weathers(GameSession.front)
 	var kind: int = _mode.forced_weather()
+	if GameSession.debug_weather >= 0:
+		kind = GameSession.debug_weather
 	if kind < 0:
 		kind = options[_rng.randi() % options.size()]
 	weather.setup(_env, _sky_material, _sun, _player, VectorMaterials.ground(), kind, GameSession.front)

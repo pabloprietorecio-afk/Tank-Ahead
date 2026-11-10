@@ -170,14 +170,19 @@ func _fit() -> void:
 		gap -= 1
 		over -= maxi(shown - 1, 0)
 	_content.add_theme_constant_override("separation", gap)
-	if over <= 0.0 or rows.is_empty():
-		return
-	var cut: float = ceilf(over / rows.size())
-	for row in rows:
-		var height: float = maxf(row.custom_minimum_size.y - cut, ROW_MIN)
-		row.custom_minimum_size.y = height
-		if height < 62.0 and row.get_theme_font_size("font_size") > 24:
-			row.add_theme_font_size_override("font_size", 24)
+	# Se reparte el recorte entre las filas que aún pueden encogerse (varias pasadas: las que
+	# llegan al mínimo dejan su parte a las demás).
+	for step in 4:
+		var loose: Array[Button] = rows.filter(func(row: Button) -> bool: return row.custom_minimum_size.y > ROW_MIN)
+		if over <= 0.0 or loose.is_empty():
+			break
+		var cut: float = ceilf(over / loose.size())
+		for row in loose:
+			var height: float = maxf(row.custom_minimum_size.y - cut, ROW_MIN)
+			over -= row.custom_minimum_size.y - height
+			row.custom_minimum_size.y = height
+			if height < 62.0 and row.get_theme_font_size("font_size") > 24:
+				row.add_theme_font_size_override("font_size", 24)
 
 
 func _button(text: String, action: Callable, enabled: bool = true) -> Button:
@@ -241,6 +246,17 @@ func _page_audio() -> void:
 		GameSettings.save()
 		refresh.call())
 	refresh.call()
+	var effects: Button = _button("", func() -> void: pass)
+	var refresh_effects: Callable = func() -> void:
+		effects.text = "EFECTOS GRÁFICOS: %s" % GameSettings.EFFECTS_NAMES[GameSettings.effects]
+	effects.pressed.connect(func() -> void:
+		# ALTOS → MEDIOS → BAJOS → ALTOS.
+		GameSettings.effects = (GameSettings.effects + 2) % 3
+		GameSettings.save()
+		Fx.quality = GameSettings.effects
+		Fx.on(self).set_level(GameSettings.effects)
+		refresh_effects.call())
+	refresh_effects.call()
 	var highlight := CheckButton.new()
 	highlight.text = "Destacar enemigos (borde azul)"
 	highlight.button_pressed = GameSettings.highlight_enemies

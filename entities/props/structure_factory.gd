@@ -53,32 +53,13 @@ static func _cylinder(parent: Node3D, radius: float, height: float, pos: Vector3
 
 
 static func _smoke(parent: Node3D, pos: Vector3, dark: bool = true) -> void:
-	var particles := GPUParticles3D.new()
-	particles.amount = 24
-	particles.lifetime = 5.0
-	particles.preprocess = 5.0
-	particles.position = pos
-	var process := ParticleProcessMaterial.new()
-	process.direction = Vector3(0.3, 1.0, 0.0)
-	process.spread = 10.0
-	process.initial_velocity_min = 2.0
-	process.initial_velocity_max = 3.0
-	process.gravity = Vector3(0.6, 0.2, 0.0)
-	process.scale_min = 1.0
-	process.scale_max = 3.0
-	particles.process_material = process
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.9
-	mesh.height = 1.8
-	mesh.radial_segments = 6
-	mesh.rings = 3
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.15, 0.14, 0.13, 0.5) if dark else Color(0.8, 0.8, 0.8, 0.4)
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mesh.material = mat
-	particles.draw_pass_1 = mesh
-	particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(particles)
+	var vent := FxVent.new()
+	vent.position = pos
+	vent.rate = 3.5
+	vent.size = 1.3
+	vent.rise = 2.6
+	vent.color = Fx.DARK_SMOKE if dark else Color(0.5, 0.5, 0.5, 0.55)
+	parent.add_child(vent)
 
 
 static func _prize(prop: Destructible, name: String, points: int) -> Destructible:

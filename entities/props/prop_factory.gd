@@ -17,7 +17,7 @@ static var mountain_color: Color = Color(0.33, 0.31, 0.27)
 
 
 static func block(size: Vector3) -> Destructible:
-	var prop := _base(clampf(size.x * size.y * size.z * 0.15, 60.0, 400.0), Color(0.4, 0.8, 0.45), size.y * 0.3)
+	var prop := _base(clampf(size.x * size.y * size.z * 0.15, 60.0, 400.0), Color(0.62, 0.6, 0.55), size.y * 0.3)
 	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
 	# Edificios altos con plantas y ventanas; bloques bajos con paneles.
 	var mesh := VectorMaterials.make_box(size, CONCRETE if size.y > 8.0 else CONCRETE.darkened(0.15), 1 if size.y > 8.0 else 0, 3.0 if size.y > 8.0 else 2.0)

@@ -21,6 +21,10 @@ var _lightning_timer: float = 10.0
 var _flash: float = 0.0
 var _sun_energy: float = 1.0
 var _front: int = 0
+## Luz ambiente que reciben el humo y el polvo (lineal), para devolverla tras un relámpago.
+var _fx_sun: Color
+var _fx_ambient: Color
+var _fx_fog: float = 0.0
 
 
 func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: DirectionalLight3D, target: Node3D, ground: ShaderMaterial, forced: int = -1, front: int = 0) -> void:
@@ -67,6 +71,38 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 			_make_particles(700, Vector3(0.14, 0.14, 0.14), Color(0.95, 0.97, 1.0), Vector3(1.5, -4.0, 0.5), 7.0)
 
 
+## Dice a los efectos cómo es la luz de esta partida (para que el humo y el polvo se iluminen
+## como el resto de la escena), de qué color es el polvo del frente, cuánto se levanta con
+## este tiempo y hacia dónde sopla el viento.
+func _setup_effects(top: Color, horizon: Color, light: Color, energy: float, fog: float) -> void:
+	_fx_sun = light.srgb_to_linear() * energy
+	_fx_ambient = top.lerp(horizon, 0.55).srgb_to_linear() * 0.6 + Color(0.015, 0.015, 0.015)
+	_fx_fog = fog
+	Fx.set_lighting(sun.global_basis.z, _fx_sun, _fx_ambient, fog)
+	var fx: Fx = Fx.on(self)
+	var dirt: Color = Fronts.ground_colors(_front)[2]
+	var desert: bool = _front == Fronts.Id.AFRICA
+	fx.soil = dirt.darkened(0.3).srgb_to_linear()
+	fx.dust = dirt.lerp(Color(0.56, 0.53, 0.48), 0.4).srgb_to_linear()
+	fx.dustiness = 1.4 if desert else 1.0
+	var gust: float = 2.0
+	match kind:
+		Kind.FOG:
+			fx.dustiness = 1.6 if desert else 0.8
+			gust = 6.0 if desert else 0.8
+		Kind.RAIN:
+			# Suelo mojado: apenas hay polvo, y el poco que salta es barro oscuro.
+			fx.dust = dirt.darkened(0.35).srgb_to_linear()
+			fx.dustiness = 0.15
+			gust = 3.5
+		Kind.SNOW:
+			fx.dust = Color(0.78, 0.81, 0.86).srgb_to_linear()
+			fx.dustiness = 0.7
+			gust = 1.5
+	var heading: float = randf() * TAU
+	fx.set_wind(Vector3(cos(heading), 0.0, sin(heading)) * gust * randf_range(0.7, 1.2))
+
+
 func display_name() -> String:
 	if kind == Kind.FOG and _front == Fronts.Id.AFRICA:
 		return "TORMENTA DE ARENA"
@@ -84,6 +120,7 @@ func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float,
 	_sun_energy = energy
 	environment.fog_density = fog
 	environment.fog_light_color = fog_color
+	_setup_effects(top, horizon, light, energy, fog)
 
 
 func _make_particles(amount: int, drop: Vector3, color: Color, velocity: Vector3, lifetime: float) -> void:
@@ -126,3 +163,5 @@ func _process(delta: float) -> void:
 		var strength: float = _flash * (0.6 + 0.4 * sin(_flash * 40.0))
 		sun.light_energy = _sun_energy + strength * 3.0
 		environment.ambient_light_energy = 0.6 + strength * 2.0
+		# El relámpago alumbra también el humo y el polvo.
+		Fx.set_lighting(sun.global_basis.z, _fx_sun, _fx_ambient + Color(0.5, 0.55, 0.65) * strength, _fx_fog)
