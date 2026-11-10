@@ -18,7 +18,20 @@ func _pick() -> void:
 		_waypoint = brain.patrol_point()
 
 
+func exit() -> void:
+	brain.tank.trigger_held = false
+
+
 func update(delta: float) -> void:
+	if brain.focus_objective and brain.objective != Vector3.INF:
+		# La orden es lo primero: a toda marcha hasta el punto exacto, disparando sobre la marcha.
+		_stuck += delta
+		if fmod(_stuck, 1.0) < delta:
+			_waypoint = brain.patrol_point()
+		brain.drive_to(_waypoint, 1.0, 1.5)
+		if not brain.fire_on_the_move(delta):
+			brain.tank.turret_controller.aim_yaw(brain.tank.global_rotation.y)
+		return
 	if brain.perception.can_see:
 		machine.change_to(&"Chase")
 		return

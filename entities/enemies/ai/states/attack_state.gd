@@ -37,7 +37,7 @@ func update(delta: float) -> void:
 		return
 	_aim_timer -= delta
 	if _aim_timer <= 0.0:
-		_aim_timer = 0.6
+		_aim_timer = brain.aim_interval
 		brain.aim_with_error()
 		if randf() < 0.3:
 			_side = -_side

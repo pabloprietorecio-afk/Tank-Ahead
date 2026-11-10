@@ -19,6 +19,13 @@ var objective: Vector3 = Vector3.INF
 var hunt: bool = true
 ## Distancia a la que se queda del objetivo al llegar (defensores: patrullan alrededor).
 var objective_radius: float = 6.0
+## La orden es lo primero: va a su objetivo sin desviarse a perseguir a nadie, disparando sobre
+## la marcha a quien tenga a tiro (ir a por la bandera, llevarla a casa).
+var focus_objective: bool = false
+## Enemigo al que debe ir a por él antes que a cualquier otro (quien lleva nuestra bandera).
+var priority_target: Tank = null
+## Segundos entre correcciones de puntería: los reflejos del tirador (lo ajusta la dificultad).
+var aim_interval: float = 0.6
 
 ## Navegación con rodeo de obstáculos (la usan los tanques del bando del jugador). Dos capas:
 ## una ruta sobre el mapa de celdas (NavGrid), que evita edificios, setos, colinas y callejones
@@ -42,6 +49,7 @@ const ALERT_RANGE_BOOST: float = 1.6
 ## Los compañeros a esta distancia se enteran cuando a uno le aciertan.
 const ALERT_RADIUS: float = 75.0
 var _alert: float = 0.0
+var _move_aim: float = 0.0
 
 var _avoid_sign: float = 1.0
 var _avoid_timer: float = 0.0
@@ -105,7 +113,36 @@ func has_target() -> bool:
 	return is_instance_valid(target) and not target.is_destroyed
 
 
+## Da una orden nueva. Con `focus` deja lo que esté haciendo y va directo a cumplirla.
+func order(point: Vector3, radius: float, focus: bool = false, priority: Tank = null) -> void:
+	objective = point
+	objective_radius = radius
+	priority_target = priority
+	if focus and not focus_objective and machine.current_name != &"Destroyed" and machine.current_name != &"Patrol":
+		focus_objective = true
+		machine.change_to(&"Patrol")
+	focus_objective = focus
+
+
+## Dispara sobre la marcha al objetivo actual si lo ve y lo tiene a tiro. Devuelve si apunta a alguien.
+func fire_on_the_move(delta: float) -> bool:
+	if not has_target() or not perception.can_see:
+		tank.trigger_held = false
+		return false
+	_move_aim -= delta
+	if _move_aim <= 0.0:
+		_move_aim = aim_interval
+		aim_with_error()
+	tank.trigger_held = perception.distance <= tank.stats.attack_range * 1.25 and tank.turret_controller.is_aligned(deg_to_rad(tank.stats.fire_cone_deg))
+	return true
+
+
 func _choose_target() -> void:
+	if is_instance_valid(priority_target) and not priority_target.is_destroyed:
+		var reach: float = tank.stats.detect_range * maxf(perception.range_boost, 1.3)
+		if tank.global_position.distance_to(priority_target.global_position) <= reach and perception.line_of_sight(priority_target):
+			_set_target(priority_target)
+			return
 	var best: Tank = null
 	var best_dist: float = INF
 	var nearest_any: Tank = null
@@ -426,6 +463,9 @@ func alert(attacker: Tank, direct: bool) -> void:
 		perception.reveal(attacker.global_position)
 	_alert = ALERT_TIME
 	perception.range_boost = ALERT_RANGE_BOOST
+	if focus_objective:
+		# Con una orden que cumplir no se desvía: devuelve el fuego sobre la marcha.
+		return
 	var current: StringName = machine.current_name
 	if current == &"Idle" or current == &"Patrol":
 		machine.change_to(&"Search")

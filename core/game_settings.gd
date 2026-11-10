@@ -28,11 +28,17 @@ static var master_volume: float = 1.0
 ## Dificultad: 0 fácil, 1 normal, 2 difícil, 3 inferno.
 const DIFFICULTY_NAMES: Array[String] = ["FÁCIL", "NORMAL", "DIFÍCIL", "INFERNO"]
 const DIFFICULTY_HINTS: Array[String] = [
-	"Aparecen pocos enemigos nuevos en cada misión",
+	"Pocos enemigos; apuntan mal y tardan en reaccionar",
 	"Los enemigos de siempre",
-	"Un enemigo más en cada tanda de refuerzos",
-	"Dos enemigos más en cada tanda de refuerzos",
+	"Un enemigo más por tanda; apuntan y recargan mejor",
+	"Dos enemigos más por tanda; puntería y reflejos de veterano",
 ]
+## Pericia de las tripulaciones enemigas por dificultad: error de puntería, tiempo de recarga,
+## alcance de visión y segundos entre correcciones de puntería (reflejos).
+const SKILL_AIM_ERROR: Array[float] = [1.7, 1.0, 0.7, 0.45]
+const SKILL_RELOAD: Array[float] = [1.3, 1.0, 0.9, 0.8]
+const SKILL_SIGHT: Array[float] = [0.85, 1.0, 1.1, 1.2]
+const SKILL_AIM_INTERVAL: Array[float] = [1.0, 0.6, 0.45, 0.3]
 static var difficulty: int = 1
 
 ## Dibuja un borde azul alrededor de los tanques enemigos para verlos mejor.

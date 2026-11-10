@@ -53,8 +53,10 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		_build_base(team)
 	for team in [PLAYER_TEAM, ENEMY_TEAM]:
 		var count: int = TEAM_SIZE - (1 if team == PLAYER_TEAM else 0)
+		# Atacantes por bando: dos de los tres aliados; del enemigo, según la dificultad.
+		var attackers: int = 2 if team == PLAYER_TEAM else [2, 3, 3, 4][GameSettings.difficulty]
 		for i in count:
-			_spawn_unit(team, "attack" if i < count / 2 + 1 else "defend")
+			_spawn_unit(team, "attack" if i < attackers else "defend")
 	message.emit("CAPTURA LA BANDERA ENEMIGA Y TRÁELA A TU BASE", true)
 
 
@@ -168,34 +170,49 @@ func _check_capture(flag: Flag) -> void:
 			finish(false, "DERROTA", "CAPTURAS %d — %d" % [captures[PLAYER_TEAM], captures[ENEMY_TEAM]])
 
 
+## Reparte órdenes a los tanques de la máquina de los dos bandos. Prioridades de cada equipo:
+## 1. quien lleva la bandera enemiga la trae a casa sin entretenerse;
+## 2. si el contrario lleva la nuestra, todos los demás van a por su portador;
+## 3. si la nuestra está caída, el más cercano va a tocarla para devolverla;
+## 4. los atacantes van directos a la bandera enemiga (o escoltan al compañero que la lleva);
+## 5. los defensores vigilan la base.
 func _give_orders() -> void:
-	for tank in _roles.keys():
-		if not is_instance_valid(tank) or tank.is_destroyed:
-			continue
-		var brain: AIBrain = tank.get_node("AIBrain")
-		var team: int = tank.team
+	for team in [PLAYER_TEAM, ENEMY_TEAM]:
 		var own_flag: Flag = flags[team]
 		var enemy_flag: Flag = flags[1 - team]
-		if enemy_flag.carrier == tank:
-			brain.objective = base_pos(team)
-			brain.objective_radius = 2.0
-		elif own_flag.state == Flag.Status.CARRIED:
-			# Recuperar nuestra bandera: todos a por el portador.
-			brain.objective = own_flag.global_position
-			brain.objective_radius = 2.0
-		elif own_flag.state == Flag.Status.DROPPED and _roles[tank] == "defend":
-			brain.objective = own_flag.global_position
-			brain.objective_radius = 1.0
-		elif _roles[tank] == "attack":
-			if enemy_flag.state == Flag.Status.CARRIED:
-				brain.objective = enemy_flag.global_position
-				brain.objective_radius = 10.0
+		var units: Array[Tank] = []
+		for tank: Variant in _roles.keys():
+			if is_instance_valid(tank) and not tank.is_destroyed and tank.team == team:
+				units.append(tank)
+		var rescuer: Tank = null
+		if own_flag.state == Flag.Status.DROPPED:
+			rescuer = _nearest(units, own_flag.global_position, enemy_flag.carrier)
+		for tank in units:
+			var brain: AIBrain = tank.get_node("AIBrain")
+			var attacker: bool = _roles[tank] == "attack"
+			if enemy_flag.carrier == tank:
+				brain.order(base_pos(team), 1.0, true)
+			elif own_flag.state == Flag.Status.CARRIED:
+				brain.order(own_flag.global_position, 4.0, false, own_flag.carrier)
+			elif tank == rescuer:
+				brain.order(own_flag.global_position, 1.0, true)
+			elif attacker and enemy_flag.state == Flag.Status.CARRIED and enemy_flag.carrier.team == team:
+				# Escolta: cerca del compañero que trae la bandera, peleando con quien se acerque.
+				brain.order(enemy_flag.global_position, 12.0)
+			elif attacker:
+				brain.order(enemy_flag.global_position, 1.0, true)
 			else:
-				brain.objective = enemy_flag.global_position
-				brain.objective_radius = 2.0
-		else:
-			brain.objective = own_flag.home
-			brain.objective_radius = 18.0
+				brain.order(own_flag.home, 18.0)
+
+
+func _nearest(units: Array[Tank], point: Vector3, except: Tank) -> Tank:
+	var best: Tank = null
+	for tank in units:
+		if tank == except:
+			continue
+		if best == null or tank.global_position.distance_to(point) < best.global_position.distance_to(point):
+			best = tank
+	return best
 
 
 func _time_up() -> void:

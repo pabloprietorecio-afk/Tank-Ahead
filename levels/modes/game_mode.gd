@@ -176,6 +176,14 @@ func status_text() -> String:
 
 ## Crea un tanque controlado por la máquina.
 func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> Tank:
+	var level: int = GameSettings.difficulty
+	if team == ENEMY_TEAM and level != 1:
+		# La dificultad cambia la pericia de las tripulaciones enemigas (en NORMAL, la de siempre).
+		stats = stats.duplicate()
+		stats.aim_error_deg *= GameSettings.SKILL_AIM_ERROR[level]
+		stats.reload_time *= GameSettings.SKILL_RELOAD[level]
+		stats.detect_range *= GameSettings.SKILL_SIGHT[level]
+		stats.lead_factor = minf(stats.lead_factor * (0.6 if level == 0 else 1.25), 1.0)
 	var tank := Tank.new()
 	tank.name = "Tank"
 	tank.stats = stats
@@ -188,6 +196,8 @@ func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> 
 	brain.name = "AIBrain"
 	tank.add_child(brain)
 	brain.setup(tank)
+	if team == ENEMY_TEAM:
+		brain.aim_interval = GameSettings.SKILL_AIM_INTERVAL[level]
 	# Todos los tanques, de los dos bandos, rodean los obstáculos y se desatascan solos.
 	brain.smart_nav = true
 	# El mapa de rutas empieza a rellenarse ya, antes de que haga falta.

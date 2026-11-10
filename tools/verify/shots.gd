@@ -58,6 +58,8 @@ class Runner extends Node:
 			await _tutorial_shots()
 		if only.contains("ai"):
 			await _ai_reaction()
+		if only.contains("ctf"):
+			await _ctf()
 		if only.contains("sky"):
 			await _sky()
 		if only == "" or only.contains("skyshots"):
@@ -752,6 +754,44 @@ class Runner extends Node:
 		print("AI RESULT tanques que no reaccionan al fuego: ", failures)
 		stage.queue_free()
 		await _frames(2)
+
+	## Captura la bandera jugada solo por la máquina (el jugador se queda parado en su base):
+	## los dos bandos tienen que coger la bandera contraria y alguien tiene que capturar.
+	func _ctf() -> void:
+		var pickups: Array[int] = [0, 0]
+		var captures: Array[int] = [0, 0]
+		for front in [Fronts.Id.NORMANDY, Fronts.Id.KURSK]:
+			GameSession.mode = GameSession.Mode.CTF
+			GameSession.front_choice = front
+			GameSession.faction = Fronts.Faction.ALLIES
+			GameSettings.ensure_loaded()
+			GameSettings.difficulty = 1
+			get_tree().change_scene_to_file("res://levels/arena.tscn")
+			await _frames(4)
+			var mode: CtfMode = get_tree().current_scene.get_node("GameMode") as CtfMode
+			mode.raid_interval = Vector2.ZERO
+			mode.player.health.invulnerable = true
+			Engine.time_scale = 6.0
+			var carried: Array[bool] = [false, false]
+			var time: float = 0.0
+			while time < 300.0 and not mode.is_over:
+				await get_tree().create_timer(0.5).timeout
+				time += 0.5
+				for team in 2:
+					# flags[team] es la bandera de ese bando: la coge el contrario.
+					var now: bool = mode.flags[team].state == Flag.Status.CARRIED
+					if now and not carried[team]:
+						pickups[1 - team] += 1
+					carried[team] = now
+			Engine.time_scale = 1.0
+			for team in 2:
+				captures[team] += mode.captures[team]
+			print("CTF %s en %d s: capturas aliadas %d, enemigas %d" % [Fronts.NAMES[front], roundi(time), mode.captures[0], mode.captures[1]])
+		print("CTF banderas cogidas: bando del jugador %d, bando enemigo %d | capturas %d y %d" % [pickups[0], pickups[1], captures[0], captures[1]])
+		# Las capturas dependen de cómo vaya el combate; lo exigible es que los dos bandos lleguen
+		# a coger la bandera contraria.
+		var ok: bool = pickups[0] > 0 and pickups[1] > 0
+		print("CTF RESULT la máquina juega a capturar: ", "OK" if ok else "NO")
 
 	func _secs(value: float) -> String:
 		return "a los %.0f s" % value if value >= 0.0 else "NUNCA"

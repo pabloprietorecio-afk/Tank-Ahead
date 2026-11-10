@@ -15,7 +15,9 @@ func enter(_previous: StringName) -> void:
 func update(delta: float) -> void:
 	_time += delta
 	brain.tank.turret_controller.aim_yaw(brain.tank.global_rotation.y + sin(_time * 0.8) * 1.0)
-	if brain.perception.can_see:
+	if brain.focus_objective:
+		machine.change_to(&"Patrol")
+	elif brain.perception.can_see:
 		machine.change_to(&"Chase")
 	elif _time >= _duration:
 		machine.change_to(&"Patrol")
