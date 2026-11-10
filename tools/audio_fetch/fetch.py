@@ -17,7 +17,6 @@ FILES = {
     "hitler_1943": ("Hit43.ogg", "de", None),
     "hitler_x": ("Hit.ogg", "de", None),
     "hitler_1935": ("Adolf Hitler Speech in 1935.ogg", "de", None),
-    "goebbels_1943": ("Joseph Goebbels Rede im Berliner Sportpalast 1943.ogg", "de", None),
     "tank_centurion_ride": ("Centurion tank, starten, rijden en stoppen - SoundCloud - Beeld en Geluid.ogg", None, None),
     "tank_centurion_idle": ("Centurion tank, stationair, pompen en afschakelen - SoundCloud - Beeld en Geluid.ogg", None, None),
     "tank_sherman_idle": ("Sherman tank, rijden, stationair en stoppen - SoundCloud - Beeld en Geluid.ogg", None, None),
@@ -34,7 +33,7 @@ FILES = {
 os.makedirs("audio_raw", exist_ok=True)
 log = open("audio_raw/README.txt", "w")
 model = None
-for key, (name, lang, window) in FILES.items():
+for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][1] is not None):
     url = "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(name)
     source = "source_" + key
     ok = False
