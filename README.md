@@ -16,7 +16,9 @@ primera vez que se abre el juego y está siempre en el menú. Lo ofrecido y lo c
 guardan en la sección `tutorial` de `user://progress.cfg`.
 
 ## Sonidos de motor
-Los bucles de motor (tanques, orugas, aviones) se generan con `python3 tools/sound_gen/make_sounds.py`.
+Los motores de tanque y de avión son grabaciones reales (ver `assets/audio/CREDITS.md`).
+`tools/audio_fetch` las descarga de Wikimedia Commons desde GitHub Actions (rama `audio`) y
+`python3 tools/sound_gen/real_loop.py` convierte un tramo estable en un bucle sin costura.
 
 ## Comprobación
 Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones nuevas, la navegación de los tanques aliados y el tutorial completo

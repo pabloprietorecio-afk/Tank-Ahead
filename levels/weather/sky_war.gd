@@ -19,10 +19,10 @@ const TYPES: Dictionary = {
 const AIRCRAFT: Dictionary = {
 	Fronts.Id.NORMANDY: {
 		Fronts.Faction.ALLIES: [["P-51 MUSTANG", "fighter", 3.0], ["P-47 THUNDERBOLT", "fighter", 2.0], ["HAWKER TYPHOON", "attack", 2.0], ["B-26 MARAUDER", "medium", 2.0], ["B-17", "heavy", 2.0]],
-		Fronts.Faction.AXIS: [["BF 109", "fighter", 2.0], ["FW 190", "fighter", 2.0]],
+		Fronts.Faction.AXIS: [["BF 109", "fighter", 2.0], ["FW 190", "fighter", 2.0], ["FW 190 F", "attack", 1.0], ["JU 88", "medium", 0.5]],
 	},
 	Fronts.Id.AFRICA: {
-		Fronts.Faction.ALLIES: [["HURRICANE", "fighter", 3.0], ["SPITFIRE", "fighter", 2.0], ["P-40 KITTYHAWK", "fighter", 2.0], ["BLENHEIM", "medium", 2.0]],
+		Fronts.Faction.ALLIES: [["HURRICANE", "fighter", 3.0], ["SPITFIRE", "fighter", 2.0], ["P-40 KITTYHAWK", "fighter", 2.0], ["HURRICANE IID", "attack", 1.0], ["BLENHEIM", "medium", 2.0]],
 		Fronts.Faction.AXIS: [["BF 109", "fighter", 3.0], ["JU 87 STUKA", "attack", 3.0], ["JU 88", "medium", 2.0]],
 	},
 	Fronts.Id.KURSK: {
@@ -167,6 +167,32 @@ func _update_formation(formation: Dictionary, delta: float) -> void:
 			FlakBurst.spawn(self, plane.global_position, 1.6)
 			plane.shoot_down(self)
 			formation["doomed"] = null
+
+
+## Modelo [nombre, tipo] de un bando para los tipos pedidos, por orden de preferencia. Si en
+## ese frente el bando no tiene ninguno de ese tipo, se toma el de otro frente.
+static func pick_model(battle_front: int, faction: int, wanted: Array[String]) -> Array:
+	for type in wanted:
+		var found: Array = []
+		for option in AIRCRAFT[battle_front][faction]:
+			if option[1] == type:
+				found.append(option)
+		if found.is_empty():
+			for other in AIRCRAFT:
+				for option in AIRCRAFT[other][faction]:
+					if option[1] == type:
+						found.append(option)
+		if not found.is_empty():
+			return found.pick_random()
+	return AIRCRAFT[battle_front][faction][0]
+
+
+## Avión ya construido con la pintura de su bando en ese frente (sin añadir al árbol).
+static func make_plane(battle_front: int, faction: int, model: Array) -> SkyPlane:
+	var plane := SkyPlane.new()
+	var paint: Array = PAINT[faction][battle_front]
+	plane.build(model[0], TYPES[model[1]], paint[0], paint[1], faction)
+	return plane
 
 
 ## Fogonazos de baterías antiaéreas lejanas, cerca del horizonte.

@@ -16,9 +16,12 @@
     Merlin de un Spitfire Mk VIII/XVI, Temora Aviation Museum).
   - `plane_bomber.wav`: «McDonnell Douglas DC-3 Dakota, vliegen», Beeld en Geluid, **CC BY-SA 3.0**
     (bimotor de la época en vuelo).
-- Helicóptero: sintetizado por código (`tools/sound_gen/make_sounds.py`).
 - Música («menu_theme», «battle_theme»): composición original para este juego, interpretada con
   la fuente de sonido FluidR3_GM (licencia MIT) mediante FluidSynth.
+- Estampido de la antiaérea (`flak.ogg`): un disparo de «Sexton artillery firing» de
+  LouiseBrown1981 (Wikimedia Commons, **CC BY-SA 3.0**): cañón autopropulsado Sexton de 25 libras,
+  de la Segunda Guerra Mundial, disparando en Fort Nelson. Recortado y ecualizado; misma licencia.
+- Voz de radio «air_phase» (aviso de ataque aéreo): Kokoro TTS, voz «em_santa», con efecto de radio.
 - Radio del menú, bando alemán, partes militares (`radio_de_0` a `radio_de_3`): textos originales
   locutados con la voz «Thorsten» (Thorsten-Voice, dataset CC0) y Piper TTS. No son grabaciones de época.
 - Radio del menú, grabaciones de época (extractos recortados y filtrados como una emisora de onda

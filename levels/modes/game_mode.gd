@@ -103,7 +103,7 @@ func enemy_air_raid() -> void:
 	message.emit("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA", true)
 
 
-## Premio por derribar un avión o helicóptero: blindaje, misil o bombardeo.
+## Premio por derribar un avión enemigo: blindaje, misil o bombardeo.
 func air_reward(_where: Vector3) -> void:
 	score += 200
 	get_tree().call_group(&"voice", &"say", "shot_down", VoiceManager.Priority.HIGH)

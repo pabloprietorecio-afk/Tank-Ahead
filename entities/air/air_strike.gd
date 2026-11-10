@@ -53,7 +53,7 @@ func _ready() -> void:
 	set_meta("radar_color", color)
 	set_meta("radar_shape", "zone")
 	set_meta("radar_radius", radius)
-	Aircraft.fly_over(get_parent(), global_position, Color(0.3, 0.32, 0.3) if hostile_to_player else Color(0.35, 0.38, 0.25), 60.0)
+	Aircraft.fly_over(get_parent(), global_position, hostile_to_player, 60.0)
 
 
 func _disc(r: float, color: Color) -> MeshInstance3D:

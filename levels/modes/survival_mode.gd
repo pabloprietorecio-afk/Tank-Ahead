@@ -157,7 +157,7 @@ func _start_air_phase() -> void:
 	_air_spawned = 0
 	Engine.time_scale = SLOW_MOTION
 	player.set_air_mode(true)
-	message.emit("¡ATAQUE AÉREO! DERRIBA AVIONES, HELICÓPTEROS Y DIRIGIBLES", true)
+	message.emit("¡ATAQUE AÉREO! DERRIBA CAZAS, AVIONES DE ATAQUE Y BOMBARDEROS", true)
 	get_tree().call_group(&"voice", &"say", "air_phase", VoiceManager.Priority.CRITICAL)
 
 
@@ -170,11 +170,11 @@ func _update_air_phase(delta: float) -> void:
 	if _air_spawn_timer <= 0.0 and _air_spawned < 4 + wave / 2:
 		_air_spawn_timer = 1.6
 		_air_spawned += 1
-		var kind: int = AirTarget.Kind.PLANE
+		var kind: int = AirTarget.Kind.FIGHTER
 		if _air_spawned % 3 == 0:
-			kind = AirTarget.Kind.HELICOPTER
+			kind = AirTarget.Kind.ATTACK
 		elif _air_spawned == 2:
-			kind = AirTarget.Kind.AIRSHIP
+			kind = AirTarget.Kind.BOMBER
 		AirTarget.spawn(world, kind, player.global_position)
 
 

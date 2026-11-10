@@ -1,56 +1,39 @@
 class_name Aircraft
 extends Node3D
-## Avión de paso (solo visual): cruza el cielo en línea recta y desaparece.
+## Aviones de un bombardeo (solo visual): una cuña de tres aparatos de la época, del bando que
+## lo pide, cruza el cielo en línea recta sobre la zona y desaparece.
 
 const SPEED: float = 70.0
 
 var direction: Vector3 = Vector3.FORWARD
+var model: String = ""
 var _life: float = 9.0
 var _sound: FlybySound
 
 
-static func fly_over(host: Node, target: Vector3, color: Color, height: float = 55.0) -> Aircraft:
-	var plane := Aircraft.new()
+## `hostile`: bombardeo enemigo (aviones del bando contrario) o aliado (del nuestro).
+static func fly_over(host: Node, target: Vector3, hostile: bool, height: float = 55.0) -> Aircraft:
+	var flight := Aircraft.new()
 	var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU)
-	plane.direction = dir
-	host.add_child(plane)
-	plane.global_position = target - dir * SPEED * 3.0 + Vector3.UP * height
-	plane.look_at(plane.global_position + dir, Vector3.UP)
-	plane._build(color)
-	# Zumbido de varios motores que se acerca, pasa por encima y se aleja.
-	var sound := FlybySound.attach(plane, Sfx.PLANE_BOMBER, 9.0, 45.0, 700.0)
+	flight.direction = dir
+	host.add_child(flight)
+	flight.global_position = target - dir * SPEED * 3.0 + Vector3.UP * height
+	flight.look_at(flight.global_position + dir, Vector3.UP)
+	var faction: int = GameSession.enemy_faction() if hostile else GameSession.faction
+	# Bombarderos medios o aviones de ataque al suelo: lo que de verdad apoyaba a los tanques.
+	var choice: Array = SkyWar.pick_model(GameSession.front, faction, ["medium", "attack"])
+	var spec: Dictionary = SkyWar.TYPES[choice[1]]
+	flight.model = choice[0]
+	var gap: float = spec["span"] * 1.3
+	for offset in [Vector3.ZERO, Vector3(-gap, 1.5, gap * 0.9), Vector3(gap, 1.5, gap * 0.9)]:
+		var plane: SkyWar.SkyPlane = SkyWar.make_plane(GameSession.front, faction, choice)
+		plane.position = offset
+		flight.add_child(plane)
+	# Zumbido de los motores que se acerca, pasa por encima y se aleja.
+	var sound := FlybySound.attach(flight, Sfx.PLANE_BOMBER if spec["engines"] > 1 else Sfx.PLANE_FIGHTER, 9.0, 45.0, 700.0, 1.0 if spec["engines"] > 1 else 0.88)
 	sound.source_velocity = dir * SPEED
-	plane._sound = sound
-	return plane
-
-
-func _build(color: Color) -> void:
-	var body := MeshInstance3D.new()
-	var fuselage := CylinderMesh.new()
-	fuselage.top_radius = 0.5
-	fuselage.bottom_radius = 0.9
-	fuselage.height = 11.0
-	fuselage.radial_segments = 10
-	body.mesh = fuselage
-	body.material_override = VectorMaterials.textured(color, color.darkened(0.4), 4, 0.6)
-	body.rotation.x = PI * 0.5
-	add_child(body)
-	for part in [[Vector3(16.0, 0.2, 2.4), Vector3(0.0, 0.0, -0.5)], [Vector3(5.0, 0.15, 1.4), Vector3(0.0, 0.3, 5.0)], [Vector3(0.15, 2.0, 1.4), Vector3(0.0, 1.1, 5.0)]]:
-		var mesh := VectorMaterials.make_box(part[0], color, 4, 1.2)
-		mesh.position = part[1]
-		add_child(mesh)
-	for x in [-3.5, 3.5]:
-		var engine := MeshInstance3D.new()
-		var nacelle := CylinderMesh.new()
-		nacelle.top_radius = 0.45
-		nacelle.bottom_radius = 0.45
-		nacelle.height = 2.4
-		nacelle.radial_segments = 8
-		engine.mesh = nacelle
-		engine.material_override = VectorMaterials.textured(color.darkened(0.3), Color(0.1, 0.1, 0.1), 4, 0.4)
-		engine.rotation.x = PI * 0.5
-		engine.position = Vector3(x, -0.2, -1.6)
-		add_child(engine)
+	flight._sound = sound
+	return flight
 
 
 func _process(delta: float) -> void:

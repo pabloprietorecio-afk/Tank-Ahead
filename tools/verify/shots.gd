@@ -364,6 +364,22 @@ class Runner extends Node:
 			await get_tree().create_timer(4.0).timeout
 		await get_tree().create_timer(40.0).timeout
 		Engine.time_scale = 1.0
+		# Blancos de la fase antiaérea y aviones de bombardeo, de los dos bandos y en los tres frentes.
+		var targets: Array[String] = []
+		var strikes: Array[String] = []
+		for front in 3:
+			for faction in 2:
+				GameSession.front = front
+				GameSession.faction = faction
+				for kind in 3:
+					var target: AirTarget = AirTarget.spawn(_stage, kind, Vector3.ZERO)
+					targets.append(target.model)
+					target.health.apply_damage(1000.0, null)
+				for hostile in [false, true]:
+					strikes.append(Aircraft.fly_over(_stage, Vector3.ZERO, hostile).model)
+		await get_tree().create_timer(6.0).timeout
+		print("SKY blancos de la fase antiaérea: ", targets)
+		print("SKY aviones de bombardeo: ", strikes)
 		print("SKY modelos vistos: ", models.keys())
 		print("SKY RESULT derribos dentro del campo: %d de %d" % [sky.crashes_inside, sky.crashes])
 		if sky.crashes < 20:
@@ -401,6 +417,22 @@ class Runner extends Node:
 			if is_instance_valid(victim):
 				_look(Vector3(0.0, 3.0, 0.0), victim.global_position, 28.0)
 				await _snap(spec[2] + "_derribo")
+		# Fase antiaérea: un caza, un avión de ataque y un bombardero enemigos.
+		var shown: Array[AirTarget] = []
+		for kind in 3:
+			var target: AirTarget = AirTarget.spawn(arena, kind, Vector3.ZERO)
+			target._velocity = Vector3.ZERO
+			target.global_position = Vector3(-22.0 + kind * 22.0, 30.0, -70.0)
+			target.rotation = Vector3(0.0, PI * 0.5, 0.0)
+			shown.append(target)
+		_look(Vector3(0.0, 3.0, 0.0), Vector3(0.0, 30.0, -70.0), 50.0)
+		await _snap("sky_fase_antiaerea")
+		for target in shown:
+			target.queue_free()
+		var flight: Aircraft = Aircraft.fly_over(arena, Vector3(0.0, 0.0, -60.0), false)
+		await get_tree().create_timer(2.6).timeout
+		_look(Vector3(0.0, 3.0, 0.0), flight.global_position, 40.0)
+		await _snap("sky_bombardeo_aliado")
 		_look(Vector3(0.0, 3.0, 0.0), Vector3(0.0, 70.0, -200.0), 70.0)
 		for i in 4:
 			sky._distant_barrage()
