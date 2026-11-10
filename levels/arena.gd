@@ -30,7 +30,8 @@ func _ready() -> void:
 	_build_environment()
 	_build_ground()
 	_build_walls()
-	_build_scenery()
+	if _mode.wants_scenery():
+		_build_scenery()
 	_spawn_player(spawn)
 	_mode.is_free_point = func(p: Vector2) -> bool:
 		for rect in _obstacle_rects:
@@ -39,11 +40,12 @@ func _ready() -> void:
 		return true
 	add_child(_mode)
 	_build_weather()
-	var spawner := PickupSpawner.new()
-	spawner.name = "PickupSpawner"
-	spawner.player = _player
-	spawner.is_free_point = _mode.is_free_point
-	add_child(spawner)
+	if _mode.wants_pickups():
+		var spawner := PickupSpawner.new()
+		spawner.name = "PickupSpawner"
+		spawner.player = _player
+		spawner.is_free_point = _mode.is_free_point
+		add_child(spawner)
 	_build_ui()
 	var voice := VoiceManager.new()
 	voice.name = "VoiceManager"
@@ -61,6 +63,8 @@ func _create_mode() -> GameMode:
 			return CtfMode.new()
 		GameSession.Mode.STORY:
 			return StoryMode.new()
+		GameSession.Mode.TUTORIAL:
+			return TutorialMode.new()
 		_:
 			return SurvivalMode.new()
 
@@ -374,7 +378,10 @@ func _build_weather() -> void:
 	weather.name = "Weather"
 	add_child(weather)
 	var options: Array[int] = Fronts.weathers(GameSession.front)
-	weather.setup(_env, _sky_material, _sun, _player, VectorMaterials.ground(), options[_rng.randi() % options.size()], GameSession.front)
+	var kind: int = _mode.forced_weather()
+	if kind < 0:
+		kind = options[_rng.randi() % options.size()]
+	weather.setup(_env, _sky_material, _sun, _player, VectorMaterials.ground(), kind, GameSession.front)
 
 
 func _build_ui() -> void:
@@ -406,4 +413,5 @@ func _build_ui() -> void:
 	_hud.input_source = input_source
 	_hud.weather = get_node("Weather")
 	layer.add_child(_hud)
+	_mode.bind_ui(_hud, touch, radar, input_source)
 

@@ -1,9 +1,9 @@
 class_name GameSession
 ## Elecciones del menú (modo, bando, frente, misión) y progreso de la campaña.
 
-enum Mode { SURVIVAL, CTF, STORY }
+enum Mode { SURVIVAL, CTF, STORY, TUTORIAL }
 
-const MODE_NAMES: Array[String] = ["SUPERVIVENCIA", "CAPTURA LA BANDERA", "HISTORIA"]
+const MODE_NAMES: Array[String] = ["SUPERVIVENCIA", "CAPTURA LA BANDERA", "HISTORIA", "TUTORIAL"]
 const FRONT_MIXED: int = 3
 const PROGRESS_PATH: String = "user://progress.cfg"
 
@@ -14,6 +14,8 @@ static var front_choice: int = Fronts.Id.NORMANDY
 static var mission_index: int = 0
 ## Frente de la partida en curso (resuelto a partir de front_choice).
 static var front: int = Fronts.Id.NORMANDY
+## Página con la que debe abrirse el menú principal la próxima vez ("" = la normal).
+static var menu_page: String = ""
 
 
 static func enemy_faction() -> int:
@@ -22,7 +24,9 @@ static func enemy_faction() -> int:
 
 ## Decide el frente de esta partida (en mezcla: el de la misión o uno al azar).
 static func resolve_front() -> void:
-	if mode == Mode.STORY:
+	if mode == Mode.TUTORIAL:
+		front = Fronts.Id.NORMANDY
+	elif mode == Mode.STORY:
 		front = current_mission().get("front", Fronts.Id.NORMANDY)
 	elif front_choice == FRONT_MIXED:
 		front = randi() % 3
@@ -70,3 +74,25 @@ static func record_wave(wave: int) -> void:
 	if wave > cfg.get_value("survival", "best_wave", 0):
 		cfg.set_value("survival", "best_wave", wave)
 		cfg.save(PROGRESS_PATH)
+
+
+## Tutorial: si ya se ofreció al abrir el juego y si se ha completado alguna vez.
+static func tutorial_offered() -> bool:
+	var cfg := ConfigFile.new()
+	cfg.load(PROGRESS_PATH)
+	return cfg.get_value("tutorial", "offered", false)
+
+
+static func tutorial_completed() -> bool:
+	var cfg := ConfigFile.new()
+	cfg.load(PROGRESS_PATH)
+	return cfg.get_value("tutorial", "completed", false)
+
+
+static func mark_tutorial(key: String) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(PROGRESS_PATH)
+	if cfg.get_value("tutorial", key, false):
+		return
+	cfg.set_value("tutorial", key, true)
+	cfg.save(PROGRESS_PATH)

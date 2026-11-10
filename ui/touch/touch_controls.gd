@@ -12,6 +12,15 @@ const LEFT_ZONE_FRACTION: float = 0.45
 var move_vector: Vector2 = Vector2.ZERO
 var fire_held: bool = false
 
+## El tutorial apaga FIRE hasta que toca enseñarlo (atenuado y sin responder).
+var fire_enabled: bool = true:
+	set(value):
+		fire_enabled = value
+		if not value:
+			_fire_id = -1
+			fire_held = false
+		queue_redraw()
+
 ## Controles de la interfaz (botones, paneles) cuyos toques no se usan para conducir ni apuntar.
 var exclusions: Array[Control] = []
 
@@ -43,6 +52,11 @@ func _fire_center() -> Vector2:
 	return _screen_size() - Vector2(FIRE_MARGIN, FIRE_MARGIN)
 
 
+## Centro del botón FIRE en pantalla (para señalarlo desde fuera).
+func fire_center() -> Vector2:
+	return _fire_center()
+
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch: InputEventScreenTouch = event
@@ -60,6 +74,8 @@ func _on_press(index: int, pos: Vector2) -> void:
 		if is_instance_valid(control) and control.is_visible_in_tree() and control.get_global_rect().has_point(pos):
 			return
 	if _fire_id == -1 and pos.distance_to(_fire_center()) <= FIRE_RADIUS * 1.25:
+		if not fire_enabled:
+			return
 		_fire_id = index
 		fire_held = true
 	elif pos.x < _screen_size().x * LEFT_ZONE_FRACTION:
@@ -102,6 +118,8 @@ func _draw() -> void:
 		draw_arc(_stick_origin, STICK_RADIUS, 0.0, TAU, 48, dim, 3.0)
 		draw_circle(_stick_pos, 38.0, green)
 	var fire_color := Color(1.0, 0.5, 0.1, 0.95) if fire_held else Color(1.0, 0.5, 0.1, 0.5)
+	if not fire_enabled:
+		fire_color.a = 0.15
 	draw_arc(_fire_center(), FIRE_RADIUS, 0.0, TAU, 48, fire_color, 5.0)
 	var font: Font = ThemeDB.fallback_font
 	draw_string(font, _fire_center() + Vector2(-34.0, 12.0), "FIRE", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 32, fire_color)

@@ -56,7 +56,15 @@ func _ready() -> void:
 	var version := _label("versión %s" % str(ProjectSettings.get_setting("application/config/version", "dev")), 16, Color(0.5, 0.6, 0.5))
 	column.add_child(version)
 	_start_audio()
-	_page_mode()
+	var page: String = GameSession.menu_page
+	GameSession.menu_page = ""
+	if page == "story":
+		# Viene del final del tutorial: directo a la campaña (falta elegir bando y frente).
+		_choose_mode(GameSession.Mode.STORY)
+	elif not GameSession.tutorial_offered():
+		_page_tutorial_offer()
+	else:
+		_page_mode()
 
 
 ## Música del menú y partes de guerra por radio de vez en cuando (la música baja al hablar).
@@ -122,12 +130,33 @@ func _back(action: Callable) -> void:
 
 func _page_mode() -> void:
 	_clear("ELIGE MODO DE JUEGO")
+	_button("%sTUTORIAL — aprende a manejar el tanque" % ("✔ " if GameSession.tutorial_completed() else ""), _play_tutorial)
 	_button("HISTORIA — campañas con misiones", func() -> void: _choose_mode(GameSession.Mode.STORY))
 	_button("CAPTURA LA BANDERA — 4 contra 4", func() -> void: _choose_mode(GameSession.Mode.CTF))
 	_button("OPCIONES — dificultad, sonido y ayudas", _page_audio)
 	_button("VEHÍCULOS — fichas históricas", _page_vehicles)
 	var best: int = GameSession.best_wave()
 	_button("SUPERVIVENCIA — oleadas sin fin%s" % ("  (récord: oleada %d)" % best if best > 0 else ""), func() -> void: _choose_mode(GameSession.Mode.SURVIVAL))
+
+
+## Primera vez que se abre el juego: se ofrece el tutorial (solo una vez).
+func _page_tutorial_offer() -> void:
+	_clear("¿QUIERES APRENDER A MANEJAR EL TANQUE?")
+	_button("SÍ — tutorial de prácticas", func() -> void:
+		GameSession.mark_tutorial("offered")
+		_play_tutorial())
+	_button("AHORA NO", func() -> void:
+		GameSession.mark_tutorial("offered")
+		_page_mode())
+	_content.add_child(_label("Podrás hacerlo cuando quieras desde el menú: TUTORIAL", 20, Color(0.85, 0.9, 0.85)))
+
+
+## El tutorial se juega siempre con el Sherman en Normandía.
+func _play_tutorial() -> void:
+	GameSession.mode = GameSession.Mode.TUTORIAL
+	GameSession.faction = Fronts.Faction.ALLIES
+	GameSession.front_choice = Fronts.Id.NORMANDY
+	_play()
 
 
 func _page_audio() -> void:

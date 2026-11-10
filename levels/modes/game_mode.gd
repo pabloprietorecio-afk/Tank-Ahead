@@ -47,6 +47,26 @@ func player_spawn() -> Transform3D:
 	return Transform3D(Basis(), Vector3(0.0, 0.2, 0.0))
 
 
+## ¿Monta la arena el decorado del frente (pueblos, colinas, edificios con premio)?
+func wants_scenery() -> bool:
+	return true
+
+
+## ¿Reparte la arena premios al azar por el terreno?
+func wants_pickups() -> bool:
+	return true
+
+
+## Clima obligado (Weather.Kind) o -1 para sortearlo entre los del frente.
+func forced_weather() -> int:
+	return -1
+
+
+## La arena entrega aquí la interfaz ya montada, antes de start().
+func bind_ui(_hud: Hud, _touch: TouchControls, _radar: Radar, _input: PlayerInputSource) -> void:
+	pass
+
+
 ## Zonas que el escenario debe dejar libres (bases, posiciones a defender).
 func reserved_zones() -> Array[Rect2]:
 	return []

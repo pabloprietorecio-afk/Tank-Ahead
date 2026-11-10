@@ -52,6 +52,10 @@ class Runner extends Node:
 			print("REACH RESULT inaccesibles: ", _unreachable)
 		if only.contains("nav"):
 			await _nav()
+		if only.contains("tutorial"):
+			await _tutorial()
+		if only == "" or only.contains("tutshots"):
+			await _tutorial_shots()
 		print("SHOTS DONE")
 		get_tree().quit()
 
@@ -287,10 +291,74 @@ class Runner extends Node:
 			await _snap("arena_%d_view%d" % [front, i])
 
 	func _menu() -> void:
+		if not GameSession.tutorial_offered():
+			# Primera vez que se abre el juego: se ofrece el tutorial.
+			get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+			await _frames(3)
+			await get_tree().create_timer(2.0).timeout
+			await _snap("menu_oferta_tutorial")
+			GameSession.mark_tutorial("offered")
 		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
 		await _frames(3)
 		await get_tree().create_timer(2.0).timeout
 		await _snap("menu")
+
+	func _start_tutorial() -> TutorialMode:
+		GameSession.mode = GameSession.Mode.TUTORIAL
+		GameSession.faction = Fronts.Faction.ALLIES
+		GameSession.front_choice = Fronts.Id.NORMANDY
+		GameSettings.ensure_loaded()
+		GameSettings.camera_view = 0
+		get_tree().change_scene_to_file("res://levels/arena.tscn")
+		await _frames(4)
+		return get_tree().current_scene.get_node("GameMode") as TutorialMode
+
+	## Recorre las quince lecciones haciendo en cada una la acción correcta. Falla si alguna
+	## no se completa. Sin gráficos y a cámara rápida.
+	func _tutorial() -> void:
+		var before: Array = [GameSettings.easy_drive, GameSettings.aim_assist, GameSettings.auto_recenter]
+		var mode: TutorialMode = await _start_tutorial()
+		if mode == null:
+			print("TUTORIAL RESULT lecciones sin completar: no arranca el modo")
+			return
+		var bot: Node = load("res://tools/verify/tutorial_bot.gd").new()
+		add_child(bot)
+		bot.setup(mode)
+		Engine.time_scale = 4.0
+		var waited: float = 0.0
+		while is_instance_valid(mode) and not mode.finished and waited < 900.0:
+			await get_tree().create_timer(1.0, true, false, true).timeout
+			waited += 1.0
+		Engine.time_scale = 1.0
+		var missing: int = bot.done.count(false)
+		print("TUTORIAL completado: ", mode.finished, " | guardado en el progreso: ", GameSession.tutorial_completed(), " | resumen visible: ", mode.overlay._end != null)
+		bot.queue_free()
+		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+		await _frames(4)
+		var restored: bool = before == [GameSettings.easy_drive, GameSettings.aim_assist, GameSettings.auto_recenter]
+		print("TUTORIAL ajustes del jugador restaurados al salir: ", "OK" if restored else "MAL")
+		if not mode_ok(missing, restored):
+			missing = maxi(missing, 1)
+		print("TUTORIAL RESULT lecciones sin completar: ", missing)
+
+	func mode_ok(missing: int, restored: bool) -> bool:
+		return missing == 0 and restored and GameSession.tutorial_completed()
+
+	## Aspecto de varias lecciones, con la interfaz real.
+	func _tutorial_shots() -> void:
+		var mode: TutorialMode = await _start_tutorial()
+		await get_tree().create_timer(2.0).timeout
+		await _snap("tutorial_01_mover")
+		for spec in [[2, "tutorial_03_torreta"], [3, "tutorial_04_disparo"], [6, "tutorial_07_radar"], [8, "tutorial_09_fijar"], [11, "tutorial_12_avion"], [13, "tutorial_14_dano"]]:
+			mode.goto_lesson(spec[0])
+			if spec[0] == 11:
+				mode.player.set_binoculars(true)
+			await get_tree().create_timer(1.5).timeout
+			await _snap(spec[1])
+		mode.player.set_binoculars(false)
+		mode.goto_lesson(TutorialMode.LESSONS.size())
+		await get_tree().create_timer(1.0).timeout
+		await _snap("tutorial_resumen")
 
 	## Datos de la campaña: todas las listas completas y con sus campos.
 	func _campaign() -> void:

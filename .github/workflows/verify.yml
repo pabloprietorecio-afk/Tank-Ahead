@@ -33,12 +33,12 @@ jobs:
       - name: Importar recursos
         run: godot --headless --import 2>&1 | tee import.log || true
 
-      - name: Misiones nuevas y navegación de los aliados (sin gráficos)
+      - name: Misiones nuevas, navegación de los aliados y tutorial completo (sin gráficos)
         env:
-          SHOTS_ONLY: "story nav"
+          SHOTS_ONLY: "story nav tutorial"
         run: |
           timeout 600 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB)" logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN|REACH|CLIMB|TUTORIAL)" logic.log || true
 
       - name: Capturas
         run: |
@@ -53,6 +53,7 @@ jobs:
           grep -q "SHOTS DONE" logic.log || { echo "La prueba de misiones y navegación no terminó"; tail -60 logic.log; exit 1; }
           grep -q "NAV RESULT fallos de la navegación con rodeo: 0" logic.log || { echo "Algún tanque con rodeo no llegó a su destino"; exit 1; }
           grep -q "REACH RESULT inaccesibles: 0" logic.log || { echo "Hay objetivos u objetos inaccesibles"; exit 1; }
+          grep -q "TUTORIAL RESULT lecciones sin completar: 0" logic.log || { echo "Alguna lección del tutorial no se completa"; grep "^TUTORIAL" logic.log; exit 1; }
           grep -q "CLIMB RESULT.*(OK)" logic.log || { echo "Un tanque puede subirse a una colina"; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
 

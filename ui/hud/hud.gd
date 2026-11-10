@@ -19,6 +19,13 @@ var _version: String = ""
 var _message_time: float = 0.0
 var _flash: float = 0.0
 var _release: Button
+## Botones del HUD por nombre: gear, cam, pause, zoom, missile, strike, release.
+var controls: Dictionary = {}
+## Con el foco activo (tutorial) solo responden los botones de `focus` y ⚙; el resto se atenúa.
+var focus_active: bool = false
+var focus: Array[String] = []
+## Interruptores del menú de opciones por nombre: easy_drive, aim_assist.
+var toggles: Dictionary = {}
 
 
 
@@ -82,6 +89,9 @@ func _build_settings() -> void:
 		if input_source != null:
 			input_source.release_lock())
 	add_child(_release)
+	controls["gear"] = gear
+	controls["cam"] = view_button
+	controls["release"] = _release
 	if touch != null:
 		touch.exclusions.append_array([gear, view_button, _release])
 
@@ -122,6 +132,7 @@ func _build_pause_and_history() -> void:
 	pause.offset_bottom = 90.0
 	pause.pressed.connect(func() -> void: _set_paused(true))
 	add_child(pause)
+	controls["pause"] = pause
 
 	_pause_panel = _centered_panel()
 	var box := VBoxContainer.new()
@@ -183,15 +194,17 @@ func _build_pause_and_history() -> void:
 		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
 		if sun != null:
 			sun.shadow_enabled = on))
-	options.add_child(_make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
+	toggles["easy_drive"] = _make_toggle("Movimiento fácil (el tanque se alinea con el cañón)", GameSettings.easy_drive, func(on: bool) -> void:
 		GameSettings.easy_drive = on
-		GameSettings.save()))
+		GameSettings.save())
+	options.add_child(toggles["easy_drive"])
 	options.add_child(_make_toggle("Recentrar el cañón al frente (sin movimiento fácil)", GameSettings.auto_recenter, func(on: bool) -> void:
 		GameSettings.auto_recenter = on
 		GameSettings.save()))
-	options.add_child(_make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
+	toggles["aim_assist"] = _make_toggle("Apuntado automático (cerca del enemigo)", GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
-		GameSettings.save()))
+		GameSettings.save())
+	options.add_child(toggles["aim_assist"])
 
 	# Botón HISTORIA junto a la ficha del objetivo fijado.
 	_history_button = _button("HISTORIA", 20)
@@ -261,6 +274,9 @@ func _build_arsenal() -> void:
 		buttons.append(button)
 	_missile_button = buttons[1]
 	_strike_button = buttons[2]
+	controls["zoom"] = _zoom_button
+	controls["missile"] = _missile_button
+	controls["strike"] = _strike_button
 	_zoom_button.pressed.connect(func() -> void: tank.set_binoculars(not tank.binoculars))
 	_missile_button.pressed.connect(func() -> void: director.fire_missile())
 	_strike_button.pressed.connect(func() -> void: director.call_air_strike())
@@ -388,12 +404,26 @@ func _process(delta: float) -> void:
 	# Misil y aviación solo se ofrecen con los prismáticos puestos.
 	_missile_button.visible = tank.binoculars and not director.is_over
 	_strike_button.visible = tank.binoculars and not director.is_over
+	if focus_active:
+		_apply_focus()
 	_binocular_mask.visible = tank.binoculars
 	if _binocular_mask.visible:
 		(_binocular_mask.material as ShaderMaterial).set_shader_parameter("screen_size", size)
 	var sky: String = weather.display_name() if weather != null else ""
 	_info.text = "v%s  %d FPS   %s   %s\n%s" % [_version, Engine.get_frames_per_second(), Fronts.NAMES[director.front], sky, director.status_text()]
 	queue_redraw()
+
+
+## Tutorial: atenúa y bloquea los botones que aún no se han enseñado.
+func _apply_focus() -> void:
+	for key in controls:
+		var button: Button = controls[key]
+		var on: bool = key == "gear" or focus.has(key)
+		button.modulate.a = 1.0 if on else 0.25
+		if not on:
+			button.disabled = true
+		elif key != "missile" and key != "strike":
+			button.disabled = false
 
 
 func _draw() -> void:

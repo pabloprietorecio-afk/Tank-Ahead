@@ -9,6 +9,10 @@ signal died(source: Node)
 
 var current: float
 var is_dead: bool = false
+## No recibe daño alguno (campo de prácticas).
+var invulnerable: bool = false
+## El blindaje nunca baja de aquí (0 = puede morir).
+var min_health: float = 0.0
 
 
 func _ready() -> void:
@@ -16,9 +20,9 @@ func _ready() -> void:
 
 
 func apply_damage(amount: float, source: Node = null) -> void:
-	if is_dead:
+	if is_dead or invulnerable:
 		return
-	current = maxf(current - amount, 0.0)
+	current = maxf(current - amount, min_health)
 	damaged.emit(amount, source)
 	if current <= 0.0:
 		is_dead = true

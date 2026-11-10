@@ -90,6 +90,18 @@ func say(event: String, priority: int = Priority.NORMAL) -> void:
 		_queue.sort_custom(func(a: Array, b: Array) -> bool: return a[1] > b[1])
 
 
+## Locución que no es un evento fijo (instrucciones del tutorial). Corta lo que suene de
+## menor prioridad y descarta lo que hubiera en cola.
+func say_stream(stream: AudioStream, priority: int = Priority.HIGH) -> void:
+	if stream == null:
+		return
+	if not _player.playing or priority >= _current_priority:
+		_queue.clear()
+		_start(stream, priority)
+	elif _queue.size() < MAX_QUEUE:
+		_queue.append([stream, priority])
+
+
 func _start(stream: AudioStream, priority: int) -> void:
 	_player.stream = stream
 	_current_priority = priority
