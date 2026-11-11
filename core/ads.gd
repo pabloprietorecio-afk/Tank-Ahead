@@ -135,7 +135,8 @@ func _start() -> void:
 	if _admob != null or Premium.is_premium():
 		return
 	_admob = Admob.new()
-	_admob.is_real = AdsConfig.IS_REAL
+	# Anuncios reales solo en compilaciones de publicación; en depuración, los de prueba de Google.
+	_admob.is_real = AdsConfig.IS_REAL and not OS.is_debug_build()
 	_admob.android_real_interstitial_id = AdsConfig.INTERSTITIAL_ID
 	_admob.android_real_rewarded_id = AdsConfig.REWARDED_ID
 	# Anuncios de hasta «Teen» (el juego es de guerra).
