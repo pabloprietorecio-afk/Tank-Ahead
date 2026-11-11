@@ -4,6 +4,7 @@
 # Sale con error si: es depurable, no apunta a API 36 o más, pide permisos inesperados,
 # tiene librerías nativas sin alineación de 16 KB, o no está firmado.
 set -uo pipefail
+# Nota: no usar «echo ... | grep -q» con pipefail (SIGPIPE da falsos errores); usar <<< en su lugar.
 AAB="$1"; EXPECTED_FP="${2:-}"
 BT="${BUNDLETOOL_JAR:-bundletool.jar}"
 FAIL=0
@@ -26,7 +27,7 @@ say
 say "## Comprobaciones"
 ok "$PKG, minSdk=$MINSDK"
 if [ -n "$TARGET" ] && [ "$TARGET" -ge 36 ]; then ok "targetSdk=$TARGET (Google Play exige 36 o más)"; else bad "targetSdk=${TARGET:-?} (Google Play exige 36 o más)"; fi
-if echo "$MANIFEST" | grep -q 'android:debuggable="true"'; then bad "El AAB es depurable (android:debuggable=true)"; else ok "No es depurable"; fi
+if grep -q 'android:debuggable="true"' <<<"$MANIFEST"; then bad "El AAB es depurable (android:debuggable=true)"; else ok "No es depurable"; fi
 PERMS=$(echo "$MANIFEST" | grep -o 'uses-permission[^>]*android:name="[^"]*"' | grep -o 'android.permission.[A-Z_]*\|com.google[A-Za-z_.]*' | sort -u)
 say "- Permisos declarados: $(echo $PERMS | tr '\n' ' ')"
 UNEXPECTED=$(echo "$PERMS" | grep -v -E '^android.permission.(INTERNET|VIBRATE|ACCESS_NETWORK_STATE|WAKE_LOCK)$' || true)
@@ -53,7 +54,7 @@ java -jar "$BT" dump config --bundle="$AAB" 2>&1 | grep -v JAVA_TOOL | head -40 
 say
 say "## Firma"
 VER=$(jarsigner -verify -certs "$AAB" 2>&1 | grep -v JAVA_TOOL)
-if echo "$VER" | grep -q "jar verified"; then ok "Firma verificada"; else bad "El AAB no está firmado o la firma no es válida"; fi
+if grep -q "jar verified" <<<"$VER"; then ok "Firma verificada"; else bad "El AAB no está firmado o la firma no es válida"; fi
 FP=$(keytool -printcert -jarfile "$AAB" 2>/dev/null | grep -m1 "SHA256:" | sed 's/.*SHA256: *//')
 say "- Huella SHA-256 del certificado de subida: \`${FP:-no encontrada}\`"
 if [ -n "$EXPECTED_FP" ]; then
