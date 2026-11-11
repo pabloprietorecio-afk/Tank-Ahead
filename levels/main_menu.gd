@@ -53,6 +53,8 @@ const RADIO_DB: Array[float] = [-4.0, -4.0]
 func _ready() -> void:
 	GameSettings.ensure_loaded()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if OS.is_debug_build() and OS.get_name() == "Android":
+		_add_ads_overlay.call_deferred()
 	# Portada en 3D detrás del menú y un velo oscuro para que se lea el texto.
 	add_child(CoverDiorama.new())
 	var veil := ColorRect.new()
@@ -418,12 +420,6 @@ func _page_audio() -> void:
 		GameSettings.save())
 	_content.add_child(highlight)
 	_content.add_child(VolumeSliders.create())
-	if OS.is_debug_build():
-		var diag := Label.new()
-		diag.text = Ads.debug_status()
-		diag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		diag.add_theme_font_size_override("font_size", 11)
-		_content.add_child(diag)
 	if Ads.privacy_options_available():
 		_button(Loc.t("PRIVACIDAD DE LOS ANUNCIOS"), Ads.show_privacy_options)
 	# Pie: idioma y volver en la misma fila (así la página cabe en pantallas bajas). El idioma se
@@ -556,6 +552,27 @@ func _page_premium(index: int = -1) -> void:
 			Premium.set_premium(true)
 			_page_missions())
 	_back(_page_missions)
+
+
+## Solo en compilaciones de depuración en Android: estado de los anuncios en una esquina.
+func _add_ads_overlay() -> void:
+	var diag := Label.new()
+	diag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	diag.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	diag.offset_left = 6.0
+	diag.offset_bottom = -4.0
+	diag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	diag.add_theme_font_size_override("font_size", 11)
+	diag.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
+	diag.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	diag.add_theme_constant_override("outline_size", 4)
+	diag.text = Ads.debug_status()
+	add_child(diag)
+	var timer := Timer.new()
+	timer.wait_time = 1.5
+	timer.autostart = true
+	timer.timeout.connect(func() -> void: diag.text = Ads.debug_status())
+	add_child(timer)
 
 
 func _watch_ad() -> void:
