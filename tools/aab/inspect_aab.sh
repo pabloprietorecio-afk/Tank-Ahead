@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Comprueba un AAB antes de subirlo a Google Play y escribe un informe en Markdown.
+# Uso: inspect_aab.sh FICHERO.aab [HUELLA_SHA256_ESPERADA]
+# Sale con error si: es depurable, no apunta a API 36 o más, pide permisos inesperados,
+# tiene librerías nativas sin alineación de 16 KB, o no está firmado.
+set -uo pipefail
+AAB="$1"; EXPECTED_FP="${2:-}"
+BT="${BUNDLETOOL_JAR:-bundletool.jar}"
+FAIL=0
+say() { echo "$@"; }
+bad() { echo "- ❌ $*"; FAIL=1; }
+ok()  { echo "- ✅ $*"; }
+
+say "# Informe del AAB"
+say
+say "Fichero: \`$(basename "$AAB")\` — $(du -h "$AAB" | cut -f1)"
+say
+say "## Manifiesto"
+MANIFEST=$(java -jar "$BT" dump manifest --bundle="$AAB" 2>&1)
+echo '```xml'; echo "$MANIFEST" | head -60; echo '```'
+
+PKG=$(echo "$MANIFEST" | grep -o 'package="[^"]*"' | head -1)
+TARGET=$(echo "$MANIFEST" | grep -o 'android:targetSdkVersion="[0-9]*"' | head -1 | grep -o '[0-9]*')
+MINSDK=$(echo "$MANIFEST" | grep -o 'android:minSdkVersion="[0-9]*"' | head -1 | grep -o '[0-9]*')
+say
+say "## Comprobaciones"
+ok "$PKG, minSdk=$MINSDK"
+if [ -n "$TARGET" ] && [ "$TARGET" -ge 36 ]; then ok "targetSdk=$TARGET (Google Play exige 36 o más)"; else bad "targetSdk=${TARGET:-?} (Google Play exige 36 o más)"; fi
+if echo "$MANIFEST" | grep -q 'android:debuggable="true"'; then bad "El AAB es depurable (android:debuggable=true)"; else ok "No es depurable"; fi
+PERMS=$(echo "$MANIFEST" | grep -o 'uses-permission[^>]*android:name="[^"]*"' | grep -o 'android.permission.[A-Z_]*\|com.google[A-Za-z_.]*' | sort -u)
+say "- Permisos declarados: $(echo $PERMS | tr '\n' ' ')"
+UNEXPECTED=$(echo "$PERMS" | grep -v -E '^android.permission.(INTERNET|VIBRATE|ACCESS_NETWORK_STATE|WAKE_LOCK)$' || true)
+if [ -n "$UNEXPECTED" ]; then bad "Permisos no previstos: $(echo $UNEXPECTED | tr '\n' ' ')"; else ok "Solo permisos previstos"; fi
+
+say
+say "## Librerías nativas (alineación 16 KB)"
+TMP=$(mktemp -d); unzip -q -o "$AAB" 'base/lib/*' -d "$TMP" 2>/dev/null || true
+NSO=0
+for so in $(find "$TMP" -name '*.so' 2>/dev/null); do
+  NSO=$((NSO+1))
+  ALIGN=$(readelf -lW "$so" | awk '$1=="LOAD"{print $NF}' | sort -u | tr '\n' ' ')
+  if readelf -lW "$so" | awk '$1=="LOAD"{print $NF}' | grep -q -v -E '^0x(4000|8000|10000|20000|40000|100000|200000)$'; then
+    bad "$(echo "$so" | sed "s#$TMP/##") alineación: $ALIGN"
+  else
+    ok "$(echo "$so" | sed "s#$TMP/##") alineación: $ALIGN"
+  fi
+done
+[ "$NSO" -eq 0 ] && bad "No se encontraron librerías nativas en base/lib"
+say
+say "## Configuración del bundle"
+java -jar "$BT" dump config --bundle="$AAB" 2>&1 | grep -v JAVA_TOOL | head -40 | sed 's/^/    /'
+
+say
+say "## Firma"
+VER=$(jarsigner -verify -certs "$AAB" 2>&1 | grep -v JAVA_TOOL)
+if echo "$VER" | grep -q "jar verified"; then ok "Firma verificada"; else bad "El AAB no está firmado o la firma no es válida"; fi
+FP=$(keytool -printcert -jarfile "$AAB" 2>/dev/null | grep -m1 "SHA256:" | sed 's/.*SHA256: *//')
+say "- Huella SHA-256 del certificado de subida: \`${FP:-no encontrada}\`"
+if [ -n "$EXPECTED_FP" ]; then
+  if [ "$FP" = "$EXPECTED_FP" ]; then ok "Coincide con la huella esperada"; else bad "No coincide con la huella esperada ($EXPECTED_FP)"; fi
+fi
+say
+if [ $FAIL -eq 0 ]; then say "**Resultado: correcto**"; else say "**Resultado: HAY PROBLEMAS**"; fi
+exit $FAIL

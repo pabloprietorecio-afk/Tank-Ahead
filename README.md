@@ -48,6 +48,21 @@ Los motores de tanque y de avión son grabaciones reales (ver `assets/audio/CRED
 `tools/audio_fetch` las descarga de Wikimedia Commons desde GitHub Actions (rama `audio`) y
 `python3 tools/sound_gen/real_loop.py` convierte un tramo estable en un bucle sin costura.
 
+## Publicar en Google Play (AAB firmado)
+Workflow `build-aab.yml` (Actions > *Build AAB (Google Play)* > *Run workflow*, o una etiqueta `aab-N`).
+1. Una sola vez, crear en GitHub (*Settings > Secrets and variables > Actions*) tres secretos:
+   `RELEASE_KEYSTORE_BASE64` (la clave de subida en base64), `RELEASE_KEYSTORE_PASSWORD` y `RELEASE_KEY_ALIAS`.
+   La misma contraseña protege el almacén y la clave. Sin ellos el workflow compila con una clave
+   desechable («modo prueba») solo para validar; ese AAB **no** se publica y **no** sirve para Google Play.
+2. El AAB firmado queda en la release privada **aab-latest** (solo se conserva el último). El `versionCode`
+   es el número de ejecución de este workflow y `versionName` es `0.2.N` (los APK de pruebas son `0.1.x`).
+3. Cada ejecución comprueba el AAB (`tools/aab/inspect_aab.sh`): `targetSdk` ≥ 36, no depurable, permisos
+   previstos, librerías nativas alineadas a 16 KB y firma. El informe queda en la rama `aab-report`.
+4. Subir el AAB a Play Console. Se usa **Play App Signing**: la clave de este repositorio es solo la de
+   *subida* (si se pierde, Google permite restablecerla). El nombre de paquete `com.pabloprieto.tankahead`
+   es **permanente** en cuanto se sube el primer AAB.
+5. Los textos de la ficha (incluido el aviso de voces IA, obligatorio por la licencia de Supertonic) están en `store/`.
+
 ## Comprobación
 Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones nuevas, la navegación de los tanques aliados y el tutorial completo
 (un jugador automático hace la acción correcta en cada lección) sin gráficos, y guarda capturas y registros en la rama `verify-shots`.

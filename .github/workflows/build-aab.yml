@@ -1,0 +1,224 @@
+name: Build AAB (Google Play)
+
+# Genera el Android App Bundle (AAB) firmado con la clave de subida, para Google Play.
+# Se lanza a mano (Actions > Build AAB (Google Play) > Run workflow) o al crear una etiqueta aab-*.
+# Sin los secretos de firma compila igualmente con una clave desechable, solo para comprobar que
+# todo funciona: ese AAB «de prueba» NO se publica en la release ni sirve para Google Play.
+on:
+  workflow_dispatch:
+    inputs:
+      sin_firma:
+        description: 'Prueba con clave desechable (aunque existan los secretos). No sirve para Google Play'
+        type: boolean
+        default: false
+  push:
+    branches: [aab-setup]
+    tags: ['aab-*']
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_CHANNEL: "stable"
+  # Los AAB llevan su propia línea de versiones (los APK de pruebas son 0.1.x).
+  BASE_VERSION: "0.2"
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      KS_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+      KS_PASS: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+      KS_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decidir modo de firma
+        env:
+          FORCE_TEST: ${{ inputs.sin_firma }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          missing=""
+          [ -z "$KS_B64" ]   && missing="$missing RELEASE_KEYSTORE_BASE64"
+          [ -z "$KS_PASS" ]  && missing="$missing RELEASE_KEYSTORE_PASSWORD"
+          [ -z "$KS_ALIAS" ] && missing="$missing RELEASE_KEY_ALIAS"
+          if [ "$FORCE_TEST" = "true" ]; then
+            MODE=prueba
+          elif [ -z "$missing" ]; then
+            MODE=firmado
+          elif [ "$IS_TAG" = "true" ]; then
+            echo "::error title=Faltan secretos de firma::Crea en Settings > Secrets and variables > Actions:$missing"
+            exit 1
+          else
+            echo "::warning title=Modo prueba::Faltan los secretos:$missing. Se compila con una clave desechable (no sirve para Google Play)."
+            MODE=prueba
+          fi
+          echo "MODE=$MODE" >> "$GITHUB_ENV"
+          echo "Modo de firma: $MODE"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Versión (sube sola en cada compilación)
+        run: |
+          echo "VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=${BASE_VERSION}.${{ github.run_number }}" >> "$GITHUB_ENV"
+
+      - name: Instalar Godot y plantillas de exportación
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_CHANNEL}"
+          curl -fsSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_linux.x86_64.zip"
+          curl -fsSL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_export_templates.tpz"
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_linux.x86_64" /usr/local/bin/godot
+          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_CHANNEL}
+          unzip -q templates.tpz -d tpl
+          mv tpl/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_CHANNEL}/
+          ls ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_CHANNEL}/
+
+      # Equivale a «Proyecto > Instalar plantilla de compilación de Android» del editor:
+      # descomprime android_source.zip en android/build y apunta la versión en android/.build_version.
+      - name: Instalar plantilla de compilación de Android (Gradle)
+        run: |
+          TPL=~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_CHANNEL}
+          mkdir -p android/build
+          unzip -q "$TPL/android_source.zip" -d android/build
+          echo "${GODOT_VERSION}.${GODOT_CHANNEL}" > android/.build_version
+          touch android/build/.gdignore
+          grep -n -E "compileSdk|targetSdk|minSdk|buildTools|ndkVersion|androidGradlePlugin" android/build/config.gradle | grep -v "//"
+
+      # Las versiones del SDK salen de la propia plantilla de Godot, para que no se desajusten.
+      - name: Instalar Android SDK (versiones de la plantilla)
+        run: |
+          CFG=android/build/config.gradle
+          COMPILE=$(grep -E "^\s*compileSdk\s*:" $CFG | grep -o '[0-9]\+' | head -1)
+          BTOOLS=$(grep -E "^\s*buildTools\s*:" $CFG | grep -o "'[^']*'" | tr -d "'")
+          NDK=$(grep -E "^\s*ndkVersion\s*:" $CFG | grep -o "'[^']*'" | tr -d "'")
+          echo "compileSdk=$COMPILE buildTools=$BTOOLS ndk=$NDK"
+          test -n "$COMPILE" -a -n "$BTOOLS" -a -n "$NDK"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" "build-tools;${BTOOLS}" "platforms;android-${COMPILE}" "ndk;${NDK}" \
+            "cmake;3.10.2.4988404"
+
+      - name: Configurar Godot para Android
+        run: |
+          godot --headless --editor --quit || true
+          SETTINGS=$(ls ~/.config/godot/editor_settings-*.tres | head -1)
+          echo "Ajustes: $SETTINGS"
+          {
+            echo "export/android/android_sdk_path = \"$ANDROID_HOME\""
+            echo "export/android/java_sdk_path = \"$JAVA_HOME\""
+          } >> "$SETTINGS"
+
+      - name: Poner versión en el proyecto
+        run: |
+          sed -i "s/^version\/code=.*/version\/code=${VERSION_CODE}/" export_presets.cfg
+          sed -i "s/^version\/name=.*/version\/name=\"${VERSION_NAME}\"/" export_presets.cfg
+          sed -i "s/^config\/version=.*/config\/version=\"${VERSION_NAME}\"/" project.godot
+
+      - name: Preparar clave de firma
+        run: |
+          if [ "$MODE" = "firmado" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            USER_ALIAS="$KS_ALIAS"; PASS="$KS_PASS"
+          else
+            keytool -genkeypair -keystore "$RUNNER_TEMP/upload.jks" -storetype PKCS12 -alias prueba \
+              -keyalg RSA -keysize 2048 -validity 30 -storepass prueba-no-valida -keypass prueba-no-valida \
+              -dname "CN=PRUEBA NO SUBIR" > /dev/null 2>&1
+            USER_ALIAS=prueba; PASS=prueba-no-valida
+          fi
+          echo "::add-mask::$PASS"
+          {
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/upload.jks"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$USER_ALIAS"
+            echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$PASS"
+          } >> "$GITHUB_ENV"
+          FP=$(keytool -list -keystore "$RUNNER_TEMP/upload.jks" -storepass "$PASS" 2>/dev/null | sed -n 's/.*(SHA-256): *//p;s/.*SHA-256: *//p' | head -1)
+          echo "EXPECTED_FP=$FP" >> "$GITHUB_ENV"
+          echo "Huella de la clave ($MODE): $FP"
+
+      - name: Importar recursos
+        run: godot --headless --import || true
+
+      - name: Exportar AAB
+        run: |
+          mkdir -p build
+          if [ "$MODE" = "firmado" ]; then OUT="build/ATankStory-${VERSION_NAME}.aab"; else OUT="build/ATankStory-PRUEBA-NO-SUBIR.aab"; fi
+          echo "AAB_PATH=$OUT" >> "$GITHUB_ENV"
+          set -o pipefail
+          godot --headless --verbose --export-release "Android AAB" "$OUT" 2>&1 | tee build/export.log
+          ls -la build
+          test -s "$OUT"
+
+      - name: Instalar bundletool
+        if: always()
+        run: |
+          gh release download --repo google/bundletool --pattern 'bundletool-all-*.jar' --dir . --clobber \
+            || curl -fsSL -o bundletool-all-1.18.1.jar https://github.com/google/bundletool/releases/download/1.18.1/bundletool-all-1.18.1.jar
+          mv bundletool-all-*.jar bundletool.jar
+          ls -la bundletool.jar
+
+      - name: Comprobar el AAB
+        run: |
+          set -o pipefail
+          BUNDLETOOL_JAR=bundletool.jar tools/aab/inspect_aab.sh "$AAB_PATH" "$EXPECTED_FP" 2>&1 | tee build/informe.md
+
+      - name: Resumen de errores
+        if: failure()
+        run: |
+          python3 - <<'EOF'
+          import re
+          lines = []
+          for f in ("build/export.log", "build/informe.md"):
+              try:
+                  for l in open(f, errors="ignore"):
+                      if re.search(r"ERROR|FAILED|error:|❌|Could not|not found|Exception", l):
+                          lines.append(l.strip()[:300])
+              except FileNotFoundError:
+                  pass
+          msg = "%0A".join(dict.fromkeys(lines[:30])) or "sin líneas de error reconocibles"
+          print("::error title=Errores de la compilación::" + msg)
+          EOF
+
+      # El informe y el final del registro quedan en la rama aab-report para poder leerlos sin entrar en Actions.
+      - name: Guardar informe en la rama aab-report
+        if: always()
+        run: |
+          mkdir -p /tmp/rep && cd /tmp/rep && git init -q
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git fetch -q --depth=1 origin aab-report 2>/dev/null; then git checkout -q -b aab-report FETCH_HEAD; else git checkout -q --orphan aab-report; fi
+          D="run-${{ github.run_number }}-${MODE:-desconocido}"
+          mkdir -p "$D"
+          cp "$GITHUB_WORKSPACE/build/informe.md" "$D/" 2>/dev/null || true
+          tail -n 400 "$GITHUB_WORKSPACE/build/export.log" > "$D/export-final.log" 2>/dev/null || true
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git add . && git commit -q -m "Informe AAB ${{ github.run_number }} ($MODE) ${GITHUB_SHA::7}" || true
+          git push -q origin HEAD:aab-report || true
+
+      - name: Artefacto de prueba (no es para Google Play)
+        if: ${{ success() && env.MODE == 'prueba' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: AAB-PRUEBA-NO-SUBIR-${{ github.run_number }}
+          path: build/*.aab
+          retention-days: 3
+
+      # Solo los AAB firmados con la clave real llegan a la release. Se conserva únicamente el último.
+      - name: Publicar AAB firmado en la release aab-latest
+        if: ${{ success() && env.MODE == 'firmado' }}
+        run: |
+          gh release view aab-latest >/dev/null 2>&1 || gh release create aab-latest --prerelease \
+            --title "AAB más reciente (Google Play)" --notes "Última compilación firmada." --target "$GITHUB_SHA"
+          gh release upload aab-latest "$AAB_PATH" --clobber
+          gh release edit aab-latest --notes "A Tank Story ${VERSION_NAME} (versionCode ${VERSION_CODE}), commit ${GITHUB_SHA::7}. Firmado con la clave de subida."
+          KEEP=$(basename "$AAB_PATH")
+          gh release view aab-latest --json assets -q '.assets[].name' | while read -r old; do
+            if [ "$old" != "$KEEP" ]; then gh release delete-asset aab-latest "$old" --yes; fi
+          done
