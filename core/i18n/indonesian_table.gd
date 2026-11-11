@@ -447,6 +447,12 @@ const TABLE: Dictionary = {
 	"Compra pendiente: se activará cuando Google Play la confirme.": "Pembelian tertunda: Premium aktif setelah Google Play mengonfirmasi.",
 	"Premium no está disponible ahora mismo en Google Play.": "Premium sedang tidak tersedia di Google Play.",
 	"Las compras no están disponibles en este dispositivo.": "Pembelian tidak tersedia di perangkat ini.",
+	"JUGAR OTRA VEZ (PREMIUM)": "MAIN LAGI (PREMIUM)",
+	"VER UN ANUNCIO Y JUGAR ESTA MISIÓN": "TONTON IKLAN DAN MAINKAN MISI INI",
+	"Abriendo el anuncio…": "Membuka iklan…",
+	"Cargando el anuncio…": "Memuat iklan…",
+	"No se ha completado el anuncio.": "Iklan tidak ditonton sampai selesai.",
+	"PRIVACIDAD DE LOS ANUNCIOS": "PRIVASI IKLAN",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

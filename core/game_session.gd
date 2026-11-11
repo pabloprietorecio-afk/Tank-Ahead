@@ -42,9 +42,26 @@ static func current_mission() -> Dictionary:
 	return list[clampi(mission_index, 0, list.size() - 1)]
 
 
-## ¿La misión exige premium y aún no se tiene?
+## Misión de pago desbloqueada una vez viendo un anuncio recompensado («frente/bando/posición»).
+## Solo vive en memoria: dura hasta superar esa misión o cerrar el juego.
+static var reward_unlock: String = ""
+
+
+static func _reward_key(index: int) -> String:
+	return "f%d_c%d_m%d" % [faction, front_choice, index]
+
+
+## ¿La misión exige premium y aún no se tiene? (El anuncio recompensado la abre una vez.)
 static func mission_locked(index: int) -> bool:
-	return Premium.mission_locked(index)
+	return Premium.mission_locked(index) and reward_unlock != _reward_key(index)
+
+
+static func grant_reward_unlock(index: int) -> void:
+	reward_unlock = _reward_key(index)
+
+
+static func clear_reward_unlock() -> void:
+	reward_unlock = ""
 
 
 static func _campaign_key() -> String:

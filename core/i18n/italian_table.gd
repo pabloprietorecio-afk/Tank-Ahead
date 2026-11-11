@@ -447,6 +447,12 @@ const TABLE: Dictionary = {
 	"Compra pendiente: se activará cuando Google Play la confirme.": "Acquisto in sospeso: Premium si attiverà appena Google Play lo confermerà.",
 	"Premium no está disponible ahora mismo en Google Play.": "Premium non è al momento disponibile su Google Play.",
 	"Las compras no están disponibles en este dispositivo.": "Gli acquisti non sono disponibili su questo dispositivo.",
+	"JUGAR OTRA VEZ (PREMIUM)": "GIOCA ANCORA (PREMIUM)",
+	"VER UN ANUNCIO Y JUGAR ESTA MISIÓN": "GUARDA UNA PUBBLICITÀ E GIOCA QUESTA MISSIONE",
+	"Abriendo el anuncio…": "Apertura della pubblicità…",
+	"Cargando el anuncio…": "Caricamento della pubblicità…",
+	"No se ha completado el anuncio.": "La pubblicità non è stata completata.",
+	"PRIVACIDAD DE LOS ANUNCIOS": "PRIVACY DELLE PUBBLICITÀ",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

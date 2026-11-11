@@ -44,7 +44,14 @@ jobs:
           SHOTS_ONLY: "story nav tutorial sky ai ctf fit"
         run: |
           timeout 900 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|PREMIUM|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT)" logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT)" logic.log || true
+
+      - name: Anuncios coherentes (AdsConfig y android_export.cfg)
+        run: |
+          A=$(grep -oP 'const IS_REAL: bool = \K(true|false)' core/ads_config.gd)
+          B=$(grep -oP '^is_real=\K(true|false)' addons/AdmobPlugin/android_export.cfg)
+          echo "AdsConfig.IS_REAL=$A, android_export.cfg is_real=$B"
+          [ -n "$A" ] && [ "$A" = "$B" ] || { echo "IS_REAL no coincide entre core/ads_config.gd y android_export.cfg"; exit 1; }
 
       - name: Capturas
         run: |
@@ -59,6 +66,7 @@ jobs:
           grep -q "SHOTS DONE" logic.log || { echo "La prueba de misiones y navegación no terminó"; tail -60 logic.log; exit 1; }
           grep -q "NAV RESULT fallos de la navegación con rodeo: 0" logic.log || { echo "Algún tanque con rodeo no llegó a su destino"; exit 1; }
           grep -q "PREMIUM RESULT campañas con un reparto de gratuitas incorrecto: 0" logic.log || { echo "El reparto de misiones gratuitas y premium no es el esperado"; grep "^PREMIUM" logic.log; exit 1; }
+          grep -q "ADS RESULT fallos de anuncios y desbloqueo: 0" logic.log || { echo "Fallo en los anuncios o en el desbloqueo por recompensa"; grep "^ADS" logic.log; exit 1; }
           grep -q "REACH RESULT inaccesibles: 0" logic.log || { echo "Hay objetivos u objetos inaccesibles"; exit 1; }
           grep -q "TUTORIAL RESULT lecciones sin completar: 0" logic.log || { echo "Alguna lección del tutorial no se completa"; grep "^TUTORIAL" logic.log; exit 1; }
           grep -q "CTF RESULT la máquina juega a capturar: OK" logic.log || { echo "Los tanques de la máquina no van a por la bandera"; grep "^CTF" logic.log; exit 1; }

@@ -48,6 +48,21 @@ Los motores de tanque y de avión son grabaciones reales (ver `assets/audio/CRED
 `tools/audio_fetch` las descarga de Wikimedia Commons desde GitHub Actions (rama `audio`) y
 `python3 tools/sound_gen/real_loop.py` convierte un tramo estable en un bucle sin costura.
 
+## Anuncios (AdMob)
+
+- Intersticial: al pasar a la siguiente partida tras ganar una misión de la historia y al acabar una de
+  supervivencia. Nunca durante el combate ni tras perder en la historia. Política: ninguno en los dos
+  primeros finales de la sesión, luego como mucho uno cada dos finales y siempre con 3 minutos de margen.
+- Recompensado: en la pantalla premium, «Ver un anuncio y jugar esta misión» abre esa misión de pago una
+  vez (hasta superarla). Solo se ofrece para la siguiente misión por jugar.
+- Premium quita todos los anuncios. Sin consentimiento (UMP) tampoco se piden; en las regiones que lo exigen
+  hay un botón «Privacidad de los anuncios» en Opciones.
+- Hoy usa anuncios de **prueba** de Google. Para publicar: `IS_REAL = true` y los dos ID de bloque en
+  `core/ads_config.gd`, y `is_real=true` más el ID de aplicación real en
+  `addons/AdmobPlugin/android_export.cfg` (la verificación comprueba que ambos coinciden).
+- Plugin oficial `godot-sdk-integrations/godot-admob` v7.0 (paquete Android ya compilado, ver
+  `addons/AdmobPlugin/ORIGEN.txt`).
+
 ## Nivel premium
 
 En el modo historia, las tres primeras misiones de cada frente son gratuitas y el resto exige premium

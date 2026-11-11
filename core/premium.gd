@@ -2,8 +2,7 @@ class_name Premium
 extends RefCounted
 ## Nivel premium. En el modo historia, las tres primeras misiones de cada frente son gratuitas
 ## y el resto exige premium. Supervivencia, captura la bandera, tutorial y fichas históricas
-## siguen libres. Premium también quita los anuncios (la publicidad aún no está integrada:
-## cuando lo esté, no debe mostrarse nada si is_premium()).
+## siguen libres. Premium también quita los anuncios (Ads no muestra nada si is_premium()).
 ##
 ## La compra la gestiona PremiumStore (Google Play Billing), que activa o quita Premium con
 ## set_premium() según las compras de la cuenta; el valor guardado aquí es una caché para jugar

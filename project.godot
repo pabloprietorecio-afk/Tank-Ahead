@@ -15,6 +15,7 @@ config/version="0.0.0"
 [autoload]
 
 PremiumStore="*res://core/premium_store.gd"
+Ads="*res://core/ads.gd"
 
 [display]
 
@@ -26,7 +27,7 @@ window/handheld/orientation=0
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GodotGooglePlayBilling/plugin.cfg")
+enabled=PackedStringArray("res://addons/AdmobPlugin/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg")
 
 [internationalization]
 

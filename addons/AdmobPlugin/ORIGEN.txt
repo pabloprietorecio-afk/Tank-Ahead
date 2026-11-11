@@ -1,0 +1,2 @@
+plugin: https://github.com/godot-sdk-integrations/godot-admob
+tag: v7.0

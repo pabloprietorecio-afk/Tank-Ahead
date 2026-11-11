@@ -447,6 +447,12 @@ const TABLE: Dictionary = {
 	"Compra pendiente: se activará cuando Google Play la confirme.": "खरीदारी लंबित है: Google Play की पुष्टि के बाद प्रीमियम चालू होगा।",
 	"Premium no está disponible ahora mismo en Google Play.": "प्रीमियम अभी Google Play पर उपलब्ध नहीं है।",
 	"Las compras no están disponibles en este dispositivo.": "इस डिवाइस पर खरीदारी उपलब्ध नहीं है।",
+	"JUGAR OTRA VEZ (PREMIUM)": "फिर से खेलें (प्रीमियम)",
+	"VER UN ANUNCIO Y JUGAR ESTA MISIÓN": "विज्ञापन देखें और यह मिशन खेलें",
+	"Abriendo el anuncio…": "विज्ञापन खुल रहा है…",
+	"Cargando el anuncio…": "विज्ञापन लोड हो रहा है…",
+	"No se ha completado el anuncio.": "विज्ञापन पूरा नहीं देखा गया।",
+	"PRIVACIDAD DE LOS ANUNCIOS": "विज्ञापन गोपनीयता",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

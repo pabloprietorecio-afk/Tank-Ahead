@@ -576,6 +576,27 @@ class Runner extends Node:
 			if free != Premium.FREE_MISSIONS_PER_FRONT:
 				bad_premium += 1
 		print("PREMIUM RESULT campañas con un reparto de gratuitas incorrecto: ", bad_premium)
+		# Anuncios: el desbloqueo por recompensado abre solo esa misión y se puede retirar; sin Android
+		# no hay anuncios y la pausa publicitaria termina enseguida, siempre una vez por llamada.
+		var bad_ads: int = 0
+		GameSession.faction = Fronts.Faction.ALLIES
+		GameSession.front_choice = Fronts.Id.NORMANDY
+		GameSession.clear_reward_unlock()
+		if not Premium.is_premium():
+			if not GameSession.mission_locked(4):
+				bad_ads += 1
+			GameSession.grant_reward_unlock(4)
+			if GameSession.mission_locked(4) or not GameSession.mission_locked(5):
+				bad_ads += 1
+			GameSession.clear_reward_unlock()
+			if not GameSession.mission_locked(4):
+				bad_ads += 1
+		var calls: Array[int] = [0]
+		for i in 5:
+			Ads.interstitial_then(func() -> void: calls[0] += 1)
+		if calls[0] != 5 or Ads.active() or Ads.rewarded_offered():
+			bad_ads += 1
+		print("ADS RESULT fallos de anuncios y desbloqueo: ", bad_ads)
 
 	## Arranca una misión de la campaña y la deja correr unos segundos.
 	func _story(faction: int, front: int, index: int) -> void:

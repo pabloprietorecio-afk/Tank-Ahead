@@ -445,6 +445,12 @@ const TABLE: Dictionary = {
 	"Compra pendiente: se activará cuando Google Play la confirme.": "Purchase pending: Premium will unlock once Google Play confirms it.",
 	"Premium no está disponible ahora mismo en Google Play.": "Premium is not available on Google Play right now.",
 	"Las compras no están disponibles en este dispositivo.": "Purchases are not available on this device.",
+	"JUGAR OTRA VEZ (PREMIUM)": "PLAY AGAIN (PREMIUM)",
+	"VER UN ANUNCIO Y JUGAR ESTA MISIÓN": "WATCH AN AD AND PLAY THIS MISSION",
+	"Abriendo el anuncio…": "Opening the ad…",
+	"Cargando el anuncio…": "Loading the ad…",
+	"No se ha completado el anuncio.": "The ad was not completed.",
+	"PRIVACIDAD DE LOS ANUNCIOS": "AD PRIVACY",
 }
 
 ## Mismo texto en español con otro sentido: contexto → {texto: inglés}.

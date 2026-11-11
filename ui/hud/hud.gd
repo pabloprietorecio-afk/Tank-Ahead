@@ -12,6 +12,8 @@ var weather: Weather
 var _info: Label
 var _message: Label
 var _end_panel: PanelContainer
+## Hay una pausa publicitaria en curso (evita pulsar dos veces).
+var _ad_busy: bool = false
 var _pause_panel: PanelContainer
 var _history_panel: PanelContainer
 var _history_button: Button
@@ -363,6 +365,17 @@ func _close_history() -> void:
 		get_tree().paused = false
 
 
+## Ejecuta `action` tras la pausa publicitaria (si toca; ver Ads.interstitial_then). Un solo toque.
+func _with_ad(action: Callable, with_ad: bool) -> void:
+	if not with_ad:
+		action.call()
+		return
+	if _ad_busy:
+		return
+	_ad_busy = true
+	Ads.interstitial_then(action)
+
+
 func _restart() -> void:
 	get_tree().paused = false
 	Engine.time_scale = 1.0
@@ -390,7 +403,14 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 	info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info.add_theme_font_size_override("font_size", 24)
 	box.add_child(info)
-	if victory and director is StoryMode and (director as StoryMode).has_next_mission():
+	# Anuncio intersticial: al pasar a la siguiente partida tras ganar una misión de la historia o
+	# al acabar una de supervivencia. Nunca tras perder en la historia ni antes de la pantalla premium.
+	var story_win: bool = victory and director is StoryMode
+	var ad_after: bool = story_win or director is SurvivalMode
+	if story_win:
+		# El desbloqueo por anuncio recompensado vale hasta superar la misión.
+		GameSession.clear_reward_unlock()
+	if story_win and (director as StoryMode).has_next_mission():
 		var next_locked: bool = GameSession.mission_locked(GameSession.mission_index + 1)
 		var next := _button(Loc.t("SIGUIENTE MISIÓN (PREMIUM)") if next_locked else Loc.t("SIGUIENTE MISIÓN"))
 		next.pressed.connect(func() -> void:
@@ -399,13 +419,24 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 				GameSession.menu_page = "premium"
 				_to_menu()
 			else:
-				_restart())
+				_with_ad(_restart, ad_after))
 		box.add_child(next)
-	var retry := _button(Loc.t("REINTENTAR") if not victory else Loc.t("JUGAR OTRA VEZ"))
-	retry.pressed.connect(_restart)
+	var replay_locked: bool = story_win and GameSession.mission_locked(GameSession.mission_index)
+	var retry_text: String = Loc.t("REINTENTAR")
+	if victory:
+		retry_text = Loc.t("JUGAR OTRA VEZ (PREMIUM)") if replay_locked else Loc.t("JUGAR OTRA VEZ")
+	var retry := _button(retry_text)
+	retry.pressed.connect(func() -> void:
+		if replay_locked:
+			GameSession.menu_page = "premium"
+			_to_menu()
+		else:
+			_with_ad(_restart, ad_after))
 	box.add_child(retry)
 	var menu := _button(Loc.t("MENÚ PRINCIPAL"))
-	menu.pressed.connect(_to_menu)
+	# En supervivencia el anuncio sale también al volver al menú (es el final de la partida).
+	menu.pressed.connect(func() -> void:
+		_with_ad(_to_menu, director is SurvivalMode))
 	box.add_child(menu)
 	# Deja ver la escena unos instantes antes de mostrar el panel.
 	get_tree().create_timer(1.2).timeout.connect(func() -> void:

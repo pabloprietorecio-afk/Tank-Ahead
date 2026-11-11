@@ -28,6 +28,9 @@ var _flag_list: PanelContainer
 var _flag_rows: Dictionary = {}
 var _on_options: bool = false
 var _showing_premium: bool = false
+## Anuncio recompensado en curso / terminado sin premio (pantalla premium).
+var _reward_busy: bool = false
+var _reward_failed: bool = false
 var _center: MarginContainer
 var _title: Label
 var _subtitle: Label
@@ -95,6 +98,8 @@ func _ready() -> void:
 	_build_flag()
 	_start_audio()
 	PremiumStore.changed.connect(_on_store_changed)
+	Ads.changed.connect(_on_store_changed)
+	Ads.rewarded_result.connect(_on_rewarded_result)
 	var page: String = GameSession.menu_page
 	GameSession.menu_page = ""
 	if page == "story":
@@ -158,6 +163,8 @@ func _clear(subtitle: String) -> void:
 	_subtitle.text = subtitle
 	_on_options = false
 	_showing_premium = false
+	if not _reward_busy:
+		_reward_failed = false
 	if _flag_list != null:
 		_flag_list.visible = false
 	for child in _content.get_children():
@@ -411,6 +418,8 @@ func _page_audio() -> void:
 		GameSettings.save())
 	_content.add_child(highlight)
 	_content.add_child(VolumeSliders.create())
+	if Ads.privacy_options_available():
+		_button(Loc.t("PRIVACIDAD DE LOS ANUNCIOS"), Ads.show_privacy_options)
 	# Pie: idioma y volver en la misma fila (así la página cabe en pantallas bajas). El idioma se
 	# rotula en los dos idiomas para encontrarlo aunque se haya cambiado sin querer.
 	var footer := HBoxContainer.new()
@@ -512,13 +521,25 @@ func _page_premium(index: int = -1) -> void:
 	var idle: bool = PremiumStore.state == PremiumStore.State.READY
 	_button(buy_text, PremiumStore.buy, idle and PremiumStore.can_buy(), TINT_PLAY)
 	_button(Loc.t("RESTAURAR COMPRA"), PremiumStore.restore, idle)
-	var note_text: String = ""
-	if not Premium.billing_available():
-		note_text = Loc.t("Las compras no están disponibles en este dispositivo.")
-	elif PremiumStore.message != "":
-		note_text = Loc.t(PremiumStore.message)
-	elif PremiumStore.state == PremiumStore.State.CONNECTING:
-		note_text = Loc.t("Conectando con Google Play…")
+	# Anuncio recompensado: abre esta misión una vez (solo la siguiente por jugar, no saltándose ninguna).
+	var reward_note: String = ""
+	if GameSession.mission_index >= 0 and GameSession.mission_index <= GameSession.completed_missions() and Ads.rewarded_offered():
+		var ready_ad: bool = Ads.rewarded_ready() and not _reward_busy
+		_button(Loc.t("VER UN ANUNCIO Y JUGAR ESTA MISIÓN"), _watch_ad, ready_ad)
+		if _reward_busy:
+			reward_note = Loc.t("Abriendo el anuncio…")
+		elif not ready_ad:
+			reward_note = Loc.t("Cargando el anuncio…")
+	if _reward_failed:
+		reward_note = Loc.t("No se ha completado el anuncio.")
+	var note_text: String = reward_note
+	if note_text == "":
+		if not Premium.billing_available():
+			note_text = Loc.t("Las compras no están disponibles en este dispositivo.")
+		elif PremiumStore.message != "":
+			note_text = Loc.t(PremiumStore.message)
+		elif PremiumStore.state == PremiumStore.State.CONNECTING:
+			note_text = Loc.t("Conectando con Google Play…")
 	if note_text != "":
 		var note := _label(note_text, 20, AMBER)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -529,6 +550,25 @@ func _page_premium(index: int = -1) -> void:
 			Premium.set_premium(true)
 			_page_missions())
 	_back(_page_missions)
+
+
+func _watch_ad() -> void:
+	_reward_busy = true
+	_reward_failed = false
+	_page_premium()
+	Ads.show_rewarded()
+
+
+func _on_rewarded_result(granted: bool) -> void:
+	_reward_busy = false
+	if granted:
+		_reward_failed = false
+		GameSession.grant_reward_unlock(GameSession.mission_index)
+		_page_briefing(GameSession.mission_index)
+	else:
+		_reward_failed = true
+		if _showing_premium:
+			_page_premium()
 
 
 ## Cambió algo en la compra (precio, aviso, estado o Premium): redibuja la pantalla si está abierta.

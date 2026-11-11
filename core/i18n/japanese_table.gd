@@ -447,6 +447,12 @@ const TABLE: Dictionary = {
 	"Compra pendiente: se activará cuando Google Play la confirme.": "保留中です。Google Play が確認するとプレミアムになります。",
 	"Premium no está disponible ahora mismo en Google Play.": "プレミアムは現在 Google Play で利用できません。",
 	"Las compras no están disponibles en este dispositivo.": "このデバイスでは利用できません。",
+	"JUGAR OTRA VEZ (PREMIUM)": "もう一度(プレミアム)",
+	"VER UN ANUNCIO Y JUGAR ESTA MISIÓN": "CMを見てこのミッションをプレイ",
+	"Abriendo el anuncio…": "CMを開いています…",
+	"Cargando el anuncio…": "CMを準備中…",
+	"No se ha completado el anuncio.": "CMを最後まで見られませんでした。",
+	"PRIVACIDAD DE LOS ANUNCIOS": "CMのプライバシー設定",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).
