@@ -2,11 +2,11 @@ name: Build Billing plugin
 
 # Compila desde el código fuente (etiqueta fija) el plugin oficial de Godot para Google Play Billing
 # y deja el resultado (addons/GodotGooglePlayBilling) en la rama billing-plugin-out, de donde se
-# copia al proyecto. Se lanza empujando una etiqueta «billing-plugin-*».
+# copia al proyecto. Se lanza empujando la rama «billing-plugin».
 on:
   workflow_dispatch:
   push:
-    tags: ['billing-plugin-*']
+    branches: [billing-plugin]
 
 permissions:
   contents: write
