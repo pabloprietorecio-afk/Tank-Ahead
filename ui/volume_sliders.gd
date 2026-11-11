@@ -9,7 +9,7 @@ static func create() -> VBoxContainer:
 	_row(box, Loc.t("GENERAL"), GameSettings.master_volume, func(v: float) -> void: GameSettings.master_volume = v)
 	_row(box, Loc.t("MÚSICA"), GameSettings.music_volume, func(v: float) -> void: GameSettings.music_volume = v)
 	_row(box, Loc.t("EFECTOS"), GameSettings.sfx_volume, func(v: float) -> void: GameSettings.sfx_volume = v)
-	_row(box, "RADIO", GameSettings.voice_volume, func(v: float) -> void: GameSettings.voice_volume = v)
+	_row(box, Loc.t("RADIO"), GameSettings.voice_volume, func(v: float) -> void: GameSettings.voice_volume = v)
 	return box
 
 

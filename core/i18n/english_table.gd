@@ -281,7 +281,7 @@ const TABLE: Dictionary = {
 	"FIJADO: SOBRE LA MIRA VES SU BLINDAJE Y SU ATAQUE.\nPULSA LIBERAR OBJETIVO PARA SOLTARLO": "LOCKED: ABOVE THE CROSSHAIR YOU SEE ITS ARMOUR AND ATTACK.\nPRESS RELEASE TARGET TO LET IT GO",
 	"LIBERAR OBJETIVO ESTÁ ABAJO,\nA LA IZQUIERDA DE FIRE": "RELEASE TARGET IS AT THE BOTTOM,\nTO THE LEFT OF FIRE",
 	"PULSA ZOOM PARA USAR LOS PRISMÁTICOS": "PRESS ZOOM TO USE THE BINOCULARS",
-	"ZOOM ESTÁ ARRIBA, A LA IZQUIERDA DE LA PAUSA": "ZOOM IS AT THE TOP, TO THE LEFT OF PAUSE",
+	"ZOOM ESTÁ ARRIBA, A LA IZQUIERDA DE CÁM": "ZOOM IS AT THE TOP, LEFT OF CAM",
 	"SOLO CON ZOOM APARECEN MISIL Y AVIÓN.\nACIERTA A LA DIANA LEJANA": "ONLY WITH ZOOM DO MISSILE AND STRIKE APPEAR.\nHIT THE DISTANT TARGET",
 	"CON ZOOM EL DEDO MUEVE LA MIRA MÁS FINO.\nCENTRA LA DIANA Y PULSA FIRE": "WITH ZOOM YOUR FINGER MOVES THE CROSSHAIR MORE FINELY.\nCENTRE THE TARGET AND PRESS FIRE",
 	"MISIL GUIADO: FIJA AL ENEMIGO CON LA MIRA\nY, CON ZOOM, PULSA MISIL": "GUIDED MISSILE: LOCK THE ENEMY WITH THE CROSSHAIR\nAND, WITH ZOOM ON, PRESS MISSILE",
@@ -434,6 +434,7 @@ const TABLE: Dictionary = {
 	"Tanque pesado alemán con el famoso cañón de 88 mm y blindaje grueso y vertical. Solo se fabricaron unos 1.350; combatió en Túnez, en Rusia y en Normandía.": "German heavy tank with the famous 88 mm gun and thick, vertical armour. Only about 1,350 were built; it fought in Tunisia, Russia and Normandy.",
 	"Tigre Real: el tanque más pesado del frente occidental.": "King Tiger: the heaviest tank on the Western Front.",
 	"Tigre Real: el tanque más pesado que entró en combate en el frente occidental, con un 88 mm larguísimo. Se fabricaron menos de 500 desde 1944.": "King Tiger: the heaviest tank to see combat on the Western Front, with a very long 88 mm gun. Fewer than 500 were built from 1944.",
+	"RADIO": "RADIO",
 }
 
 ## Mismo texto en español con otro sentido: contexto → {texto: inglés}.

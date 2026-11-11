@@ -276,8 +276,8 @@ func _build_arsenal() -> void:
 	_zoom_button = _button("ZOOM", 22)
 	_zoom_button.custom_minimum_size = Vector2.ZERO
 	_zoom_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_zoom_button.offset_left = -390.0
-	_zoom_button.offset_right = -280.0
+	_zoom_button.offset_left = -300.0
+	_zoom_button.offset_right = -190.0
 	_zoom_button.offset_top = 14.0
 	_zoom_button.offset_bottom = 90.0
 	add_child(_zoom_button)
@@ -287,7 +287,7 @@ func _build_arsenal() -> void:
 		var button := _button(spec[0], 22)
 		button.custom_minimum_size = Vector2.ZERO
 		button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		button.offset_left = -170.0
+		button.offset_left = -196.0
 		button.offset_right = -14.0
 		button.offset_top = spec[1]
 		button.offset_bottom = spec[1] + 75.0

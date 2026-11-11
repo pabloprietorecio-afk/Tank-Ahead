@@ -11,11 +11,23 @@ Frases pregeneradas con Kokoro (fuera del juego). Las locuciones del tutorial se
 se guardan en `assets/voice/tutorial`. Si falta alguna, el tutorial muestra solo el texto.
 
 ## Idiomas
-Español (por defecto) e inglés; se elige en OPCIONES → «IDIOMA / LANGUAGE». El texto del código está en
-español y es la clave de traducción: `Loc.t("TEXTO")` lo muestra tal cual en español y lo busca en
-`core/i18n/english_table.gd` en inglés (si falta, se ve en español). Para un texto nuevo basta una línea
-en esa tabla. Las voces en inglés están en `assets/voice_en` y se generan con
-`python3 tools/voice_gen/voices_en.py MODELO.onnx VOCES.bin` (voces «am_michael» y «bm_george»).
+Diez idiomas: español (por defecto), inglés, francés, italiano, japonés, portugués de Brasil,
+indonesio, hindi, alemán y ruso. Se eligen tocando la bandera vieja de arriba a la derecha del menú
+principal o en OPCIONES → «IDIOMA / LANGUAGE». El texto del código está en español y es la clave de
+traducción: `Loc.t("TEXTO")` lo muestra tal cual en español y lo busca en `core/i18n/<idioma>_table.gd`
+en los demás (si falta, se ve en español). Para un texto nuevo basta una línea en cada tabla.
+
+Fuentes: el japonés y el hindi llevan una fuente de respaldo (Noto Sans CJK JP en subconjunto y
+Noto Sans Devanagari, ambas con licencia SIL OFL 1.1, en `assets/fonts`), que solo se activa en
+esos idiomas. El cirílico y el resto de alfabetos latinos ya los trae la fuente por defecto.
+
+Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
+- Inglés, francés, italiano, japonés, portugués e hindi: Kokoro
+  (`voices_en.py`, `voices_lang.py MODELO.onnx VOCES.bin CODIGO`). El francés solo tiene voz femenina.
+- Alemán y ruso: Piper con sherpa-onnx (`voices_piper.py`; voces de conjuntos de datos CC0).
+- Indonesio: sin voces propias de momento (no hay un modelo con licencia clara); habla en español.
+- Los textos de las voces de los idiomas nuevos están en `tools/voice_gen/lines/<idioma>.txt` y son
+  traducciones propias, sin revisar por un nativo.
 
 ## Tutorial
 Modo propio (`levels/modes/tutorial`): diecisiete lecciones (las dos últimas antes del combate final enseñan las órdenes a los aliados) en un campo de prácticas. Se ofrece la

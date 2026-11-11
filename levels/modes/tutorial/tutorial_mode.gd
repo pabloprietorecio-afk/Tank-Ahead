@@ -85,7 +85,7 @@ const STEPS: Dictionary = {
 	"zoom": [
 		{"id": "zoom_a", "show": ["zoom"],
 			"text": "PULSA ZOOM PARA USAR LOS PRISMÁTICOS",
-			"hint": "ZOOM ESTÁ ARRIBA, A LA IZQUIERDA DE LA PAUSA"},
+			"hint": "ZOOM ESTÁ ARRIBA, A LA IZQUIERDA DE CÁM"},
 		{"id": "zoom_b", "show": ["missile", "strike"],
 			"text": "SOLO CON ZOOM APARECEN MISIL Y AVIÓN.\nACIERTA A LA DIANA LEJANA",
 			"hint": "CON ZOOM EL DEDO MUEVE LA MIRA MÁS FINO.\nCENTRA LA DIANA Y PULSA FIRE"},

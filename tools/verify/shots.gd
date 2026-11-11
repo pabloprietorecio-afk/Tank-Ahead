@@ -39,6 +39,8 @@ class Runner extends Node:
 				await _arena(front)
 		if only == "" or only.contains("menu"):
 			await _menu()
+		if only.contains("flags"):
+			await _flags()
 		if only.contains("fit"):
 			await _menu_fit()
 		if only.contains("story"):
@@ -376,6 +378,28 @@ class Runner extends Node:
 		await _frames(3)
 		await get_tree().create_timer(2.0).timeout
 		await _snap("menu")
+
+	## Bandera de idioma del menú: cerrada, con la lista abierta y con el menú en cada idioma.
+	func _flags() -> void:
+		GameSession.mark_tutorial("offered")
+		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+		await _frames(3)
+		await get_tree().create_timer(1.5).timeout
+		var menu: Node = get_tree().current_scene
+		await _snap("flags_menu")
+		menu._flag_list.visible = true
+		await _frames(2)
+		await _snap("flags_lista")
+		for code: String in Loc.LANGUAGES:
+			menu._pick_language(code)
+			await _frames(3)
+			await _snap("flags_menu_" + code)
+			menu._page_audio()
+			await _frames(3)
+			await _snap("flags_opciones_" + code)
+			menu._page_mode()
+			await _frames(2)
+		GameSettings.set_language("es")
 
 	func _start_tutorial() -> TutorialMode:
 		GameSession.mode = GameSession.Mode.TUTORIAL
