@@ -72,7 +72,9 @@ class Runner extends Node:
 			await _sky_shots()
 		if only == "" or only.contains("ctfshot"):
 			await _ctf_shot()
-		if only.contains("store"):
+		if only.contains("storecover"):
+			await _store_cover()
+		elif only.contains("store"):
 			await _store()
 		print("SHOTS DONE")
 		get_tree().quit()
@@ -949,8 +951,10 @@ class Runner extends Node:
 		await _snap("store_portada_a")
 		await get_tree().create_timer(7.0).timeout
 		await _snap("store_portada_b")
+		GameSession.mark_tutorial("offered")
 		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
 		await _frames(3)
+		get_tree().current_scene._version.visible = false
 		await get_tree().create_timer(3.0).timeout
 		await _snap("store_menu")
 		GameSettings.ensure_loaded()
@@ -978,13 +982,35 @@ class Runner extends Node:
 			for tank in get_tree().get_nodes_in_group(&"tanks"):
 				if tank.is_player:
 					player = tank
-			await get_tree().create_timer(9.0).timeout
-			await _snap("store_%s_a" % spec[4])
-			if player != null:
-				player.weapon.fire()
-				await get_tree().create_timer(0.12).timeout
-			await _snap("store_%s_disparo" % spec[4])
 			await get_tree().create_timer(6.0).timeout
+			# Un enemigo cerca y de frente, para que se vea combate y no un punto en el horizonte.
+			var enemy: Node3D = null
+			for tank in get_tree().get_nodes_in_group(&"tanks"):
+				if player != null and not tank.is_player and tank.team != player.team:
+					enemy = tank
+					break
+			if player != null and enemy != null:
+				var fwd: Vector3 = -player.global_basis.z
+				fwd.y = 0.0
+				fwd = fwd.normalized()
+				var right: Vector3 = fwd.cross(Vector3.UP)
+				var spot: Vector3 = player.global_position + fwd * 32.0 + right * 6.0
+				enemy.global_position = Vector3(spot.x, enemy.global_position.y + 0.5, spot.z)
+				var face: Vector3 = player.global_position
+				face.y = enemy.global_position.y
+				enemy.look_at(face, Vector3.UP)
+				await get_tree().create_timer(0.8).timeout
+				await _snap("store_%s_a" % spec[4])
+				player.weapon.fire()
+				Engine.time_scale = 0.35
+				await get_tree().create_timer(0.12).timeout
+				Explosion.spawn(arena, enemy.global_position + Vector3(0.0, 1.4, 0.0), 1.3, VectorMaterials.ORANGE, true)
+				await get_tree().create_timer(0.18).timeout
+				await _snap("store_%s_impacto" % spec[4])
+				await get_tree().create_timer(0.5).timeout
+				await _snap("store_%s_impacto2" % spec[4])
+				Engine.time_scale = 1.0
+			await get_tree().create_timer(4.0).timeout
 			await _snap("store_%s_b" % spec[4])
 			if spec[4] == "normandia":
 				hud._history_from_menu = true
@@ -1008,6 +1034,58 @@ class Runner extends Node:
 		await get_tree().create_timer(8.0).timeout
 		await _snap("store_bandera")
 		GameSettings.camera_view = 0
+
+	## Gráfico destacado (portada con el título, se recorta a 1024x500) y candidatos de icono.
+	func _store_cover() -> void:
+		var old: Node = get_tree().current_scene
+		if old != null:
+			old.queue_free()
+		await _frames(2)
+		var stage := Node3D.new()
+		get_tree().root.add_child(stage)
+		get_tree().current_scene = stage
+		var cover := CoverDiorama.new()
+		stage.add_child(cover)
+		var layer := CanvasLayer.new()
+		stage.add_child(layer)
+		var box := VBoxContainer.new()
+		box.position = Vector2(70.0, 150.0)
+		box.add_theme_constant_override("separation", 0)
+		layer.add_child(box)
+		var title := Label.new()
+		title.text = "A TANK STORY"
+		title.add_theme_font_size_override("font_size", 104)
+		title.add_theme_color_override("font_color", Color(0.96, 0.82, 0.5))
+		title.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.04))
+		title.add_theme_constant_override("outline_size", 20)
+		title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
+		title.add_theme_constant_override("shadow_offset_x", 5)
+		title.add_theme_constant_override("shadow_offset_y", 6)
+		box.add_child(title)
+		var era := Label.new()
+		era.text = "1941 — 1945"
+		era.add_theme_font_size_override("font_size", 40)
+		era.add_theme_color_override("font_color", Color(0.95, 0.93, 0.86))
+		era.add_theme_color_override("font_outline_color", Color.BLACK)
+		era.add_theme_constant_override("outline_size", 10)
+		box.add_child(era)
+		await get_tree().create_timer(6.0).timeout
+		await _snap("store_destacado_a")
+		await get_tree().create_timer(5.0).timeout
+		await _snap("store_destacado_b")
+		layer.visible = false
+		_camera = Camera3D.new()
+		_camera.far = 500.0
+		stage.add_child(_camera)
+		var views: Array = [
+			[Vector3(-1.0, 1.8, 13.0), Vector3(5.0, 1.4, 6.0), 40.0, "icono_sherman"],
+			[Vector3(10.0, 2.0, 2.0), Vector3(17.0, 1.6, -6.0), 40.0, "icono_tiger"],
+			[Vector3(1.0, 1.4, 15.0), Vector3(9.0, 1.6, 1.0), 45.0, "icono_ambos"],
+			[Vector3(9.0, 1.2, 12.0), Vector3(5.0, 1.5, 6.0), 42.0, "icono_sherman_bajo"],
+		]
+		for view in views:
+			_look(view[0], view[1], view[2])
+			await _snap("store_" + view[3])
 
 	func _secs(value: float) -> String:
 		return "a los %.0f s" % value if value >= 0.0 else "NUNCA"
