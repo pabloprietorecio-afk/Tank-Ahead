@@ -12,6 +12,10 @@ run/main_scene="res://levels/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/version="0.0.0"
 
+[autoload]
+
+PremiumStore="*res://core/premium_store.gd"
+
 [display]
 
 window/size/viewport_width=1280

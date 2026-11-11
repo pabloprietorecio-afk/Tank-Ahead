@@ -439,8 +439,14 @@ const TABLE: Dictionary = {
 	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Tiga misi pertama di setiap front gratis. Jadilah Premium untuk memainkan sisa kampanye dan menghapus iklan.",
 	"HAZTE PREMIUM": "JADI PREMIUM",
 	"RESTAURAR COMPRA": "PULIHKAN PEMBELIAN",
-	"Las compras no están disponibles todavía en esta versión.": "Pembelian belum tersedia di versi ini.",
 	"SIGUIENTE MISIÓN (PREMIUM)": "MISI BERIKUTNYA (PREMIUM)",
+	"Conectando con Google Play…": "Menghubungkan ke Google Play…",
+	"Compra cancelada.": "Pembelian dibatalkan.",
+	"No se ha podido completar la compra. Inténtalo de nuevo más tarde.": "Pembelian tidak dapat diselesaikan. Coba lagi nanti.",
+	"No se ha encontrado ninguna compra anterior.": "Tidak ada pembelian sebelumnya.",
+	"Compra pendiente: se activará cuando Google Play la confirme.": "Pembelian tertunda: Premium aktif setelah Google Play mengonfirmasi.",
+	"Premium no está disponible ahora mismo en Google Play.": "Premium sedang tidak tersedia di Google Play.",
+	"Las compras no están disponibles en este dispositivo.": "Pembelian tidak tersedia di perangkat ini.",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

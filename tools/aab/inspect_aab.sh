@@ -28,9 +28,9 @@ say "## Comprobaciones"
 ok "$PKG, minSdk=$MINSDK"
 if [ -n "$TARGET" ] && [ "$TARGET" -ge 36 ]; then ok "targetSdk=$TARGET (Google Play exige 36 o más)"; else bad "targetSdk=${TARGET:-?} (Google Play exige 36 o más)"; fi
 if grep -q 'android:debuggable="true"' <<<"$MANIFEST"; then bad "El AAB es depurable (android:debuggable=true)"; else ok "No es depurable"; fi
-PERMS=$(echo "$MANIFEST" | grep -o 'uses-permission[^>]*android:name="[^"]*"' | grep -o 'android.permission.[A-Z_]*\|com.google[A-Za-z_.]*' | sort -u)
+PERMS=$(echo "$MANIFEST" | grep -o 'uses-permission[^>]*android:name="[^"]*"' | grep -o 'android.permission.[A-Z_]*\|com.android.vending.[A-Z_]*\|com.google[A-Za-z_.]*' | sort -u)
 say "- Permisos declarados: $(echo $PERMS | tr '\n' ' ')"
-UNEXPECTED=$(echo "$PERMS" | grep -v -E '^android.permission.(INTERNET|VIBRATE|ACCESS_NETWORK_STATE|WAKE_LOCK)$' || true)
+UNEXPECTED=$(echo "$PERMS" | grep -v -E '^(android.permission.(INTERNET|VIBRATE|ACCESS_NETWORK_STATE|WAKE_LOCK)|com.android.vending.BILLING)$' || true)
 if [ -n "$UNEXPECTED" ]; then bad "Permisos no previstos: $(echo $UNEXPECTED | tr '\n' ' ')"; else ok "Solo permisos previstos"; fi
 
 say

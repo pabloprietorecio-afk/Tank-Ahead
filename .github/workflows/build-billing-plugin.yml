@@ -1,0 +1,54 @@
+name: Build Billing plugin
+
+# Compila desde el código fuente (etiqueta fija) el plugin oficial de Godot para Google Play Billing
+# y deja el resultado (addons/GodotGooglePlayBilling) en la rama billing-plugin-out, de donde se
+# copia al proyecto. Se lanza empujando una etiqueta «billing-plugin-*».
+on:
+  workflow_dispatch:
+  push:
+    tags: ['billing-plugin-*']
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_REPO: https://github.com/godotengine/godot-google-play-billing
+  PLUGIN_TAG: "3.3.0"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Android SDK 36
+        run: |
+          SDKM=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | head -1)
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+
+      - name: Compilar el plugin
+        run: |
+          git clone --depth 1 --branch "$PLUGIN_TAG" "$PLUGIN_REPO" "$RUNNER_TEMP/plugin"
+          cd "$RUNNER_TEMP/plugin"
+          git log -1 --format='commit %H'
+          chmod +x gradlew
+          ./gradlew --no-daemon assemble 2>&1 | tail -40
+          find addons -type f | sort | xargs ls -la
+
+      - name: Publicar en la rama billing-plugin-out
+        run: |
+          D="$RUNNER_TEMP/out"; mkdir -p "$D"
+          cp -r "$RUNNER_TEMP/plugin/addons" "$D/"
+          { echo "plugin: $PLUGIN_REPO"; echo "tag: $PLUGIN_TAG"; git -C "$RUNNER_TEMP/plugin" rev-parse HEAD; } > "$D/ORIGEN.txt"
+          cd "$D"
+          git init -q -b billing-plugin-out
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -q -m "Plugin Google Play Billing $PLUGIN_TAG"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" billing-plugin-out

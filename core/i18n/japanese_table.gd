@@ -439,8 +439,14 @@ const TABLE: Dictionary = {
 	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "各戦線の最初の3ミッションは無料です。プレミアムにすると、キャンペーンの残りをプレイでき、バナーやCMも表示されなくなります。",
 	"HAZTE PREMIUM": "プレミアムにする",
 	"RESTAURAR COMPRA": "プレミアムを再確認",
-	"Las compras no están disponibles todavía en esta versión.": "このバージョンでは、まだプレミアムを利用できません。",
 	"SIGUIENTE MISIÓN (PREMIUM)": "次のミッション(プレミアム)",
+	"Conectando con Google Play…": "Google Play に接続中…",
+	"Compra cancelada.": "キャンセルしました。",
+	"No se ha podido completar la compra. Inténtalo de nuevo más tarde.": "手続きを完了できませんでした。もう一度やり直してください。",
+	"No se ha encontrado ninguna compra anterior.": "以前のプレミアムは見つかりませんでした。",
+	"Compra pendiente: se activará cuando Google Play la confirme.": "保留中です。Google Play が確認するとプレミアムになります。",
+	"Premium no está disponible ahora mismo en Google Play.": "プレミアムは現在 Google Play で利用できません。",
+	"Las compras no están disponibles en este dispositivo.": "このデバイスでは利用できません。",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

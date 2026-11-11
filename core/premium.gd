@@ -2,12 +2,12 @@ class_name Premium
 extends RefCounted
 ## Nivel premium. En el modo historia, las tres primeras misiones de cada frente son gratuitas
 ## y el resto exige premium. Supervivencia, captura la bandera, tutorial y fichas históricas
-## siguen libres. Premium también quita los anuncios (decidido; la publicidad aún no está
-## integrada: cuando lo esté, no debe mostrarse nada si is_premium()).
+## siguen libres. Premium también quita los anuncios (la publicidad aún no está integrada:
+## cuando lo esté, no debe mostrarse nada si is_premium()).
 ##
-## La compra real (Google Play Billing) todavía no está conectada: cuando lo esté, debe llamar a
-## set_premium(true) al confirmar la compra y volver a consultar las compras al abrir el juego
-## (set_premium(false) si ya no consta), porque este valor guardado solo es una caché.
+## La compra la gestiona PremiumStore (Google Play Billing), que activa o quita Premium con
+## set_premium() según las compras de la cuenta; el valor guardado aquí es una caché para jugar
+## sin conexión.
 
 const FREE_MISSIONS_PER_FRONT: int = 3
 ## Interruptor general: con false todo el juego queda abierto.
@@ -28,9 +28,9 @@ static func set_premium(active: bool) -> void:
 	cfg.save(PATH)
 
 
-## ¿Se pueden comprar ya? (Pendiente de conectar con Google Play Billing.)
+## ¿Hay compras en este dispositivo? (Android con Google Play; en el ordenador no.)
 static func billing_available() -> bool:
-	return false
+	return PremiumStore.available()
 
 
 ## Solo en compilaciones de depuración (APK de pruebas): permite probar el flujo sin comprar.

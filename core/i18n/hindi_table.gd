@@ -439,8 +439,14 @@ const TABLE: Dictionary = {
 	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "हर मोर्चे के पहले तीन मिशन मुफ़्त हैं। बाकी अभियान खेलने और विज्ञापन हटाने के लिए प्रीमियम लें।",
 	"HAZTE PREMIUM": "प्रीमियम लें",
 	"RESTAURAR COMPRA": "खरीद बहाल करें",
-	"Las compras no están disponibles todavía en esta versión.": "इस संस्करण में खरीदारी अभी उपलब्ध नहीं है।",
 	"SIGUIENTE MISIÓN (PREMIUM)": "अगला मिशन (प्रीमियम)",
+	"Conectando con Google Play…": "Google Play से कनेक्ट हो रहा है…",
+	"Compra cancelada.": "खरीदारी रद्द की गई।",
+	"No se ha podido completar la compra. Inténtalo de nuevo más tarde.": "खरीदारी पूरी नहीं हो सकी। कृपया बाद में फिर कोशिश करें।",
+	"No se ha encontrado ninguna compra anterior.": "कोई पिछली खरीदारी नहीं मिली।",
+	"Compra pendiente: se activará cuando Google Play la confirme.": "खरीदारी लंबित है: Google Play की पुष्टि के बाद प्रीमियम चालू होगा।",
+	"Premium no está disponible ahora mismo en Google Play.": "प्रीमियम अभी Google Play पर उपलब्ध नहीं है।",
+	"Las compras no están disponibles en este dispositivo.": "इस डिवाइस पर खरीदारी उपलब्ध नहीं है।",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

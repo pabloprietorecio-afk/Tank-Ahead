@@ -439,8 +439,14 @@ const TABLE: Dictionary = {
 	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Die ersten drei Missionen jeder Front sind kostenlos. Mit Premium spielst du den Rest der Kampagne und entfernst die Werbung.",
 	"HAZTE PREMIUM": "PREMIUM HOLEN",
 	"RESTAURAR COMPRA": "KAUF WIEDERHERSTELLEN",
-	"Las compras no están disponibles todavía en esta versión.": "Käufe sind in dieser Version noch nicht verfügbar.",
 	"SIGUIENTE MISIÓN (PREMIUM)": "NÄCHSTE MISSION (PREMIUM)",
+	"Conectando con Google Play…": "Verbinde mit Google Play …",
+	"Compra cancelada.": "Kauf abgebrochen.",
+	"No se ha podido completar la compra. Inténtalo de nuevo más tarde.": "Der Kauf konnte nicht abgeschlossen werden. Versuche es später erneut.",
+	"No se ha encontrado ninguna compra anterior.": "Kein früherer Kauf gefunden.",
+	"Compra pendiente: se activará cuando Google Play la confirme.": "Kauf ausstehend: Premium wird aktiviert, sobald Google Play ihn bestätigt.",
+	"Premium no está disponible ahora mismo en Google Play.": "Premium ist bei Google Play gerade nicht verfügbar.",
+	"Las compras no están disponibles en este dispositivo.": "Käufe sind auf diesem Gerät nicht verfügbar.",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

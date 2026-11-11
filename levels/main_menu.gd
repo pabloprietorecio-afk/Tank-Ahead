@@ -27,6 +27,7 @@ var _flag: FlagButton
 var _flag_list: PanelContainer
 var _flag_rows: Dictionary = {}
 var _on_options: bool = false
+var _showing_premium: bool = false
 var _center: MarginContainer
 var _title: Label
 var _subtitle: Label
@@ -93,6 +94,7 @@ func _ready() -> void:
 	_retranslate()
 	_build_flag()
 	_start_audio()
+	PremiumStore.changed.connect(_on_store_changed)
 	var page: String = GameSession.menu_page
 	GameSession.menu_page = ""
 	if page == "story":
@@ -155,6 +157,7 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 func _clear(subtitle: String) -> void:
 	_subtitle.text = subtitle
 	_on_options = false
+	_showing_premium = false
 	if _flag_list != null:
 		_flag_list.visible = false
 	for child in _content.get_children():
@@ -493,19 +496,31 @@ func _page_missions() -> void:
 func _page_premium(index: int = -1) -> void:
 	if index >= 0:
 		GameSession.mission_index = index
+	if Premium.is_premium():
+		# Ya es premium (compra confirmada o botón de pruebas): vuelve a la campaña.
+		_page_missions()
+		return
 	_clear(Loc.t("NIVEL PREMIUM"))
+	_showing_premium = true
 	var text := _label(Loc.t("Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios."), 26, Color(0.85, 0.9, 0.85))
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.custom_minimum_size = Vector2(760.0, 0.0)
 	_content.add_child(text)
-	if Premium.is_premium():
-		# Ya es premium (por ejemplo, desde el botón de pruebas): vuelve a la campaña.
-		_page_missions()
-		return
-	_button(Loc.t("HAZTE PREMIUM"), _buy_premium, true, TINT_PLAY)
-	_button(Loc.t("RESTAURAR COMPRA"), _buy_premium)
+	var buy_text: String = Loc.t("HAZTE PREMIUM")
+	if PremiumStore.price != "":
+		buy_text += "  ·  " + PremiumStore.price
+	var idle: bool = PremiumStore.state == PremiumStore.State.READY
+	_button(buy_text, PremiumStore.buy, idle and PremiumStore.can_buy(), TINT_PLAY)
+	_button(Loc.t("RESTAURAR COMPRA"), PremiumStore.restore, idle)
+	var note_text: String = ""
 	if not Premium.billing_available():
-		var note := _label(Loc.t("Las compras no están disponibles todavía en esta versión."), 20, AMBER)
+		note_text = Loc.t("Las compras no están disponibles en este dispositivo.")
+	elif PremiumStore.message != "":
+		note_text = Loc.t(PremiumStore.message)
+	elif PremiumStore.state == PremiumStore.State.CONNECTING:
+		note_text = Loc.t("Conectando con Google Play…")
+	if note_text != "":
+		var note := _label(note_text, 20, AMBER)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		note.custom_minimum_size = Vector2(760.0, 0.0)
 		_content.add_child(note)
@@ -516,10 +531,10 @@ func _page_premium(index: int = -1) -> void:
 	_back(_page_missions)
 
 
-func _buy_premium() -> void:
-	if not Premium.billing_available():
-		return
-	# Aquí irá la compra con Google Play Billing; al confirmarla: Premium.set_premium(true).
+## Cambió algo en la compra (precio, aviso, estado o Premium): redibuja la pantalla si está abierta.
+func _on_store_changed() -> void:
+	if _showing_premium:
+		_page_premium()
 
 
 func _page_briefing(index: int) -> void:

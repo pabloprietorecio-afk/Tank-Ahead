@@ -437,8 +437,14 @@ const TABLE: Dictionary = {
 	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "The first three missions of each front are free. Go Premium to play the rest of the campaign and remove ads.",
 	"HAZTE PREMIUM": "GO PREMIUM",
 	"RESTAURAR COMPRA": "RESTORE PURCHASE",
-	"Las compras no están disponibles todavía en esta versión.": "Purchases are not available yet in this version.",
 	"SIGUIENTE MISIÓN (PREMIUM)": "NEXT MISSION (PREMIUM)",
+	"Conectando con Google Play…": "Connecting to Google Play…",
+	"Compra cancelada.": "Purchase cancelled.",
+	"No se ha podido completar la compra. Inténtalo de nuevo más tarde.": "The purchase could not be completed. Please try again later.",
+	"No se ha encontrado ninguna compra anterior.": "No previous purchase was found.",
+	"Compra pendiente: se activará cuando Google Play la confirme.": "Purchase pending: Premium will unlock once Google Play confirms it.",
+	"Premium no está disponible ahora mismo en Google Play.": "Premium is not available on Google Play right now.",
+	"Las compras no están disponibles en este dispositivo.": "Purchases are not available on this device.",
 }
 
 ## Mismo texto en español con otro sentido: contexto → {texto: inglés}.
