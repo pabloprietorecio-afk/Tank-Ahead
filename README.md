@@ -24,14 +24,17 @@ esos idiomas. El cirílico y el resto de alfabetos latinos ya los trae la fuente
 Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
 - Inglés, francés, italiano, japonés, portugués e hindi: Kokoro
   (`voices_en.py`, `voices_lang.py MODELO.onnx VOCES.bin CODIGO`). El francés solo tiene voz femenina.
-- Alemán y ruso: Piper con sherpa-onnx (`voices_piper.py`; voces de conjuntos de datos CC0).
-- Indonesio: Supertonic 3 de Supertone Inc. con sherpa-onnx (`voices_supertonic.py`). El modelo tiene
-  licencia BigScience Open RAIL-M: uso libre de regalías y sin derechos del autor sobre el audio
-  generado, pero con restricciones de uso y la obligación de avisar de que el contenido está hecho
-  por una máquina. **Antes de publicar hay que decir en un sitio visible (créditos del juego o ficha
-  de la tienda) que las voces son sintéticas, generadas por IA.** La voz indonesia de Piper
-  (`id_ID-news_tts`) NO se usa: su conjunto de datos (INDspeech_NEWS_TTS) es CC BY-NC-SA, solo para
-  uso no comercial.
+- Indonesio, alemán y ruso: Supertonic 3 de Supertone Inc. con sherpa-onnx (`voices_supertonic.py`).
+  El modelo tiene licencia BigScience Open RAIL-M: uso libre de regalías y sin derechos del autor
+  sobre el audio generado, pero con restricciones de uso y la obligación de avisar de que el
+  contenido está hecho por una máquina. **Antes de publicar hay que decir en un sitio visible
+  (créditos del juego o ficha de la tienda) que las voces son sintéticas, generadas por IA.**
+  La voz indonesia de Piper (`id_ID-news_tts`) NO se usa: su conjunto de datos (INDspeech_NEWS_TTS)
+  es CC BY-NC-SA, solo para uso no comercial. `voices_piper.py` (alemán y ruso con Piper, CC0) se
+  conserva como alternativa, pero con el efecto de radio se entiende peor.
+- Comprobación: `check_voices.py CARPETA_WHISPER CODIGO` transcribe las voces de un idioma con
+  Whisper y las compara con el texto (1.00 = se oye lo escrito). Medias actuales: it 0,98; de 0,97;
+  ru 0,97; pt 0,96; id 0,95; ja 0,92; hi 0,92; fr 0,90. Mide si se entiende, no si suena natural.
 - Los textos de las voces de los idiomas nuevos están en `tools/voice_gen/lines/<idioma>.txt` y son
   traducciones propias, sin revisar por un nativo.
 

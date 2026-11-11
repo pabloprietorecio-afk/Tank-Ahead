@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""Voces del juego en indonesio con Supertonic 3 (Supertone Inc.) y sherpa-onnx.
+"""Voces del juego en indonesio, alemán y ruso con Supertonic 3 (Supertone Inc.) y sherpa-onnx.
 
-Kokoro y Piper no tienen una voz indonesia que se pueda usar en un juego comercial (la de Piper,
-id_ID-news_tts, toma su nombre de un conjunto de datos CC BY-NC-SA, solo para uso no comercial; ver
-voices_piper.py). Supertonic 3
-sí habla indonesio y su modelo se publica con la licencia BigScience Open RAIL-M: uso libre de
-regalías, sin reclamar derechos sobre el audio generado, con restricciones de uso (no suplantar a
-nadie, no desinformar...) y la obligación de AVISAR de que el contenido está generado por una
-máquina: el juego debe decir en algún sitio visible que las voces son sintéticas.
+Kokoro no habla ninguno de los tres. Para el indonesio no hay otra voz que se pueda usar en un juego
+comercial (la de Piper, id_ID-news_tts, toma su nombre de un conjunto de datos CC BY-NC-SA, solo
+para uso no comercial; ver voices_piper.py). En alemán y ruso las voces de Piper valen por licencia,
+pero con el efecto de radio se entienden peor: al transcribirlas con Whisper y compararlas con el
+texto (misma medida para los dos motores; 1 = se oye lo escrito), el ruso sacó de media 0,76 con
+Piper y 0,92 con Supertonic, y el alemán 0,88 y 0,94. Ver check_voices.py.
+
+El modelo se publica con la licencia BigScience Open RAIL-M: uso libre de regalías, sin reclamar
+derechos sobre el audio generado, con restricciones de uso (no suplantar a nadie, no desinformar...)
+y la obligación de AVISAR de que el contenido está generado por una máquina: el juego debe decir en
+algún sitio visible que las voces son sintéticas.
 
 Uso:
     pip install "sherpa-onnx>=1.13,<2" soundfile     # probado con la 1.13.8; y ffmpeg en el sistema
@@ -30,7 +34,10 @@ MODEL = "sherpa-onnx-supertonic-3-tts-int8-2026-05-11"
 # Las diez voces van por orden alfabético: 0-4 = F1..F5 (mujer), 5-9 = M1..M5 (hombre).
 # código -> (voz de la tripulación, voz de la radio, velocidad)
 VOICES = {
-    "id": (7, 2, 1.05),  # M3 (firme, con autoridad) y F3 (locutora, clara)
+    # M3 (voz de hombre firme, con autoridad) y F3 (locutora clara, de estilo informativo)
+    "id": (7, 2, 1.05),
+    "ru": (7, 2, 1.05),
+    "de": (7, 2, 1.05),
 }
 STEPS = 16
 

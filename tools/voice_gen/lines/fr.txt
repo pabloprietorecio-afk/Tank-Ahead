@@ -26,7 +26,7 @@ raid_1|Bombardiers ennemis au-dessus de nous ! Sortez de la zone rouge !
 raid_2|Raid aérien ! Bougez, bougez, bougez !
 reinforcements|Renforts ennemis en approche.
 shot_down_1|Avion abattu !
-shot_down_2|Un de moins !
+shot_down_2|Encore un de moins !
 strike_1|Frappe aérienne demandée. Baissez la tête.
 strike_2|Bombardiers en route. Écartez-vous.
 strike_denied|Demande refusée. La cible est trop proche de votre position.

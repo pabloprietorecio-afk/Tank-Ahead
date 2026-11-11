@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Voces del juego en alemán y ruso con modelos Piper (VITS) y sherpa-onnx.
+"""Voces en alemán y ruso con modelos Piper (VITS) y sherpa-onnx. ALTERNATIVA: YA NO SE USA.
 
-Kokoro no tiene voces de esos idiomas, así que se usan modelos Piper cuyo conjunto de datos es CC0
-(ver el MODEL_CARD de cada uno). La calidad es buena pero algo inferior a la de Kokoro.
+Las voces de alemán y ruso que lleva el juego se generan ahora con Supertonic 3 (voices_supertonic.py)
+porque se entienden mejor con el efecto de radio (comprobado con check_voices.py). Este guion se
+conserva por si hiciera falta volver a Piper: sus modelos tienen conjuntos de datos CC0 (ver el
+MODEL_CARD de cada uno) y no obligan a avisar de que la voz es sintética.
 
 Indonesio: el modelo Piper id_ID-news_tts NO se usa. Su ficha oficial es errónea (apunta a un
 conjunto de datos de malayalam), pero el conjunto del que toma el nombre, INDspeech_NEWS_TTS, se
