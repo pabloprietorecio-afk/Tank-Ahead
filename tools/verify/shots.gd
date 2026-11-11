@@ -566,6 +566,22 @@ class Runner extends Node:
 					if not mission["type"] in ["assault", "destroy", "sabotage", "defend", "boss", "liberate", "breakthrough"]:
 						push_error("Tipo de misión desconocido: %s" % mission["type"])
 		print("CAMPAIGN OK ", total)
+		# Premium: en cada campaña, exactamente tres misiones gratuitas por frente.
+		var bad_premium: int = 0
+		for faction in 2:
+			for choice in 4:
+				var list: Array[Dictionary] = Campaign.missions(faction, choice)
+				var free_per_front: Dictionary = {}
+				for i in list.size():
+					if Premium.mission_is_free(list, i):
+						free_per_front[list[i]["front"]] = free_per_front.get(list[i]["front"], 0) + 1
+				var fronts: int = 3 if choice == GameSession.FRONT_MIXED else 1
+				if free_per_front.size() != fronts:
+					bad_premium += 1
+				for front in free_per_front:
+					if free_per_front[front] != Premium.FREE_MISSIONS_PER_FRONT:
+						bad_premium += 1
+		print("PREMIUM RESULT campañas con un reparto de gratuitas incorrecto: ", bad_premium)
 
 	## Arranca una misión de la campaña y la deja correr unos segundos.
 	func _story(faction: int, front: int, index: int) -> void:

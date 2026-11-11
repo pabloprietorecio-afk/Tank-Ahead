@@ -391,10 +391,15 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 	info.add_theme_font_size_override("font_size", 24)
 	box.add_child(info)
 	if victory and director is StoryMode and (director as StoryMode).has_next_mission():
-		var next := _button(Loc.t("SIGUIENTE MISIÓN"))
+		var next_locked: bool = GameSession.mission_locked(GameSession.mission_index + 1)
+		var next := _button(Loc.t("SIGUIENTE MISIÓN (PREMIUM)") if next_locked else Loc.t("SIGUIENTE MISIÓN"))
 		next.pressed.connect(func() -> void:
 			GameSession.mission_index += 1
-			_restart())
+			if next_locked:
+				GameSession.menu_page = "premium"
+				_to_menu()
+			else:
+				_restart())
 		box.add_child(next)
 	var retry := _button(Loc.t("REINTENTAR") if not victory else Loc.t("JUGAR OTRA VEZ"))
 	retry.pressed.connect(_restart)

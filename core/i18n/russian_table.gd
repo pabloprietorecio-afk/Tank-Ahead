@@ -437,6 +437,12 @@ const TABLE: Dictionary = {
 	"NORMAL": "ОБЫЧНО",
 	"INFERNO": "АД",
 	"RADIO": "РАЦИЯ",
+	"NIVEL PREMIUM": "УРОВЕНЬ PREMIUM",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña.": "Первые три миссии каждого фронта бесплатны. Оформите Premium, чтобы пройти остальную кампанию.",
+	"HAZTE PREMIUM": "ПОЛУЧИТЬ PREMIUM",
+	"RESTAURAR COMPRA": "ВОССТАНОВИТЬ ПОКУПКУ",
+	"Las compras no están disponibles todavía en esta versión.": "Покупки в этой версии пока недоступны.",
+	"SIGUIENTE MISIÓN (PREMIUM)": "СЛЕДУЮЩАЯ МИССИЯ (PREMIUM)",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

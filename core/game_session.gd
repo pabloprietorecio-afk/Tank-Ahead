@@ -45,6 +45,11 @@ static func current_mission() -> Dictionary:
 	return list[clampi(mission_index, 0, list.size() - 1)]
 
 
+## ¿La misión exige premium y aún no se tiene?
+static func mission_locked(index: int) -> bool:
+	return Premium.mission_locked(missions(), index)
+
+
 static func _campaign_key() -> String:
 	return "f%d_c%d" % [faction, front_choice]
 

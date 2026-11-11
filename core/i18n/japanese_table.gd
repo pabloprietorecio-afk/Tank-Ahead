@@ -437,6 +437,12 @@ const TABLE: Dictionary = {
 	"NORMAL": "通常",
 	"INFERNO": "地獄",
 	"RADIO": "無線",
+	"NIVEL PREMIUM": "プレミアム",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña.": "各戦線の最初の3ミッションは無料です。プレミアムにすると、キャンペーンの残りをプレイできます。",
+	"HAZTE PREMIUM": "プレミアムにする",
+	"RESTAURAR COMPRA": "プレミアムを再確認",
+	"Las compras no están disponibles todavía en esta versión.": "このバージョンでは、まだプレミアムを利用できません。",
+	"SIGUIENTE MISIÓN (PREMIUM)": "次のミッション(プレミアム)",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

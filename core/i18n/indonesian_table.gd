@@ -437,6 +437,12 @@ const TABLE: Dictionary = {
 	"NORMAL": "NORMAL",
 	"INFERNO": "NERAKA",
 	"RADIO": "RADIO",
+	"NIVEL PREMIUM": "TINGKAT PREMIUM",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña.": "Tiga misi pertama di setiap front gratis. Jadilah Premium untuk memainkan sisa kampanye.",
+	"HAZTE PREMIUM": "JADI PREMIUM",
+	"RESTAURAR COMPRA": "PULIHKAN PEMBELIAN",
+	"Las compras no están disponibles todavía en esta versión.": "Pembelian belum tersedia di versi ini.",
+	"SIGUIENTE MISIÓN (PREMIUM)": "MISI BERIKUTNYA (PREMIUM)",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).
