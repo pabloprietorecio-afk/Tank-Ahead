@@ -1,4 +1,4 @@
-<!-- Publicada como Google Doc público: https://docs.google.com/document/d/1kdB-Zzybvluy4PDx85S5x_shl5oFsINHy02fnHaYkGI/edit?usp=sharing (si cambia el texto, actualizar los dos) -->
+<!-- Publicada como Google Doc público: https://docs.google.com/document/d/1GZbn_gqzPxv5ycrLb0_LF05AocI0rpVtlhaXaPUF_Js/edit?usp=sharing (si cambia el texto, actualizar los dos) -->
 
 # Política de privacidad de A Tank Story
 
@@ -20,8 +20,9 @@ Estos datos no salen de tu dispositivo ni se incluyen en las copias de seguridad
 
 La versión gratuita muestra anuncios de Google AdMob. Para servirlos y medirlos, Google puede tratar datos como el identificador de publicidad de tu dispositivo, la dirección IP, el modelo y la versión del sistema, y tus interacciones con los anuncios.
 
-- En el Espacio Económico Europeo, el Reino Unido y Suiza te pedimos el consentimiento antes de mostrar ningún anuncio, mediante la plataforma de mensajes de Google (UMP). Puedes cambiar tu decisión en **Opciones → Privacidad de los anuncios**.
-- Si no das tu consentimiento, el juego no solicita anuncios.
+- En el Espacio Económico Europeo, el Reino Unido y Suiza te preguntamos primero, con la plataforma de mensajes de Google (UMP), si aceptas que se usen tus datos para la publicidad. Mientras no respondas, el juego no solicita anuncios.
+- Si no das tu consentimiento, Google puede mostrarte anuncios no personalizados o limitados, que no se basan en tu perfil.
+- Puedes cambiar tu decisión en **Opciones → Privacidad de los anuncios**.
 - Puedes restablecer o eliminar el identificador de publicidad en los ajustes de Android (Google → Anuncios).
 
 Cómo usa Google estos datos: https://policies.google.com/technologies/partner-sites
@@ -60,8 +61,9 @@ The game has no user accounts or servers of its own and does not collect persona
 
 The free version shows ads from Google AdMob. To serve and measure them, Google may process data such as your device's advertising ID, IP address, device model and OS version, and your interactions with ads.
 
-- In the European Economic Area, the United Kingdom and Switzerland we ask for your consent before showing any ad, using Google's User Messaging Platform (UMP). You can change your choice in **Options → Ad privacy**.
-- If you do not consent, the game does not request ads.
+- In the European Economic Area, the United Kingdom and Switzerland we first ask, using Google's User Messaging Platform (UMP), whether you agree to your data being used for advertising. Until you answer, the game does not request ads.
+- If you do not consent, Google may show you non-personalised or limited ads that are not based on your profile.
+- You can change your choice in **Options → Ad privacy**.
 - You can reset or delete your advertising ID in Android settings (Google → Ads).
 
 How Google uses this data: https://policies.google.com/technologies/partner-sites
