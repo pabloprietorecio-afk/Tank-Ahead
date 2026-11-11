@@ -418,6 +418,12 @@ func _page_audio() -> void:
 		GameSettings.save())
 	_content.add_child(highlight)
 	_content.add_child(VolumeSliders.create())
+	if OS.is_debug_build():
+		var diag := Label.new()
+		diag.text = Ads.debug_status()
+		diag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		diag.add_theme_font_size_override("font_size", 14)
+		_content.add_child(diag)
 	if Ads.privacy_options_available():
 		_button(Loc.t("PRIVACIDAD DE LOS ANUNCIOS"), Ads.show_privacy_options)
 	# Pie: idioma y volver en la misma fila (así la página cabe en pantallas bajas). El idioma se

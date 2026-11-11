@@ -46,15 +46,42 @@ var _load_retries_i: int = 0
 var _load_retries_r: int = 0
 var _loading_i: bool = false
 var _loading_r: bool = false
+# Política efectiva (en depuración se relaja para poder probar los anuncios enseguida).
+var _grace: int = GRACE_ENDS
+var _per_ad: int = ENDS_PER_AD
+var _min_ms: int = MIN_INTERVAL_MS
+## Último error de anuncios (para el diagnóstico de las compilaciones de depuración).
+var _last_error: String = ""
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_last_ad_ms = Time.get_ticks_msec()
+	if OS.is_debug_build():
+		_grace = 0
+		_per_ad = 1
+		_min_ms = 20000
+		_since_ad = _per_ad - 1
 	if not AdsConfig.usable() or OS.get_name() != "Android" or not Engine.has_singleton("AdmobPlugin"):
 		return
 	PremiumStore.changed.connect(_on_premium_changed)
 	get_tree().create_timer(START_DELAY_S).timeout.connect(_start)
+
+
+## Texto de diagnóstico (solo se enseña en compilaciones de depuración).
+func debug_status() -> String:
+	var consent: String = "?"
+	if _admob != null:
+		var c: UserConsent = _admob.get_consent_status()
+		if c != null:
+			consent = str(c.status)
+	var text: String = "Anuncios: estado %d, consentimiento %s, premium %s" % [state, consent, str(Premium.is_premium())]
+	if _admob != null:
+		text += "\nintersticial cargado: %s · recompensado cargado: %s" % [str(_admob.is_interstitial_ad_loaded()), str(_admob.is_rewarded_ad_loaded())]
+	text += "\nfinales de partida contados: %d" % _ends
+	if _last_error != "":
+		text += "\núltimo error: " + _last_error
+	return text
 
 
 ## ¿Los anuncios están en marcha en este dispositivo? (No es lo mismo que haya uno cargado.)
@@ -91,9 +118,9 @@ func show_privacy_options() -> void:
 func interstitial_then(done: Callable) -> void:
 	_ends += 1
 	var due: bool = false
-	if _ends > GRACE_ENDS:
+	if _ends > _grace:
 		_since_ad += 1
-		due = _since_ad >= ENDS_PER_AD and _interstitial_ok()
+		due = _since_ad >= _per_ad and _interstitial_ok()
 	if not due:
 		done.call()
 		return
@@ -124,7 +151,7 @@ func show_rewarded() -> void:
 func _interstitial_ok() -> bool:
 	if not active() or _ad_open or _after.is_valid():
 		return false
-	if Time.get_ticks_msec() - _last_ad_ms < MIN_INTERVAL_MS:
+	if Time.get_ticks_msec() - _last_ad_ms < _min_ms:
 		return false
 	return _admob.is_interstitial_ad_loaded()
 
@@ -173,7 +200,8 @@ func _on_consent_info_updated() -> void:
 		_after_consent()
 
 
-func _on_consent_failed(_error: FormError) -> void:
+func _on_consent_failed(error: FormError) -> void:
+	_last_error = "consentimiento: " + str(error.get_message())
 	# Sin conexión o error del servicio: si ya hay un consentimiento guardado se sigue; si no, se reintenta.
 	if _can_request_ads():
 		_after_consent()
@@ -258,7 +286,8 @@ func _on_interstitial_loaded(_info: AdInfo, _response: ResponseInfo) -> void:
 	_load_retries_i = 0
 
 
-func _on_interstitial_load_failed(_info: AdInfo, _error: LoadAdError) -> void:
+func _on_interstitial_load_failed(_info: AdInfo, error: LoadAdError) -> void:
+	_last_error = "intersticial: %d %s" % [error.get_code(), error.get_message()]
 	_loading_i = false
 	if _load_retries_i < MAX_RETRIES:
 		_load_retries_i += 1
@@ -271,7 +300,8 @@ func _on_rewarded_loaded(_info: AdInfo, _response: ResponseInfo) -> void:
 	changed.emit()
 
 
-func _on_rewarded_load_failed(_info: AdInfo, _error: LoadAdError) -> void:
+func _on_rewarded_load_failed(_info: AdInfo, error: LoadAdError) -> void:
+	_last_error = "recompensado: %d %s" % [error.get_code(), error.get_message()]
 	_loading_r = false
 	if _load_retries_r < MAX_RETRIES:
 		_load_retries_r += 1
@@ -290,7 +320,8 @@ func _on_interstitial_closed(_info: AdInfo) -> void:
 	_load_interstitial()
 
 
-func _on_interstitial_show_failed(_info: AdInfo, _error: AdError) -> void:
+func _on_interstitial_show_failed(_info: AdInfo, error: AdError) -> void:
+	_last_error = "mostrar intersticial: %d %s" % [error.get_code(), error.get_message()]
 	_finish()
 	_load_interstitial()
 
@@ -312,7 +343,8 @@ func _on_rewarded_closed(_info: AdInfo) -> void:
 	_end_rewarded(_earned)
 
 
-func _on_rewarded_show_failed(_info: AdInfo, _error: AdError) -> void:
+func _on_rewarded_show_failed(_info: AdInfo, error: AdError) -> void:
+	_last_error = "mostrar recompensado: %d %s" % [error.get_code(), error.get_message()]
 	_end_rewarded(false)
 
 
