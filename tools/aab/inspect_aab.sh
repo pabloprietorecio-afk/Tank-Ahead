@@ -40,7 +40,9 @@ NSO=0
 for so in $(find "$TMP" -name '*.so' 2>/dev/null); do
   NSO=$((NSO+1))
   ALIGN=$(readelf -lW "$so" | awk '$1=="LOAD"{print $NF}' | sort -u | tr '\n' ' ')
-  if readelf -lW "$so" | awk '$1=="LOAD"{print $NF}' | grep -q -v -E '^0x(4000|8000|10000|20000|40000|100000|200000)$'; then
+  # Alineación válida para 16 KB: 0x4000 o múltiplos. Se evalúa sobre la variable (sin tuberías con grep -q).
+  BADALIGN=$(tr ' ' '\n' <<<"$ALIGN" | grep -v -E '^(0x(4000|8000|10000|20000|40000|100000|200000))?$' || true)
+  if [ -n "$BADALIGN" ]; then
     bad "$(echo "$so" | sed "s#$TMP/##") alineación: $ALIGN"
   else
     ok "$(echo "$so" | sed "s#$TMP/##") alineación: $ALIGN"
