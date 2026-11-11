@@ -1,5 +1,5 @@
 class_name Campaign
-## Misiones del modo historia: ocho por frente y bando. En «mezcla» se alternan los frentes.
+## Misiones del modo historia: ocho por frente y bando.
 ## Tipos: assault (destruir una fuerza enemiga), destroy (volar depósitos), sabotage (destruir un
 ## complejo: aeródromo, puerto, central, fábrica o cuartel general), defend (resistir en una
 ## posición), boss (abatir al comandante), liberate (derribar las alambradas de un campo) y
@@ -132,14 +132,8 @@ const PER_CAMPAIGN: int = 8
 
 static func missions(faction: int, front_choice: int) -> Array[Dictionary]:
 	var list: Array[Dictionary] = []
-	if front_choice == GameSession.FRONT_MIXED:
-		# Mezcla: misión 1 de cada frente, luego la 2 de cada frente...
-		for i in PER_CAMPAIGN:
-			for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
-				list.append(_entry(front, faction, i))
-	else:
-		for i in PER_CAMPAIGN:
-			list.append(_entry(front_choice, faction, i))
+	for i in PER_CAMPAIGN:
+		list.append(_entry(front_choice, faction, i))
 	return list
 
 

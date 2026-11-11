@@ -51,7 +51,7 @@ Los motores de tanque y de avión son grabaciones reales (ver `assets/audio/CRED
 ## Nivel premium
 
 En el modo historia, las tres primeras misiones de cada frente son gratuitas y el resto exige premium
-(`core/premium.gd`; en la mezcla cuenta el frente de cada misión). Supervivencia, captura la bandera,
+(`core/premium.gd`). Supervivencia, captura la bandera,
 tutorial y fichas siguen libres. La compra con Google Play Billing aún no está conectada: en el APK de
 pruebas hay un botón «[PRUEBAS] Activar premium» en la pantalla premium.
 

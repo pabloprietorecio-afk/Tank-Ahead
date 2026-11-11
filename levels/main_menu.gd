@@ -461,7 +461,6 @@ func _page_front() -> void:
 	for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
 		var tank_name: String = Fronts.tank(Fronts.PLAYER_TANK[front][GameSession.faction]).display_name
 		_button(Loc.t("%s  ·  tu tanque: %s") % [Loc.t(Fronts.NAMES[front]), tank_name], _choose_front.bind(front))
-	_button(Loc.t("MEZCLA — todos los frentes"), _choose_front.bind(GameSession.FRONT_MIXED))
 	_back(_page_faction)
 
 
@@ -474,7 +473,7 @@ func _choose_front(front: int) -> void:
 
 
 func _page_missions() -> void:
-	_clear(Loc.t("CAMPAÑA — %s — %s") % [Loc.t(Fronts.FACTION_NAMES[GameSession.faction]), Loc.t("MEZCLA") if GameSession.front_choice == GameSession.FRONT_MIXED else Loc.t(Fronts.NAMES[GameSession.front_choice])])
+	_clear(Loc.t("CAMPAÑA — %s — %s") % [Loc.t(Fronts.FACTION_NAMES[GameSession.faction]), Loc.t(Fronts.NAMES[GameSession.front_choice])])
 	var done: int = GameSession.completed_missions()
 	var list: Array[Dictionary] = GameSession.missions()
 	for i in list.size():

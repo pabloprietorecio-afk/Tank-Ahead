@@ -4,12 +4,11 @@ class_name GameSession
 enum Mode { SURVIVAL, CTF, STORY, TUTORIAL }
 
 const MODE_NAMES: Array[String] = ["SUPERVIVENCIA", "CAPTURA LA BANDERA", "HISTORIA", "TUTORIAL"]
-const FRONT_MIXED: int = 3
 const PROGRESS_PATH: String = "user://progress.cfg"
 
 static var mode: int = Mode.SURVIVAL
 static var faction: int = Fronts.Faction.ALLIES
-## 0-2 = frente concreto, 3 = mezcla.
+## Frente elegido en el menú.
 static var front_choice: int = Fronts.Id.NORMANDY
 static var mission_index: int = 0
 ## Frente de la partida en curso (resuelto a partir de front_choice).
@@ -24,14 +23,12 @@ static func enemy_faction() -> int:
 	return Fronts.Faction.AXIS if faction == Fronts.Faction.ALLIES else Fronts.Faction.ALLIES
 
 
-## Decide el frente de esta partida (en mezcla: el de la misión o uno al azar).
+## Decide el frente de esta partida (en el modo historia, el de la misión).
 static func resolve_front() -> void:
 	if mode == Mode.TUTORIAL:
 		front = Fronts.Id.NORMANDY
 	elif mode == Mode.STORY:
 		front = current_mission().get("front", Fronts.Id.NORMANDY)
-	elif front_choice == FRONT_MIXED:
-		front = randi() % 3
 	else:
 		front = front_choice
 
@@ -47,7 +44,7 @@ static func current_mission() -> Dictionary:
 
 ## ¿La misión exige premium y aún no se tiene?
 static func mission_locked(index: int) -> bool:
-	return Premium.mission_locked(missions(), index)
+	return Premium.mission_locked(index)
 
 
 static func _campaign_key() -> String:
