@@ -5,7 +5,7 @@ name: Verify
 # escenarios y partidas, y falla si hay errores de scripts o shaders.
 on:
   push:
-    branches-ignore: [main, audio, audio-raw, verify-shots, aab-setup, aab-report, billing-plugin, billing-plugin-out, admob-plugin, admob-plugin-out]
+    branches-ignore: [main, audio, audio-raw, verify-shots, aab-setup, aab-report, billing-plugin, billing-plugin-out, admob-plugin, admob-plugin-out, store-shots, store-shots-out]
   workflow_dispatch:
 
 permissions:

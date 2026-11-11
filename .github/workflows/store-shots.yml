@@ -1,0 +1,52 @@
+name: Store shots
+
+# Capturas a 1920x1080 para la ficha de Play Store (tools/verify/shots.gd, SHOTS_ONLY=store).
+# Se lanza empujando la rama «store-shots»; el resultado queda en la rama «store-shots-out».
+on:
+  push:
+    branches: [store-shots]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_CHANNEL: "stable"
+
+jobs:
+  shots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Godot y renderizador por software
+        run: |
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-${GODOT_CHANNEL}"
+          curl -fsSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_linux.x86_64.zip"
+          unzip -q godot.zip
+          sudo mv "Godot_v${GODOT_VERSION}-${GODOT_CHANNEL}_linux.x86_64" /usr/local/bin/godot
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb mesa-vulkan-drivers libvulkan1 libgl1-mesa-dri
+
+      - name: Importar recursos
+        run: godot --headless --import 2>&1 | tee import.log || true
+
+      - name: Capturas para la tienda (1920x1080)
+        env:
+          SHOTS_ONLY: "store"
+        run: |
+          timeout 2400 xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --audio-driver Dummy --rendering-driver vulkan --rendering-method mobile --resolution 1920x1080 res://tools/verify/shots.tscn 2>&1 | tee run.log || true
+          ls -la shots_out || true
+          grep -E "SCRIPT ERROR|Parse Error" run.log | head -20 || true
+
+      - name: Publicar en la rama store-shots-out
+        run: |
+          mkdir -p shots_out
+          cp run.log shots_out/ 2>/dev/null || true
+          cd shots_out
+          git init -q -b store-shots-out
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -q -m "Capturas para la tienda"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" store-shots-out

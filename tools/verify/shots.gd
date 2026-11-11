@@ -72,6 +72,8 @@ class Runner extends Node:
 			await _sky_shots()
 		if only == "" or only.contains("ctfshot"):
 			await _ctf_shot()
+		if only.contains("store"):
+			await _store()
 		print("SHOTS DONE")
 		get_tree().quit()
 
@@ -930,6 +932,81 @@ class Runner extends Node:
 		mode.flags[1].pick_up(mode.player)
 		await get_tree().create_timer(1.5).timeout
 		await _snap("ctf_marcador")
+		GameSettings.camera_view = 0
+
+	## Capturas para la ficha de Play Store (se ejecuta a 1920x1080 en store-shots.yml): portada sin
+	## menú, menú principal y partidas reales con la interfaz, sin la línea de versión y FPS.
+	func _store() -> void:
+		var old: Node = get_tree().current_scene
+		if old != null:
+			old.queue_free()
+		await _frames(2)
+		var stage := Node3D.new()
+		get_tree().root.add_child(stage)
+		get_tree().current_scene = stage
+		stage.add_child(CoverDiorama.new())
+		await get_tree().create_timer(3.0).timeout
+		await _snap("store_portada_a")
+		await get_tree().create_timer(7.0).timeout
+		await _snap("store_portada_b")
+		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+		await _frames(3)
+		await get_tree().create_timer(3.0).timeout
+		await _snap("store_menu")
+		GameSettings.ensure_loaded()
+		# [frente, bando, clima, vista de cámara, nombre]
+		var games: Array = [
+			[Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.CLEAR, 1, "normandia"],
+			[Fronts.Id.AFRICA, Fronts.Faction.AXIS, Weather.Kind.CLEAR, 1, "africa"],
+			[Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.RAIN, 1, "kursk_lluvia"],
+			[Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.FOG, 0, "normandia_cabina"],
+			[Fronts.Id.KURSK, Fronts.Faction.ALLIES, Weather.Kind.SNOW, 2, "kursk_nieve"],
+			[Fronts.Id.AFRICA, Fronts.Faction.ALLIES, Weather.Kind.FOG, 1, "africa_tormenta"],
+		]
+		for spec in games:
+			GameSession.mode = GameSession.Mode.SURVIVAL
+			GameSession.front_choice = spec[0]
+			GameSession.faction = spec[1]
+			GameSession.debug_weather = spec[2]
+			GameSettings.camera_view = spec[3]
+			get_tree().change_scene_to_file("res://levels/arena.tscn")
+			await _frames(4)
+			var arena: Node = get_tree().current_scene
+			var hud: Hud = arena._hud
+			hud._info.visible = false
+			var player: Node3D = null
+			for tank in get_tree().get_nodes_in_group(&"tanks"):
+				if tank.is_player:
+					player = tank
+			await get_tree().create_timer(9.0).timeout
+			await _snap("store_%s_a" % spec[4])
+			if player != null:
+				player.weapon.fire()
+				await get_tree().create_timer(0.12).timeout
+			await _snap("store_%s_disparo" % spec[4])
+			await get_tree().create_timer(6.0).timeout
+			await _snap("store_%s_b" % spec[4])
+			if spec[4] == "normandia":
+				hud._history_from_menu = true
+				hud._history_gallery.show_index(3)
+				hud.move_child(hud._history_panel, -1)
+				hud._history_panel.visible = true
+				await _snap("store_ficha_vehiculo")
+				hud._history_panel.visible = false
+		GameSession.debug_weather = -1
+		GameSettings.camera_view = 1
+		GameSession.mode = GameSession.Mode.CTF
+		GameSession.front_choice = Fronts.Id.AFRICA
+		GameSession.faction = Fronts.Faction.ALLIES
+		get_tree().change_scene_to_file("res://levels/arena.tscn")
+		await _frames(4)
+		var ctf_scene: Node = get_tree().current_scene
+		ctf_scene._hud._info.visible = false
+		var mode: CtfMode = ctf_scene.get_node("GameMode") as CtfMode
+		mode.captures[0] = 2
+		mode.captures[1] = 1
+		await get_tree().create_timer(8.0).timeout
+		await _snap("store_bandera")
 		GameSettings.camera_view = 0
 
 	func _secs(value: float) -> String:
