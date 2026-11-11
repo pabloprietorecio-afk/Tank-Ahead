@@ -1,0 +1,6 @@
+## Diagnóstico de la clave (sin secretos)
+- base64 pegado: 5152 caracteres (esperado según el archivo original: 5800)
+- keystore decodificado: 3864 bytes, sha256 abfae35ae58ea547
+- alias recibido: 'atankstory-upload' (17 caracteres)
+- contraseña recibida: 28 caracteres
+- keytool abre el almacén con esa contraseña: NO (keytool error: java.io.EOFException )
