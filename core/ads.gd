@@ -75,12 +75,13 @@ func debug_status() -> String:
 		var c: UserConsent = _admob.get_consent_status()
 		if c != null:
 			consent = str(c.status)
-	var text: String = "Anuncios: estado %d, consentimiento %s, premium %s" % [state, consent, str(Premium.is_premium())]
+	var text: String = "Ads: estado %d · consent %s · premium %s" % [state, consent, str(Premium.is_premium())]
+	var loaded: String = "-"
 	if _admob != null:
-		text += "\nintersticial cargado: %s · recompensado cargado: %s" % [str(_admob.is_interstitial_ad_loaded()), str(_admob.is_rewarded_ad_loaded())]
-	text += "\nfinales de partida contados: %d" % _ends
+		loaded = "%s/%s" % [str(_admob.is_interstitial_ad_loaded()), str(_admob.is_rewarded_ad_loaded())]
+	text += "\ncargados (inters./recomp.): %s · finales: %d" % [loaded, _ends]
 	if _last_error != "":
-		text += "\núltimo error: " + _last_error
+		text += "\nerror: " + _last_error
 	return text
 
 
