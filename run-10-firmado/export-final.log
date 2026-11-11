@@ -1,0 +1,400 @@
+Loading resource: res://data/tanks/tiger1.tres remapped: res://data/tanks/tiger1.tres
+Completed load for: 'res://data/tanks/tiger1.tres' remapped 'res://data/tanks/tiger1.tres' at thread -1
+Saving project files from res://.godot/exported/133200997/export-def410ebbaf52919a0e88e615792838d-tiger1.res into res://android/build/assetPackInstallTime/src/main/assets/.godot/exported/133200997/export-def410ebbaf52919a0e88e615792838d-tiger1.res
+Loading resource: res://data/tanks/tiger2.tres remapped: res://data/tanks/tiger2.tres
+Completed load for: 'res://data/tanks/tiger2.tres' remapped 'res://data/tanks/tiger2.tres' at thread -1
+Saving project files from res://.godot/exported/133200997/export-08f833b926d25c06ccba30af57bb5b90-tiger2.res into res://android/build/assetPackInstallTime/src/main/assets/.godot/exported/133200997/export-08f833b926d25c06ccba30af57bb5b90-tiger2.res
+Saving project files from res://entities/air/aircraft.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/air/aircraft.gdc
+Saving project files from res://entities/air/air_strike.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/air/air_strike.gdc
+Saving project files from res://entities/air/air_target.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/air/air_target.gdc
+Saving project files from res://entities/air/flyby_sound.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/air/flyby_sound.gdc
+Saving project files from res://entities/effects/explosion.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/effects/explosion.gdc
+Saving project files from res://entities/enemies/ai/states/attack_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/attack_state.gdc
+Saving project files from res://entities/enemies/ai/states/chase_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/chase_state.gdc
+Saving project files from res://entities/enemies/ai/states/destroyed_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/destroyed_state.gdc
+Saving project files from res://entities/enemies/ai/states/idle_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/idle_state.gdc
+Saving project files from res://entities/enemies/ai/states/patrol_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/patrol_state.gdc
+Saving project files from res://entities/enemies/ai/states/retreat_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/retreat_state.gdc
+Saving project files from res://entities/enemies/ai/states/search_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/search_state.gdc
+Saving project files from res://entities/enemies/ai/ai_brain.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/ai_brain.gdc
+Saving project files from res://entities/enemies/ai/enemy_state.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/enemy_state.gdc
+Saving project files from res://entities/enemies/ai/perception.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/perception.gdc
+Saving project files from res://entities/pickups/pickup.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/pickups/pickup.gdc
+Saving project files from res://entities/pickups/pickup_spawner.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/pickups/pickup_spawner.gdc
+Saving project files from res://entities/player/player_input_source.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/player/player_input_source.gdc
+Saving project files from res://entities/projectiles/missile.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/projectiles/missile.gdc
+Saving project files from res://entities/projectiles/projectile.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/projectiles/projectile.gdc
+Loading resource: res://entities/projectiles/shell.tscn remapped: res://entities/projectiles/shell.tscn
+Loading resource: res://entities/projectiles/projectile.gd remapped: res://entities/projectiles/projectile.gd
+Loading resource: res://assets/audio/explosion.ogg remapped: res://assets/audio/explosion.ogg
+Loading resource: res://.godot/imported/explosion.ogg-977ff1eb1dfa4e8d3db4e45b8bbf3af9.oggvorbisstr remapped: res://.godot/imported/explosion.ogg-977ff1eb1dfa4e8d3db4e45b8bbf3af9.oggvorbisstr
+Completed load for: 'res://assets/audio/explosion.ogg' remapped 'res://assets/audio/explosion.ogg' at thread -1
+Loading resource: res://assets/audio/hit.ogg remapped: res://assets/audio/hit.ogg
+Loading resource: res://.godot/imported/hit.ogg-f5af0fa4fe598f6d1626307de0257688.oggvorbisstr remapped: res://.godot/imported/hit.ogg-f5af0fa4fe598f6d1626307de0257688.oggvorbisstr
+Completed load for: 'res://assets/audio/hit.ogg' remapped 'res://assets/audio/hit.ogg' at thread -1
+Loading resource: res://assets/audio/engine_drive.wav remapped: res://assets/audio/engine_drive.wav
+Loading resource: res://.godot/imported/engine_drive.wav-cf9d90ac5d1c1d3848ce8ff1a64b6e64.sample remapped: res://.godot/imported/engine_drive.wav-cf9d90ac5d1c1d3848ce8ff1a64b6e64.sample
+Completed load for: 'res://assets/audio/engine_drive.wav' remapped 'res://assets/audio/engine_drive.wav' at thread -1
+Loading resource: res://assets/audio/engine_idle.wav remapped: res://assets/audio/engine_idle.wav
+Loading resource: res://.godot/imported/engine_idle.wav-4b9b8a063a28c4000f46b68234e5323e.sample remapped: res://.godot/imported/engine_idle.wav-4b9b8a063a28c4000f46b68234e5323e.sample
+Completed load for: 'res://assets/audio/engine_idle.wav' remapped 'res://assets/audio/engine_idle.wav' at thread -1
+Loading resource: res://assets/audio/engine_heavy.wav remapped: res://assets/audio/engine_heavy.wav
+Loading resource: res://.godot/imported/engine_heavy.wav-14465d044e93c6ac4b6efb8edfe5bdc5.sample remapped: res://.godot/imported/engine_heavy.wav-14465d044e93c6ac4b6efb8edfe5bdc5.sample
+Completed load for: 'res://assets/audio/engine_heavy.wav' remapped 'res://assets/audio/engine_heavy.wav' at thread -1
+Loading resource: res://assets/audio/engine_tank.wav remapped: res://assets/audio/engine_tank.wav
+Loading resource: res://.godot/imported/engine_tank.wav-c53011da99e1aa48f0b4a1331042c193.sample remapped: res://.godot/imported/engine_tank.wav-c53011da99e1aa48f0b4a1331042c193.sample
+Completed load for: 'res://assets/audio/engine_tank.wav' remapped 'res://assets/audio/engine_tank.wav' at thread -1
+Loading resource: res://assets/audio/hit_tank.ogg remapped: res://assets/audio/hit_tank.ogg
+Loading resource: res://.godot/imported/hit_tank.ogg-a598a719ef38aad2faf6ae0f156bcfd8.oggvorbisstr remapped: res://.godot/imported/hit_tank.ogg-a598a719ef38aad2faf6ae0f156bcfd8.oggvorbisstr
+Completed load for: 'res://assets/audio/hit_tank.ogg' remapped 'res://assets/audio/hit_tank.ogg' at thread -1
+Loading resource: res://assets/audio/cannon.ogg remapped: res://assets/audio/cannon.ogg
+Loading resource: res://.godot/imported/cannon.ogg-7e74cad5ad15d419038bfceaaacbb08c.oggvorbisstr remapped: res://.godot/imported/cannon.ogg-7e74cad5ad15d419038bfceaaacbb08c.oggvorbisstr
+Completed load for: 'res://assets/audio/cannon.ogg' remapped 'res://assets/audio/cannon.ogg' at thread -1
+Loading resource: res://assets/audio/pickup.ogg remapped: res://assets/audio/pickup.ogg
+Loading resource: res://.godot/imported/pickup.ogg-7d076eeb4464215b52c8022c8eeda7b4.oggvorbisstr remapped: res://.godot/imported/pickup.ogg-7d076eeb4464215b52c8022c8eeda7b4.oggvorbisstr
+Completed load for: 'res://assets/audio/pickup.ogg' remapped 'res://assets/audio/pickup.ogg' at thread -1
+Loading resource: res://assets/audio/bell.ogg remapped: res://assets/audio/bell.ogg
+Loading resource: res://.godot/imported/bell.ogg-a0c6a282d0e4a56cbefd234aa5c29dbb.oggvorbisstr remapped: res://.godot/imported/bell.ogg-a0c6a282d0e4a56cbefd234aa5c29dbb.oggvorbisstr
+Completed load for: 'res://assets/audio/bell.ogg' remapped 'res://assets/audio/bell.ogg' at thread -1
+Loading resource: res://assets/audio/plane_bomber.wav remapped: res://assets/audio/plane_bomber.wav
+Loading resource: res://.godot/imported/plane_bomber.wav-7165e692409be16b28a500a63216b997.sample remapped: res://.godot/imported/plane_bomber.wav-7165e692409be16b28a500a63216b997.sample
+Completed load for: 'res://assets/audio/plane_bomber.wav' remapped 'res://assets/audio/plane_bomber.wav' at thread -1
+Loading resource: res://assets/audio/plane_fighter.wav remapped: res://assets/audio/plane_fighter.wav
+Loading resource: res://.godot/imported/plane_fighter.wav-fcc8b35cdeca5dd4c6089e067b25c891.sample remapped: res://.godot/imported/plane_fighter.wav-fcc8b35cdeca5dd4c6089e067b25c891.sample
+Completed load for: 'res://assets/audio/plane_fighter.wav' remapped 'res://assets/audio/plane_fighter.wav' at thread -1
+Loading resource: res://assets/audio/missile.ogg remapped: res://assets/audio/missile.ogg
+Loading resource: res://.godot/imported/missile.ogg-b44b925b34d8ddd6f45de01415b18684.oggvorbisstr remapped: res://.godot/imported/missile.ogg-b44b925b34d8ddd6f45de01415b18684.oggvorbisstr
+Completed load for: 'res://assets/audio/missile.ogg' remapped 'res://assets/audio/missile.ogg' at thread -1
+Loading resource: res://assets/audio/thunder.wav remapped: res://assets/audio/thunder.wav
+Loading resource: res://.godot/imported/thunder.wav-3bb35de97e14d00ec27ea177a5cad9a7.sample remapped: res://.godot/imported/thunder.wav-3bb35de97e14d00ec27ea177a5cad9a7.sample
+Completed load for: 'res://assets/audio/thunder.wav' remapped 'res://assets/audio/thunder.wav' at thread -1
+Loading resource: res://assets/audio/flak.ogg remapped: res://assets/audio/flak.ogg
+Loading resource: res://.godot/imported/flak.ogg-ae782238dfbbdb99881f533a3c36b0b4.oggvorbisstr remapped: res://.godot/imported/flak.ogg-ae782238dfbbdb99881f533a3c36b0b4.oggvorbisstr
+Completed load for: 'res://assets/audio/flak.ogg' remapped 'res://assets/audio/flak.ogg' at thread -1
+Completed load for: 'res://entities/projectiles/projectile.gd' remapped 'res://entities/projectiles/projectile.gd' at thread -1
+Completed load for: 'res://entities/projectiles/shell.tscn' remapped 'res://entities/projectiles/shell.tscn' at thread -1
+Saving project files from res://.godot/exported/133200997/export-b1550112f6c3e11f1b5dcfadb45c01a8-shell.scn into res://android/build/assetPackInstallTime/src/main/assets/.godot/exported/133200997/export-b1550112f6c3e11f1b5dcfadb45c01a8-shell.scn
+Saving project files from res://entities/props/destructible.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/props/destructible.gdc
+Saving project files from res://entities/props/prop_factory.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/props/prop_factory.gdc
+Saving project files from res://entities/props/remains.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/props/remains.gdc
+Saving project files from res://entities/props/structure_factory.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/props/structure_factory.gdc
+Saving project files from res://entities/tank/tank.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank.gdc
+Saving project files from res://entities/tank/tank_model.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank_model.gdc
+Saving project files from res://entities/tank/tank_movement.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank_movement.gdc
+Saving project files from res://entities/tank/tank_weapon.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank_weapon.gdc
+Saving project files from res://entities/tank/turret_controller.gdc into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/turret_controller.gdc
+Saving project files from res://levels/modes/tutorial/practice_props.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/tutorial/practice_props.gdc
+Saving project files from res://levels/modes/tutorial/tutorial_mode.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/tutorial/tutorial_mode.gdc
+Saving project files from res://levels/modes/tutorial/tutorial_overlay.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/tutorial/tutorial_overlay.gdc
+Saving project files from res://levels/modes/ctf_mode.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/ctf_mode.gdc
+Saving project files from res://levels/modes/flag.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/flag.gdc
+Saving project files from res://levels/modes/game_mode.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/game_mode.gdc
+Saving project files from res://levels/modes/story_mode.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/story_mode.gdc
+Saving project files from res://levels/modes/survival_mode.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/survival_mode.gdc
+Saving project files from res://levels/weather/cloud_dome.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/cloud_dome.gdc
+Saving project files from res://levels/weather/lightning_bolt.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/lightning_bolt.gdc
+Saving project files from res://levels/weather/sky_dome.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/sky_dome.gdc
+Saving project files from res://levels/weather/sky_war.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/sky_war.gdc
+Saving project files from res://levels/weather/weather.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/weather.gdc
+Saving project files from res://levels/arena.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/arena.gdc
+Loading resource: res://levels/arena.tscn remapped: res://levels/arena.tscn
+Loading resource: res://levels/arena.gd remapped: res://levels/arena.gd
+Completed load for: 'res://levels/arena.gd' remapped 'res://levels/arena.gd' at thread -1
+Completed load for: 'res://levels/arena.tscn' remapped 'res://levels/arena.tscn' at thread -1
+Saving project files from res://.godot/exported/133200997/export-1c756627a1cfb2671597533c72973226-arena.scn into res://android/build/assetPackInstallTime/src/main/assets/.godot/exported/133200997/export-1c756627a1cfb2671597533c72973226-arena.scn
+Saving project files from res://levels/cover_diorama.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/cover_diorama.gdc
+Saving project files from res://levels/main_menu.gdc into res://android/build/assetPackInstallTime/src/main/assets/levels/main_menu.gdc
+Loading resource: res://levels/main_menu.tscn remapped: res://levels/main_menu.tscn
+Loading resource: res://levels/main_menu.gd remapped: res://levels/main_menu.gd
+Completed load for: 'res://levels/main_menu.gd' remapped 'res://levels/main_menu.gd' at thread -1
+Completed load for: 'res://levels/main_menu.tscn' remapped 'res://levels/main_menu.tscn' at thread -1
+Saving project files from res://.godot/exported/133200997/export-d4e83b31417540e021f1ffd2ec82c3cc-main_menu.scn into res://android/build/assetPackInstallTime/src/main/assets/.godot/exported/133200997/export-d4e83b31417540e021f1ffd2ec82c3cc-main_menu.scn
+Saving project files from res://shaders/armor.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/armor.gdshader
+Saving project files from res://shaders/binoculars.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/binoculars.gdshader
+Saving project files from res://shaders/cloud_dome.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/cloud_dome.gdshader
+Saving project files from res://shaders/flat_color.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/flat_color.gdshader
+Saving project files from res://shaders/fx_bolt.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_bolt.gdshader
+Saving project files from res://shaders/fx_common.gdshaderinc into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_common.gdshaderinc
+Saving project files from res://shaders/fx_debris.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_debris.gdshader
+Saving project files from res://shaders/fx_glow.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_glow.gdshader
+Saving project files from res://shaders/fx_mark.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_mark.gdshader
+Saving project files from res://shaders/fx_particles.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_particles.gdshader
+Saving project files from res://shaders/fx_puff.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_puff.gdshader
+Saving project files from res://shaders/fx_streak.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_streak.gdshader
+Saving project files from res://shaders/fx_tracer.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/fx_tracer.gdshader
+Saving project files from res://shaders/grid_ground.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/grid_ground.gdshader
+Saving project files from res://shaders/rubble.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/rubble.gdshader
+Saving project files from res://shaders/screen_overlay.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/screen_overlay.gdshader
+Saving project files from res://shaders/sky_dots.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/sky_dots.gdshader
+Saving project files from res://shaders/strike_zone.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/strike_zone.gdshader
+Saving project files from res://shaders/surface_box.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/surface_box.gdshader
+Saving project files from res://shaders/surface_common.gdshaderinc into res://android/build/assetPackInstallTime/src/main/assets/shaders/surface_common.gdshaderinc
+Saving project files from res://shaders/textured_fill.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/textured_fill.gdshader
+Saving project files from res://shaders/vector_edges.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/vector_edges.gdshader
+Saving project files from res://shaders/weather_drop.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/weather_drop.gdshader
+Saving project files from res://shaders/weather_splash.gdshader into res://android/build/assetPackInstallTime/src/main/assets/shaders/weather_splash.gdshader
+Saving project files from res://ui/vehicle_gallery.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/vehicle_gallery.gdc
+Saving project files from res://ui/volume_sliders.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/volume_sliders.gdc
+Saving project files from res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex into res://android/build/assetPackInstallTime/src/main/assets/.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex
+Saving project files from res://icon.svg.import into res://android/build/assetPackInstallTime/src/main/assets/icon.svg.import
+Saving project files from res://ui/hud/command_button.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/hud/command_button.gdc
+Saving project files from res://ui/hud/hud.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/hud/hud.gdc
+Saving project files from res://ui/hud/radar.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/hud/radar.gdc
+Saving project files from res://ui/touch/touch_controls.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/touch/touch_controls.gdc
+Saving project files from res://ui/flag_button.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/flag_button.gdc
+Saving project files from res://ui/tank_viewer.gdc into res://android/build/assetPackInstallTime/src/main/assets/ui/tank_viewer.gdc
+Saving project files from res://addons/GodotGooglePlayBilling/BillingClient.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/addons/GodotGooglePlayBilling/BillingClient.gd.remap
+Saving project files from res://addons/GodotGooglePlayBilling/export_plugin.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/addons/GodotGooglePlayBilling/export_plugin.gd.remap
+Saving project files from res://core/audio/audio_setup.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/audio/audio_setup.gd.remap
+Saving project files from res://core/audio/sfx.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/audio/sfx.gd.remap
+Saving project files from res://core/audio/voice_manager.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/audio/voice_manager.gd.remap
+Saving project files from res://core/components/health_component.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/components/health_component.gd.remap
+Saving project files from res://core/components/hurtbox.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/components/hurtbox.gd.remap
+Saving project files from res://core/components/mesh_kit.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/components/mesh_kit.gd.remap
+Saving project files from res://core/components/nav_grid.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/components/nav_grid.gd.remap
+Saving project files from res://core/components/vector_materials.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/components/vector_materials.gd.remap
+Saving project files from res://core/fx/blaze.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/fx/blaze.gd.remap
+Saving project files from res://core/fx/fx.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/fx/fx.gd.remap
+Saving project files from res://core/fx/fx_cpu_family.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/fx/fx_cpu_family.gd.remap
+Saving project files from res://core/fx/fx_vent.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/fx/fx_vent.gd.remap
+Saving project files from res://core/i18n/english_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/english_table.gd.remap
+Saving project files from res://core/i18n/french_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/french_table.gd.remap
+Saving project files from res://core/i18n/german_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/german_table.gd.remap
+Saving project files from res://core/i18n/hindi_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/hindi_table.gd.remap
+Saving project files from res://core/i18n/indonesian_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/indonesian_table.gd.remap
+Saving project files from res://core/i18n/italian_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/italian_table.gd.remap
+Saving project files from res://core/i18n/japanese_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/japanese_table.gd.remap
+Saving project files from res://core/i18n/loc.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/loc.gd.remap
+Saving project files from res://core/i18n/portuguese_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/portuguese_table.gd.remap
+Saving project files from res://core/i18n/russian_table.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/i18n/russian_table.gd.remap
+Saving project files from res://core/state_machine/state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/state_machine/state.gd.remap
+Saving project files from res://core/state_machine/state_machine.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/state_machine/state_machine.gd.remap
+Saving project files from res://core/game_session.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/game_session.gd.remap
+Saving project files from res://core/game_settings.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/game_settings.gd.remap
+Saving project files from res://core/premium.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/premium.gd.remap
+Saving project files from res://core/premium_store.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/core/premium_store.gd.remap
+Saving project files from res://data/definitions/tank_stats.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/data/definitions/tank_stats.gd.remap
+Saving project files from res://data/fronts/fronts.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/data/fronts/fronts.gd.remap
+Saving project files from res://data/missions/campaign.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/data/missions/campaign.gd.remap
+Saving project files from res://data/tanks/ba64.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/ba64.tres.remap
+Saving project files from res://data/tanks/churchill.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/churchill.tres.remap
+Saving project files from res://data/tanks/cromwell.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/cromwell.tres.remap
+Saving project files from res://data/tanks/crusader.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/crusader.tres.remap
+Saving project files from res://data/tanks/elefant.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/elefant.tres.remap
+Saving project files from res://data/tanks/is2.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/is2.tres.remap
+Saving project files from res://data/tanks/kv1.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/kv1.tres.remap
+Saving project files from res://data/tanks/m4_sherman.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/m4_sherman.tres.remap
+Saving project files from res://data/tanks/m8_greyhound.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/m8_greyhound.tres.remap
+Saving project files from res://data/tanks/m10_wolverine.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/m10_wolverine.tres.remap
+Saving project files from res://data/tanks/m26_pershing.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/m26_pershing.tres.remap
+Saving project files from res://data/tanks/marder3.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/marder3.tres.remap
+Saving project files from res://data/tanks/panther.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/panther.tres.remap
+Saving project files from res://data/tanks/panzer3.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/panzer3.tres.remap
+Saving project files from res://data/tanks/panzer4.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/panzer4.tres.remap
+Saving project files from res://data/tanks/puma.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/puma.tres.remap
+Saving project files from res://data/tanks/stug3.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/stug3.tres.remap
+Saving project files from res://data/tanks/su85.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/su85.tres.remap
+Saving project files from res://data/tanks/t34_76.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/t34_76.tres.remap
+Saving project files from res://data/tanks/t34_85.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/t34_85.tres.remap
+Saving project files from res://data/tanks/tiger1.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/tiger1.tres.remap
+Saving project files from res://data/tanks/tiger2.tres.remap into res://android/build/assetPackInstallTime/src/main/assets/data/tanks/tiger2.tres.remap
+Saving project files from res://entities/air/aircraft.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/air/aircraft.gd.remap
+Saving project files from res://entities/air/air_strike.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/air/air_strike.gd.remap
+Saving project files from res://entities/air/air_target.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/air/air_target.gd.remap
+Saving project files from res://entities/air/flyby_sound.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/air/flyby_sound.gd.remap
+Saving project files from res://entities/effects/explosion.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/effects/explosion.gd.remap
+Saving project files from res://entities/enemies/ai/states/attack_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/attack_state.gd.remap
+Saving project files from res://entities/enemies/ai/states/chase_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/chase_state.gd.remap
+Saving project files from res://entities/enemies/ai/states/destroyed_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/destroyed_state.gd.remap
+Saving project files from res://entities/enemies/ai/states/idle_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/idle_state.gd.remap
+Saving project files from res://entities/enemies/ai/states/patrol_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/patrol_state.gd.remap
+Saving project files from res://entities/enemies/ai/states/retreat_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/retreat_state.gd.remap
+Saving project files from res://entities/enemies/ai/states/search_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/states/search_state.gd.remap
+Saving project files from res://entities/enemies/ai/ai_brain.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/ai_brain.gd.remap
+Saving project files from res://entities/enemies/ai/enemy_state.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/enemy_state.gd.remap
+Saving project files from res://entities/enemies/ai/perception.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/enemies/ai/perception.gd.remap
+Saving project files from res://entities/pickups/pickup.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/pickups/pickup.gd.remap
+Saving project files from res://entities/pickups/pickup_spawner.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/pickups/pickup_spawner.gd.remap
+Saving project files from res://entities/player/player_input_source.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/player/player_input_source.gd.remap
+Saving project files from res://entities/projectiles/missile.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/projectiles/missile.gd.remap
+Saving project files from res://entities/projectiles/projectile.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/projectiles/projectile.gd.remap
+Saving project files from res://entities/projectiles/shell.tscn.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/projectiles/shell.tscn.remap
+Saving project files from res://entities/props/destructible.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/props/destructible.gd.remap
+Saving project files from res://entities/props/prop_factory.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/props/prop_factory.gd.remap
+Saving project files from res://entities/props/remains.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/props/remains.gd.remap
+Saving project files from res://entities/props/structure_factory.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/props/structure_factory.gd.remap
+Saving project files from res://entities/tank/tank.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank.gd.remap
+Saving project files from res://entities/tank/tank_model.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank_model.gd.remap
+Saving project files from res://entities/tank/tank_movement.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank_movement.gd.remap
+Saving project files from res://entities/tank/tank_weapon.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/tank_weapon.gd.remap
+Saving project files from res://entities/tank/turret_controller.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/entities/tank/turret_controller.gd.remap
+Saving project files from res://levels/modes/tutorial/practice_props.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/tutorial/practice_props.gd.remap
+Saving project files from res://levels/modes/tutorial/tutorial_mode.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/tutorial/tutorial_mode.gd.remap
+Saving project files from res://levels/modes/tutorial/tutorial_overlay.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/tutorial/tutorial_overlay.gd.remap
+Saving project files from res://levels/modes/ctf_mode.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/ctf_mode.gd.remap
+Saving project files from res://levels/modes/flag.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/flag.gd.remap
+Saving project files from res://levels/modes/game_mode.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/game_mode.gd.remap
+Saving project files from res://levels/modes/story_mode.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/story_mode.gd.remap
+Saving project files from res://levels/modes/survival_mode.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/modes/survival_mode.gd.remap
+Saving project files from res://levels/weather/cloud_dome.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/cloud_dome.gd.remap
+Saving project files from res://levels/weather/lightning_bolt.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/lightning_bolt.gd.remap
+Saving project files from res://levels/weather/sky_dome.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/sky_dome.gd.remap
+Saving project files from res://levels/weather/sky_war.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/sky_war.gd.remap
+Saving project files from res://levels/weather/weather.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/weather/weather.gd.remap
+Saving project files from res://levels/arena.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/arena.gd.remap
+Saving project files from res://levels/arena.tscn.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/arena.tscn.remap
+Saving project files from res://levels/cover_diorama.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/cover_diorama.gd.remap
+Saving project files from res://levels/main_menu.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/main_menu.gd.remap
+Saving project files from res://levels/main_menu.tscn.remap into res://android/build/assetPackInstallTime/src/main/assets/levels/main_menu.tscn.remap
+Saving project files from res://ui/vehicle_gallery.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/vehicle_gallery.gd.remap
+Saving project files from res://ui/volume_sliders.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/volume_sliders.gd.remap
+Saving project files from res://ui/hud/command_button.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/hud/command_button.gd.remap
+Saving project files from res://ui/hud/hud.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/hud/hud.gd.remap
+Saving project files from res://ui/hud/radar.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/hud/radar.gd.remap
+Saving project files from res://ui/touch/touch_controls.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/touch/touch_controls.gd.remap
+Saving project files from res://ui/flag_button.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/flag_button.gd.remap
+Saving project files from res://ui/tank_viewer.gd.remap into res://android/build/assetPackInstallTime/src/main/assets/ui/tank_viewer.gd.remap
+Saving project files from res://.godot/global_script_class_cache.cfg into res://android/build/assetPackInstallTime/src/main/assets/.godot/global_script_class_cache.cfg
+Saving project files from res://assets/icon.png into res://android/build/assetPackInstallTime/src/main/assets/assets/icon.png
+Saving project files from res://assets/splash.png into res://android/build/assetPackInstallTime/src/main/assets/assets/splash.png
+Saving project files from res://.godot/uid_cache.bin into res://android/build/assetPackInstallTime/src/main/assets/.godot/uid_cache.bin
+Saving project files from res://project.binary into res://android/build/assetPackInstallTime/src/main/assets/project.binary
+Storing command line flags...
+Updating JAVA_HOME environment to /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/x64
+Updating ANDROID_HOME environment to /usr/local/lib/android/sdk
+Build Android project using gradle command: 
+/home/runner/work/Tank-Ahead/Tank-Ahead/android/build/gradlew validateJavaVersion clean bundleStandardRelease -p /home/runner/work/Tank-Ahead/Tank-Ahead/android/build -Paddons_directory=/home/runner/work/Tank-Ahead/Tank-Ahead/addons -Pexport_package_name=com.pabloprieto.tankahead -Pexport_version_code=10 -Pexport_version_name=0.2.10 -Pexport_version_min_sdk=29 -Pexport_version_target_sdk=36 -Pexport_enabled_abis=arm64-v8a -Pplugins_local_binaries=/home/runner/work/Tank-Ahead/Tank-Ahead/addons/GodotGooglePlayBilling/bin/release/GodotGooglePlayBilling-release.aar -Pplugins_remote_binaries=com.android.billingclient:billing-ktx:9.1.0 -Pplugins_maven_repos= -Pperform_zipalign=true -Pperform_signing=true -Pcompress_native_libraries=false
+Thread exit status: 0
+Downloading https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+.............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
+
+Welcome to Gradle 8.11.1!
+
+Here are the highlights of this release:
+ - Parallel load and store for Configuration Cache
+ - Java compilation errors at the end of the build output
+ - Consolidated report for warnings and deprecations
+
+For more details see https://docs.gradle.org/8.11.1/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Configure project :
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+WARNING: We recommend using a newer Android Gradle plugin to use compileSdk = 36
+
+This Android Gradle plugin (8.6.1) was tested up to compileSdk = 35.
+
+You are strongly encouraged to update your project to use a newer
+Android Gradle plugin that has been tested with compileSdk = 36.
+
+If you are already using the latest version of the Android Gradle plugin,
+you may need to wait until a newer version with support for compileSdk = 36 is available.
+
+For more information refer to the compatibility table:
+https://d.android.com/r/tools/api-level-support
+
+To suppress this warning, add/update
+    android.suppressUnsupportedCompileSdk=36
+to this project's gradle.properties.
+
+> Task :validateJavaVersion UP-TO-DATE
+> Task :clean UP-TO-DATE
+> Task :assetPackInstallTime:clean UP-TO-DATE
+> Task :preBuild UP-TO-DATE
+> Task :preStandardReleaseBuild UP-TO-DATE
+> Task :assetPackInstallTime:generateAssetPackManifest
+> Task :generateStandardReleaseResValues
+> Task :processStandardReleaseAssetPackManifests
+> Task :mapStandardReleaseSourceSetPaths
+> Task :generateStandardReleaseResources
+> Task :linkStandardReleaseManifestForAssetPacks
+> Task :createStandardReleaseCompatibleScreenManifests
+> Task :extractDeepLinksStandardRelease
+> Task :mergeStandardReleaseResources
+> Task :assetPackStandardReleasePreBundleTask
+
+> Task :processStandardReleaseMainManifest
+/home/runner/work/Tank-Ahead/Tank-Ahead/android/build/src/release/AndroidManifest.xml:12:5-132 Warning:
+	uses-feature#android.hardware.vulkan.level was tagged at AndroidManifest.xml:12 to replace another declaration but no other declaration present
+/home/runner/work/Tank-Ahead/Tank-Ahead/android/build/src/release/AndroidManifest.xml:13:5-141 Warning:
+	uses-feature#android.hardware.vulkan.version was tagged at AndroidManifest.xml:13 to replace another declaration but no other declaration present
+/home/runner/work/Tank-Ahead/Tank-Ahead/android/build/src/release/AndroidManifest.xml:24:9-114 Warning:
+	meta-data#org.godotengine.rendering.method was tagged at AndroidManifest.xml:24 to replace another declaration but no other declaration present
+/home/runner/work/Tank-Ahead/Tank-Ahead/android/build/src/release/AndroidManifest.xml:25:9-118 Warning:
+	meta-data#org.godotengine.editor.version was tagged at AndroidManifest.xml:25 to replace another declaration but no other declaration present
+
+> Task :processStandardReleaseManifest
+> Task :processApplicationManifestStandardReleaseForBundle
+> Task :checkStandardReleaseAarMetadata
+> Task :packageStandardReleaseResources
+> Task :parseStandardReleaseLocalResources
+> Task :extractStandardReleaseVersionControlInfo
+> Task :checkStandardReleaseDuplicateClasses
+> Task :buildKotlinToolingMetadata
+> Task :checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :generateStandardReleaseBuildConfig
+> Task :javaPreCompileStandardRelease
+> Task :mergeStandardReleaseStartupProfile
+> Task :mergeStandardReleaseShaders
+> Task :compileStandardReleaseShaders NO-SOURCE
+> Task :generateStandardReleaseAssets UP-TO-DATE
+> Task :mergeStandardReleaseAssets
+> Task :mergeStandardReleaseJniLibFolders
+> Task :writeStandardReleaseAppMetadata
+> Task :processStandardReleaseManifestForPackage
+> Task :mergeStandardReleaseArtProfile
+> Task :mergeStandardReleaseNativeLibs
+> Task :processStandardReleaseResources
+> Task :collectStandardReleaseDependencies
+> Task :compileStandardReleaseKotlin NO-SOURCE
+> Task :bundleStandardReleaseResources
+> Task :stripStandardReleaseDebugSymbols
+> Task :desugarStandardReleaseFileDependencies
+> Task :compileStandardReleaseJavaWithJavac
+> Task :dexBuilderStandardRelease
+> Task :mergeStandardReleaseGlobalSynthetics
+> Task :processStandardReleaseJavaRes
+> Task :configureStandardReleaseDependencies
+> Task :parseStandardReleaseIntegrityConfig
+> Task :validateSigningStandardRelease
+> Task :mergeStandardReleaseJavaResource
+> Task :mergeExtDexStandardRelease
+> Task :mergeDexStandardRelease
+> Task :buildStandardReleasePreBundle
+> Task :compileStandardReleaseArtProfile
+> Task :packageStandardReleaseBundle
+> Task :signStandardReleaseBundle
+> Task :produceStandardReleaseBundleIdeListingFile
+> Task :createStandardReleaseBundleListingFileRedirect
+> Task :bundleStandardRelease
+
+BUILD SUCCESSFUL in 1m 14s
+52 actionable tasks: 50 executed, 2 up-to-date
+
+Copying Android binary using gradle command: 
+/home/runner/work/Tank-Ahead/Tank-Ahead/android/build/gradlew copyAndRenameBinary -p /home/runner/work/Tank-Ahead/Tank-Ahead/android/build -Pexport_edition=standard -Pexport_build_type=release -Pexport_format=aab -Pexport_path=file:/home/runner/work/Tank-Ahead/Tank-Ahead/build -Pexport_filename=ATankStory-0.2.10.aab
+Thread exit status: 0
+
+> Configure project :
+WARNING: The option setting 'android.overridePathCheck=true' is experimental.
+The current default is 'false'.
+
+> Task :copyAndRenameBinary
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+
+Successfully completed Android gradle build.
+[92m[ DONE ][39m [1mexport[22m
+[0m
+Unloading addon: res://addons/GodotGooglePlayBilling/plugin.cfg
+Script docs haven't been properly loaded or regenerated, so don't save them to disk.
+cannot connect to daemon at tcp:5037: Connection refused
+EditorSettings: Save OK!
+XR: Clearing primary interface
+XR: Removed interface "Native mobile"
+XR: Removed interface "OpenXR"
+Orphan StringName: Node (static: 6, total: 7)
+StringName: 1 unclaimed string names at exit.
