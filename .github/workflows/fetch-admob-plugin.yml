@@ -1,0 +1,45 @@
+name: Fetch AdMob plugin
+
+# Descarga el paquete Android ya compilado de la última versión oficial de godot-admob
+# (godot-sdk-integrations) y deja el resultado en la rama admob-plugin-out, de donde se
+# copia al proyecto. Se lanza empujando la rama «admob-plugin».
+on:
+  workflow_dispatch:
+  push:
+    branches: [admob-plugin]
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_REPO: godot-sdk-integrations/godot-admob
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Listar versiones y descargar el paquete Android
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api "repos/$PLUGIN_REPO/releases" --jq '.[] | "\(.tag_name) \(.published_at) " + ([.assets[].name] | join(","))' | head -8
+          TAG=$(gh api "repos/$PLUGIN_REPO/releases/latest" --jq .tag_name)
+          echo "TAG=$TAG"
+          mkdir -p "$RUNNER_TEMP/dl" "$RUNNER_TEMP/x"
+          gh release download "$TAG" -R "$PLUGIN_REPO" -D "$RUNNER_TEMP/dl" -p '*Android*' || gh release download "$TAG" -R "$PLUGIN_REPO" -D "$RUNNER_TEMP/dl"
+          ls -la "$RUNNER_TEMP/dl"
+          for z in "$RUNNER_TEMP"/dl/*.zip; do unzip -q -o "$z" -d "$RUNNER_TEMP/x"; done
+          echo "$TAG" > "$RUNNER_TEMP/tag.txt"
+          find "$RUNNER_TEMP/x" -type f | sort | xargs ls -la
+
+      - name: Publicar en la rama admob-plugin-out
+        run: |
+          D="$RUNNER_TEMP/out"; mkdir -p "$D"
+          cp -r "$RUNNER_TEMP/x/." "$D/"
+          { echo "plugin: https://github.com/$PLUGIN_REPO"; echo "tag: $(cat "$RUNNER_TEMP/tag.txt")"; } > "$D/ORIGEN.txt"
+          cd "$D"
+          git init -q -b admob-plugin-out
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -q -m "Plugin AdMob $(cat "$RUNNER_TEMP/tag.txt")"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" admob-plugin-out
