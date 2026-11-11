@@ -10,8 +10,8 @@ Piper y 0,92 con Supertonic, y el alemán 0,88 y 0,94. Ver check_voices.py.
 
 El modelo se publica con la licencia BigScience Open RAIL-M: uso libre de regalías, sin reclamar
 derechos sobre el audio generado, con restricciones de uso (no suplantar a nadie, no desinformar...)
-y la obligación de AVISAR de que el contenido está generado por una máquina: el juego debe decir en
-algún sitio visible que las voces son sintéticas.
+y la obligación de AVISAR de que el contenido está generado por una máquina. El aviso de que las
+voces son sintéticas va en la ficha de Play Store: ver store/aviso_voces_ia.md.
 
 Uso:
     pip install "sherpa-onnx>=1.13,<2" soundfile     # probado con la 1.13.8; y ffmpeg en el sistema

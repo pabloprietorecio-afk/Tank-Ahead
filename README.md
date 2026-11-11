@@ -27,8 +27,8 @@ Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
 - Indonesio, alemán y ruso: Supertonic 3 de Supertone Inc. con sherpa-onnx (`voices_supertonic.py`).
   El modelo tiene licencia BigScience Open RAIL-M: uso libre de regalías y sin derechos del autor
   sobre el audio generado, pero con restricciones de uso y la obligación de avisar de que el
-  contenido está hecho por una máquina. **Antes de publicar hay que decir en un sitio visible
-  (créditos del juego o ficha de la tienda) que las voces son sintéticas, generadas por IA.**
+  contenido está hecho por una máquina. **Ese aviso va en la ficha de Play Store: los textos, en
+  los diez idiomas, están en `store/aviso_voces_ia.md` (hay que pegarlos al crear la ficha).**
   La voz indonesia de Piper (`id_ID-news_tts`) NO se usa: su conjunto de datos (INDspeech_NEWS_TTS)
   es CC BY-NC-SA, solo para uso no comercial. `voices_piper.py` (alemán y ruso con Piper, CC0) se
   conserva como alternativa, pero con el efecto de radio se entiende peor.
