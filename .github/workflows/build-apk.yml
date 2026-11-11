@@ -20,7 +20,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -45,13 +45,28 @@ jobs:
           unzip -q templates.tpz -d tpl
           mv tpl/templates/* ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_CHANNEL}/
 
-      - name: Instalar Android SDK
+      # Con Gradle el APK lleva los plugins de AdMob y de Google Play Billing (sin Gradle se omiten).
+      # Equivale a «Proyecto > Instalar plantilla de compilación de Android» del editor.
+      - name: Instalar plantilla de compilación de Android (Gradle)
         run: |
+          TPL=~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_CHANNEL}
+          mkdir -p android/build
+          unzip -q "$TPL/android_source.zip" -d android/build
+          echo "${GODOT_VERSION}.${GODOT_CHANNEL}" > android/.build_version
+          touch android/build/.gdignore
+      # Las versiones del SDK salen de la propia plantilla de Godot, para que no se desajusten.
+      - name: Instalar Android SDK (versiones de la plantilla)
+        run: |
+          CFG=android/build/config.gradle
+          COMPILE=$(grep -E "^\s*compileSdk\s*:" $CFG | grep -o '[0-9]\+' | head -1)
+          BTOOLS=$(grep -E "^\s*buildTools\s*:" $CFG | grep -o "'[^']*'" | tr -d "'")
+          NDK=$(grep -E "^\s*ndkVersion\s*:" $CFG | grep -o "'[^']*'" | tr -d "'")
+          echo "compileSdk=$COMPILE buildTools=$BTOOLS ndk=$NDK"
+          test -n "$COMPILE" -a -n "$BTOOLS" -a -n "$NDK"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "platform-tools" "build-tools;${ANDROID_BUILD_TOOLS}" "platforms;android-${ANDROID_PLATFORM}" \
-            "cmake;${ANDROID_CMAKE}" "ndk;${ANDROID_NDK}"
-
+            "platform-tools" "build-tools;${BTOOLS}" "platforms;android-${COMPILE}" "ndk;${NDK}" \
+            "cmake;3.10.2.4988404"
       - name: Configurar Godot para Android
         run: |
           godot --headless --editor --quit || true
@@ -81,6 +96,16 @@ jobs:
           godot --headless --export-debug "Android" "build/ATankStory-${VERSION_NAME}.apk"
           ls -la build
 
+      - name: Comprobar que el APK lleva los plugins (anuncios y compras)
+        run: |
+          APK="build/ATankStory-${VERSION_NAME}.apk"
+          unzip -p "$APK" AndroidManifest.xml > manifest.bin
+          if { strings -e l manifest.bin; strings manifest.bin; } | grep -q "ca-app-pub-"; then
+            echo "El APK lleva el ID de aplicación de AdMob"
+          else
+            echo "::error title=APK sin AdMob::El APK no contiene el plugin de anuncios (¿compilado sin Gradle?)"
+            exit 1
+          fi
       - name: Publicar en Releases
         env:
           GH_TOKEN: ${{ github.token }}
