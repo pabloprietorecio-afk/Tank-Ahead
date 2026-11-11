@@ -4,9 +4,10 @@
 Kokoro no tiene voces de esos idiomas, así que se usan modelos Piper cuyo conjunto de datos es CC0
 (ver el MODEL_CARD de cada uno). La calidad es buena pero algo inferior a la de Kokoro.
 
-Indonesio: el único modelo Piper (id_ID-news_tts) tiene una ficha errónea (apunta a un conjunto de
-datos de malayalam) y no se puede comprobar su licencia, así que NO se usa en el juego: el indonesio
-va solo con texto hasta encontrar una voz con licencia clara.
+Indonesio: el modelo Piper id_ID-news_tts NO se usa. Su ficha oficial es errónea (apunta a un
+conjunto de datos de malayalam), pero el conjunto del que toma el nombre, INDspeech_NEWS_TTS, se
+publica con licencia CC BY-NC-SA 4.0 (solo uso no comercial). Las voces indonesias se generan con
+Supertonic 3: ver voices_supertonic.py.
 
 Uso:
     pip install "sherpa-onnx<2" soundfile    # (la 2.x quitó espeak) y ffmpeg en el sistema
