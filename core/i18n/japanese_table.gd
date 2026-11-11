@@ -436,7 +436,7 @@ const TABLE: Dictionary = {
 	"INFERNO": "地獄",
 	"RADIO": "無線",
 	"NIVEL PREMIUM": "プレミアム",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña.": "各戦線の最初の3ミッションは無料です。プレミアムにすると、キャンペーンの残りをプレイできます。",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "各戦線の最初の3ミッションは無料です。プレミアムにすると、キャンペーンの残りをプレイでき、バナーやCMも表示されなくなります。",
 	"HAZTE PREMIUM": "プレミアムにする",
 	"RESTAURAR COMPRA": "プレミアムを再確認",
 	"Las compras no están disponibles todavía en esta versión.": "このバージョンでは、まだプレミアムを利用できません。",

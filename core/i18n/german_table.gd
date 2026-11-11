@@ -436,7 +436,7 @@ const TABLE: Dictionary = {
 	"INFERNO": "HÖLLE",
 	"RADIO": "FUNK",
 	"NIVEL PREMIUM": "PREMIUM-STUFE",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña.": "Die ersten drei Missionen jeder Front sind kostenlos. Mit Premium spielst du den Rest der Kampagne.",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Die ersten drei Missionen jeder Front sind kostenlos. Mit Premium spielst du den Rest der Kampagne und entfernst die Werbung.",
 	"HAZTE PREMIUM": "PREMIUM HOLEN",
 	"RESTAURAR COMPRA": "KAUF WIEDERHERSTELLEN",
 	"Las compras no están disponibles todavía en esta versión.": "Käufe sind in dieser Version noch nicht verfügbar.",
