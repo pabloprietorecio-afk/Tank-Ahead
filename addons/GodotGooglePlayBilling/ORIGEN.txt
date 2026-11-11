@@ -1,0 +1,3 @@
+Plugin oficial de Godot para Google Play Billing (godotengine/godot-google-play-billing), etiqueta 3.3.0,
+commit e494f370ee591fa11823ad2749a070ed1149de99, compilado desde su código fuente con
+.github/workflows/build-billing-plugin.yml (rama billing-plugin). Licencia MIT (ver LICENSE).
