@@ -245,15 +245,15 @@ func get_spm_dependency() -> SpmDependency:
 		SpmDependency.PRODUCTS_PROPERTY: [swift_package],
 	})
 
-static func is_flag_enabled(a_value: int, a_flag: Flag) -> bool:
-	return a_value & a_flag
+static func is_flag_enabled(a_value: int, a_flag: int) -> bool:
+	return (a_value & a_flag) != 0
 
 
 static func is_valid_tag(a_tag: String) -> bool:
 	return MEDIATION_NETWORK_TAGS.has(a_tag)
 
 
-static func get_by_flag(a_flag: Flag) -> MediationNetwork:
+static func get_by_flag(a_flag: int) -> MediationNetwork:
 	return MediationNetwork.new(MEDIATION_NETWORKS[a_flag])
 
 

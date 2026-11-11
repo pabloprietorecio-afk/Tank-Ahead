@@ -1,2 +1,4 @@
 plugin: https://github.com/godot-sdk-integrations/godot-admob
 tag: v7.0
+parche: model/MediationNetwork.gd -> is_flag_enabled() y get_by_flag() reciben «int» en vez del enum «Flag»
+        (Godot 4.7.2 daba «Parse Error» por la referencia circular con NetworkExtras.gd; el comportamiento es el mismo).
