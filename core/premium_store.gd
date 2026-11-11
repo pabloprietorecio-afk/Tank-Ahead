@@ -125,7 +125,7 @@ func _on_purchases_queried(response: Dictionary) -> void:
 			_restoring = false
 			_notify("No se ha podido completar la compra. Inténtalo de nuevo más tarde.")
 		return
-	var owned: bool = _process(response.get("purchases", []))
+	var owned: bool = _check_purchases(response.get("purchases", []))
 	if _restoring:
 		_restoring = false
 		if not owned and message == "":
@@ -139,7 +139,7 @@ func _on_purchase_updated(response: Dictionary) -> void:
 		_set_state(State.READY)
 	match int(response.get("response_code", -1)):
 		BillingClient.BillingResponseCode.OK:
-			if _process(response.get("purchases", [])):
+			if _check_purchases(response.get("purchases", [])):
 				_apply(true)
 		BillingClient.BillingResponseCode.USER_CANCELED:
 			_notify("Compra cancelada.")
@@ -153,7 +153,7 @@ func _on_purchase_updated(response: Dictionary) -> void:
 
 ## Revisa una lista de compras: reconoce las nuevas (si no se reconocen en 3 días, Google las
 ## reembolsa) y devuelve si Premium está pagado. Las pendientes no activan nada todavía.
-func _process(purchases: Array) -> bool:
+func _check_purchases(purchases: Array) -> bool:
 	var owned: bool = false
 	for purchase in purchases:
 		if not PRODUCT_ID in purchase.get("product_ids", PackedStringArray()):

@@ -11,6 +11,11 @@ on:
 permissions:
   contents: write
 
+# Un empuje nuevo a la misma rama cancela la comprobación anterior, que ya no sirve.
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   GODOT_VERSION: "4.7.2"
   GODOT_CHANNEL: "stable"
