@@ -27,6 +27,8 @@ var raid_first: float = 45.0
 ## Órdenes al bando del jugador: «todos conmigo» (siguen al jugador) y ataque al objetivo marcado.
 var follow_me: bool = false
 var focus_target: Tank = null
+## Formación en la que marchan los aliados que siguen al jugador (null si no le sigue nadie).
+var formation: Formation = null
 ## Aliados con vida (se cuentan cada medio segundo; el HUD solo ofrece las órdenes si hay).
 var allies_alive: int = 0
 const FOCUS_CONE: float = 0.35
@@ -92,6 +94,8 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if formation != null:
+		formation.update(delta)
 	_update_commands(delta)
 	if is_over or raid_interval == Vector2.ZERO or not raids_active():
 		return
@@ -111,6 +115,11 @@ func can_follow(_tank: Tank) -> bool:
 	return true
 
 
+## Hasta dónde pueden llegar los puestos de la formación, en metros desde el centro del campo.
+func formation_limit() -> float:
+	return Formation.FIELD_LIMIT
+
+
 ## Cada medio segundo pone al día las órdenes de los aliados (también las de los que acaban de aparecer).
 func _update_commands(delta: float) -> void:
 	_command_timer -= delta
@@ -120,13 +129,25 @@ func _update_commands(delta: float) -> void:
 	if not is_instance_valid(focus_target) or focus_target.is_destroyed:
 		focus_target = null
 	allies_alive = 0
+	var followers: Array[AIBrain] = []
 	for node in get_tree().get_nodes_in_group(&"ai_brains"):
 		var brain := node as AIBrain
 		if brain == null or brain.tank == null or brain.tank.is_destroyed or brain.tank.team != player.team:
 			continue
 		allies_alive += 1
-		brain.set_follow(player if follow_me and not player.is_destroyed and can_follow(brain.tank) else null)
+		var leader: Tank = player if follow_me and not player.is_destroyed and can_follow(brain.tank) else null
+		brain.set_follow(leader)
+		if leader != null:
+			followers.append(brain)
 		brain.forced_target = focus_target
+	# Los que siguen al jugador marchan en formación, cada uno en su puesto.
+	if followers.is_empty():
+		formation = null
+	else:
+		if formation == null or formation.leader != player:
+			formation = Formation.new(player)
+			formation.field_limit = formation_limit()
+		formation.set_members(followers)
 
 
 ## «Todos conmigo»: los aliados siguen al jugador a donde vaya (otra pulsación, y vuelven a lo suyo).

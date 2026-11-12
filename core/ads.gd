@@ -25,9 +25,12 @@ const ENDS_PER_AD: int = 2
 const MIN_INTERVAL_MS: int = 180000
 ## Si un anuncio no llega a abrirse en este tiempo, se sigue sin él.
 const SHOW_TIMEOUT_S: float = 4.0
-## Reintentos de carga y de consentimiento.
+## Reintentos de carga y de consentimiento: cada vez más espaciados, hasta RETRY_MAX_S, pero sin
+## dejar de intentarlo nunca. Una app nueva pasa ratos largos sin anuncios que servir («sin
+## relleno») y un jugador puede abrir el juego sin cobertura: en cuanto haya anuncio, se carga.
 const RETRY_S: float = 60.0
-const MAX_RETRIES: int = 4
+const RETRY_MAX_S: float = 300.0
+const STATE_NAMES: Array[String] = ["APAGADOS", "PIDIENDO CONSENTIMIENTO", "ARRANCANDO", "EN MARCHA"]
 ## Espera inicial para no pedir consentimiento a quien ya es Premium (la compra se consulta al abrir).
 const START_DELAY_S: float = 5.0
 
@@ -68,21 +71,34 @@ func _ready() -> void:
 	get_tree().create_timer(START_DELAY_S).timeout.connect(_start)
 
 
-## Texto de diagnóstico (solo se enseña en compilaciones de depuración).
+## Texto de diagnóstico de los anuncios. Se ve siempre en las compilaciones de depuración y, en
+## la versión de Google Play, al tocar cinco veces seguidas el título del menú principal: dice
+## si los anuncios están en marcha, si hay alguno cargado, cuándo toca el próximo y el último
+## error que ha devuelto Google (por ejemplo «3 No fill»: no había anuncio que servir).
 func debug_status() -> String:
-	var consent: String = "?"
-	if _admob != null:
-		var c: UserConsent = _admob.get_consent_status()
-		if c != null:
-			consent = str(c.status)
-	var text: String = "Ads: estado %d · consent %s · premium %s" % [state, consent, str(Premium.is_premium())]
-	var loaded: String = "-"
-	if _admob != null:
-		loaded = "%s/%s" % [str(_admob.is_interstitial_ad_loaded()), str(_admob.is_rewarded_ad_loaded())]
-	text += "\ncargados (inters./recomp.): %s · finales: %d" % [loaded, _ends]
+	if not AdsConfig.usable():
+		return "Anuncios: desactivados en esta versión"
+	if OS.get_name() != "Android":
+		return "Anuncios: solo funcionan en Android"
+	if not Engine.has_singleton("AdmobPlugin"):
+		return "Anuncios: falta el complemento de AdMob en esta compilación"
+	return _status_text()
+
+
+func _status_text() -> String:
+	var real: bool = AdsConfig.IS_REAL and not OS.is_debug_build()
+	var lines: Array[String] = ["Anuncios %s · %s · premium: %s" % [STATE_NAMES[state], "REALES" if real else "de PRUEBA de Google", "SÍ" if Premium.is_premium() else "no"]]
+	if _admob == null:
+		lines.append("aún no han arrancado (esperan unos segundos al abrir; con premium no arrancan)")
+	else:
+		var consent: UserConsent = _admob.get_consent_status()
+		lines.append("consentimiento: %s · cargados: intersticial %s, recompensado %s" % [consent.to_status_string() if consent != null else "?", "SÍ" if _admob.is_interstitial_ad_loaded() else "no", "SÍ" if _admob.is_rewarded_ad_loaded() else "no"])
+	var wait_ends: int = maxi(_grace + 1 - _ends, _per_ad - _since_ad) if _ends >= _grace else _grace + 1 - _ends
+	var wait_s: int = maxi(_min_ms - (Time.get_ticks_msec() - _last_ad_ms), 0) / 1000
+	lines.append("finales de partida: %d · próximo intersticial: tras %d más y no antes de %d s" % [_ends, maxi(wait_ends, 1), wait_s])
 	if _last_error != "":
-		text += "\nerror: " + _last_error
-	return text
+		lines.append("último error: " + _last_error)
+	return "\n".join(lines)
 
 
 ## ¿Los anuncios están en marcha en este dispositivo? (No es lo mismo que haya uno cargado.)
@@ -206,13 +222,11 @@ func _on_consent_failed(error: FormError) -> void:
 	# Sin conexión o error del servicio: si ya hay un consentimiento guardado se sigue; si no, se reintenta.
 	if _can_request_ads():
 		_after_consent()
-	elif _retries < MAX_RETRIES:
+	else:
 		_retries += 1
-		get_tree().create_timer(RETRY_S).timeout.connect(func() -> void:
+		get_tree().create_timer(_retry_delay(_retries)).timeout.connect(func() -> void:
 			if _admob != null and state == State.CONSENT:
 				_admob.update_consent_info())
-	else:
-		_set_state(State.OFF)
 
 
 func _on_form_loaded() -> void:
@@ -269,14 +283,14 @@ func _set_state(value: int) -> void:
 # ---------------------------------------------------------------- carga de anuncios
 
 func _load_interstitial() -> void:
-	if _admob == null or _loading_i or Premium.is_premium():
+	if _admob == null or _loading_i or Premium.is_premium() or _admob.is_interstitial_ad_loaded():
 		return
 	_loading_i = true
 	_admob.load_interstitial_ad()
 
 
 func _load_rewarded() -> void:
-	if _admob == null or _loading_r or Premium.is_premium():
+	if _admob == null or _loading_r or Premium.is_premium() or _admob.is_rewarded_ad_loaded():
 		return
 	_loading_r = true
 	_admob.load_rewarded_ad()
@@ -290,9 +304,13 @@ func _on_interstitial_loaded(_info: AdInfo, _response: ResponseInfo) -> void:
 func _on_interstitial_load_failed(_info: AdInfo, error: LoadAdError) -> void:
 	_last_error = "intersticial: %d %s" % [error.get_code(), error.get_message()]
 	_loading_i = false
-	if _load_retries_i < MAX_RETRIES:
-		_load_retries_i += 1
-		get_tree().create_timer(RETRY_S * _load_retries_i).timeout.connect(_load_interstitial)
+	_load_retries_i += 1
+	get_tree().create_timer(_retry_delay(_load_retries_i)).timeout.connect(_load_interstitial)
+
+
+## Espera antes del reintento número `attempt`: 1, 2, 3... minutos, hasta RETRY_MAX_S.
+func _retry_delay(attempt: int) -> float:
+	return minf(RETRY_S * attempt, RETRY_MAX_S)
 
 
 func _on_rewarded_loaded(_info: AdInfo, _response: ResponseInfo) -> void:
@@ -304,9 +322,8 @@ func _on_rewarded_loaded(_info: AdInfo, _response: ResponseInfo) -> void:
 func _on_rewarded_load_failed(_info: AdInfo, error: LoadAdError) -> void:
 	_last_error = "recompensado: %d %s" % [error.get_code(), error.get_message()]
 	_loading_r = false
-	if _load_retries_r < MAX_RETRIES:
-		_load_retries_r += 1
-		get_tree().create_timer(RETRY_S * _load_retries_r).timeout.connect(_load_rewarded)
+	_load_retries_r += 1
+	get_tree().create_timer(_retry_delay(_load_retries_r)).timeout.connect(_load_rewarded)
 
 
 # ---------------------------------------------------------------- mostrar y cerrar

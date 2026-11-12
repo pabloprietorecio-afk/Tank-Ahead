@@ -87,6 +87,14 @@ class Runner extends Node:
 			await _allies()
 		if only.contains("halo"):
 			await _halo()
+		if only.contains("formacion"):
+			await _formation()
+		if only.contains("vista_formacion"):
+			await _formation_shots()
+		if only.contains("mapaformacion"):
+			for front: int in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+				if OS.get_environment("MAPA_FRENTE") in ["", str(front)]:
+					await _formation_map(front)
 		if _wants(only, "vista_clima"):
 			await _weather_shots()
 		if only.contains("vista_contraste"):
@@ -411,6 +419,32 @@ class Runner extends Node:
 				print("FIT MAL «%s» necesita %d de alto y la pantalla tiene 720" % [page[0], roundi(needed)])
 		_restore_progress(saved)
 		print("FIT RESULT páginas del menú que no caben en pantalla: %d de %d (la más alta: %d de 720)" % [too_tall, pages.size(), roundi(worst)])
+		# Diagnóstico oculto de los anuncios: cinco toques seguidos en el título lo enseñan y otros
+		# cinco lo quitan; cuatro no hacen nada. El texto dice el estado y cuándo toca el próximo.
+		menu._page_mode()
+		await _frames(2)
+		var tap := InputEventMouseButton.new()
+		tap.button_index = MOUSE_BUTTON_LEFT
+		tap.pressed = true
+		var bad_diag: int = 0
+		for i in 4:
+			menu._on_title_input(tap)
+		if menu._ads_overlay != null:
+			bad_diag += 1
+		menu._on_title_input(tap)
+		await _frames(2)
+		if menu._ads_overlay == null or menu._ads_overlay.text != Ads.debug_status() or Ads.debug_status() == "":
+			bad_diag += 1
+		for i in 5:
+			menu._on_title_input(tap)
+		await _frames(2)
+		if menu._ads_overlay != null:
+			bad_diag += 1
+		var status: String = Ads._status_text()
+		if status.count("\n") < 2 or not status.contains(Ads.STATE_NAMES[Ads.state]) or not status.contains("próximo intersticial: tras"):
+			bad_diag += 1
+		print("ADS diagnóstico: «%s»" % status.replace("\n", " / "))
+		print("ADS DIAG RESULT fallos del diagnóstico oculto de anuncios: ", bad_diag)
 
 	## Para probar lo que solo se ve con todo superado y con premium: lo activa y devuelve lo que
 	## había, para dejarlo luego como estaba con _restore_progress().
@@ -1788,6 +1822,329 @@ class Runner extends Node:
 		await _frames(4)
 		await _snap("ui_opciones_menu")
 		_restore_progress(saved)
+
+	## Formación de los aliados con la orden «todos conmigo» (sin gráficos). Un tanque sin cerebro
+	## hace de jugador y recorre un circuito con paradas: recta, giro de 90 grados, media vuelta
+	## pasando por donde venía la formación, avance corto y marcha atrás. En cada parada, ya
+	## quietos, los aliados tienen que estar con él pero sin amontonarse: separados entre sí y de
+	## él, y ninguno delante. Por el camino no pueden ir chocando unos con otros. Se repite en un
+	## campo con casas, donde algún puesto de la formación cae dentro de un edificio.
+	func _formation() -> void:
+		var bad: int = 0
+		# Los puestos sobre el papel, para cualquier número de aliados: separados entre sí y del
+		# líder, ninguno por delante de él y la calle del centro (por donde recula o da media vuelta) libre.
+		var tight: float = INF
+		for count in range(1, 9):
+			var slots: PackedVector2Array = Formation.layout(count)
+			var fine: bool = slots.size() == count
+			for i in slots.size():
+				tight = minf(tight, slots[i].length())
+				if slots[i].y < 10.0 or absf(slots[i].x) < 12.0:
+					fine = false
+				for j in range(i + 1, slots.size()):
+					tight = minf(tight, slots[i].distance_to(slots[j]))
+			if not fine or tight < 17.0:
+				bad += 1
+		print("FORMACION puestos para 1 a 8 aliados: separación mínima %.1f m, ninguno delante ni en la calle del centro  %s" % [tight, "OK" if bad == 0 else "MAL"])
+		for field: String in ["campo abierto", "entre casas"]:
+			bad += await _formation_run(field)
+		print("FORMACION RESULT fallos de la formación de los aliados: ", bad)
+
+	func _formation_run(field: String) -> int:
+		var mode: GameMode = await _bare_stage("FormationStage")
+		var stage: Node3D = mode.world
+		if field == "entre casas":
+			# Un pueblo a los dos lados del camino del líder y junto a sus paradas.
+			for spot: Vector3 in [Vector3(-16.0, 0.0, 22.0), Vector3(17.0, 0.0, 24.0), Vector3(-22.0, 0.0, -2.0), Vector3(40.0, 0.0, 26.0), Vector3(76.0, 0.0, 24.0), Vector3(104.0, 0.0, 6.0), Vector3(74.0, 0.0, 78.0), Vector3(108.0, 0.0, 96.0), Vector3(60.0, 0.0, -8.0)]:
+				_wall(stage, spot, Vector3(10.0, 4.0, 8.0))
+		var leader := Tank.new()
+		leader.name = "Leader"
+		leader.team = GameMode.PLAYER_TEAM
+		leader.stats = Fronts.player_stats(Fronts.Id.NORMANDY, Fronts.Faction.ALLIES)
+		leader.position = Vector3(0.0, 0.2, 120.0)
+		stage.add_child(leader)
+		mode.start(leader, stage)
+		mode.raid_interval = Vector2.ZERO
+		mode.set_physics_process(true)
+		var allies: Array[Tank] = []
+		var ids: Array[String] = ["m4_sherman", "cromwell", "m10_wolverine", "m8_greyhound", "churchill"]
+		for i in ids.size():
+			# Como al empezar una misión: en abanico a los dos lados del jugador.
+			var rank: int = i / 2 + 1
+			var side: float = 1.0 if i % 2 == 0 else -1.0
+			allies.append(mode.spawn_tank(Fronts.tank(ids[i]), GameMode.PLAYER_TEAM, Vector2(side * rank * 9.0, 126.0 + (rank - 1) * 4.0)))
+		# El mapa de celdas tarda medio segundo en rellenarse.
+		await get_tree().create_timer(1.0).timeout
+		mode.toggle_follow()
+		# Circuito: [destino, segundos de parada]. La última pareja es un avance corto y una marcha atrás.
+		var legs: Array = [
+			["recta", Vector3(0.0, 0.0, 10.0), 18.0], ["giro a la derecha", Vector3(90.0, 0.0, 10.0), 18.0],
+			["otro giro", Vector3(90.0, 0.0, 100.0), 18.0], ["media vuelta", Vector3(90.0, 0.0, 10.0), 20.0],
+			["avance corto", Vector3(90.0, 0.0, -4.0), 8.0], ["marcha atrás", Vector3.INF, 10.0]]
+		var worst_pair: float = INF
+		var worst_leader: float = INF
+		var contact: float = 0.0
+		var bad: int = 0
+		# Con FORMACION_DEBUG=1 se apunta cada acercamiento, para ver de dónde viene.
+		var debug: bool = OS.get_environment("FORMACION_DEBUG") != ""
+		# Con FORMACION_TRACE=«campo/tramo» (por ejemplo «entre casas/media vuelta») se sigue a cada tanque en ese tramo.
+		var trace: String = OS.get_environment("FORMACION_TRACE")
+		Engine.time_scale = 4.0
+		for leg: Array in legs:
+			var target: Vector3 = leg[1]
+			var clock: float = 0.0
+			var hold: float = 0.0
+			var reverse_left: float = 1.2
+			while hold < leg[2] and clock < 90.0:
+				await get_tree().physics_frame
+				var delta: float = get_physics_process_delta_time()
+				clock += delta
+				if target == Vector3.INF:
+					# Marcha atrás un momento y parada.
+					reverse_left -= delta
+					leader.drive_input = Vector2(0.0, -1.0) if reverse_left > 0.0 else Vector2.ZERO
+					if reverse_left <= 0.0:
+						hold += delta
+				else:
+					var to: Vector3 = target - leader.global_position
+					to.y = 0.0
+					if to.length() <= 3.0 or hold > 0.0:
+						leader.drive_input = Vector2.ZERO
+						hold += delta
+					else:
+						var angle: float = (-leader.global_transform.basis.z).signed_angle_to(to, Vector3.UP)
+						leader.drive_input = Vector2(clampf(-angle * 2.5, -1.0, 1.0), 1.0 if absf(angle) < 0.5 else 0.0)
+				if trace == field + "/" + leg[0] and fmod(clock, 0.25) < delta:
+					print("FORMACION   t=%.2f líder %s rumbo %s vel %.1f  formación %s" % [clock, _xz(leader.global_position), _xz(-leader.global_transform.basis.z), Vector2(leader.velocity.x, leader.velocity.z).length(), _xz(mode.formation.heading) if mode.formation != null else "-"])
+					for i in allies.size():
+						var b: AIBrain = allies[i].get_node("AIBrain")
+						print("FORMACION      %-13s en %s puesto %d %s  estado %s%s  mando (%.2f, %.2f) vel %.1f bloqueado %s" % [ids[i], _xz(allies[i].global_position), b.formation_slot, _xz(b.follow_point()) if b.follow != null else "-", b.state_name(), " LEJOS" if b.follow_far else "", allies[i].drive_input.x, allies[i].drive_input.y, Vector2(allies[i].velocity.x, allies[i].velocity.z).length(), str(b._nav_blocked)])
+				# Por el camino: lo más que se acercan dos aliados entre sí y al líder, y cuánto rato van pegados.
+				for i in allies.size():
+					var from_leader: float = _flat_distance(allies[i], leader)
+					worst_leader = minf(worst_leader, from_leader)
+					if from_leader < 7.5:
+						contact += delta
+						if debug:
+							print("FORMACION   cerca del líder: %s a %.1f m en «%s» t=%.1f  líder %s rumbo %s  aliado %s puesto %d" % [ids[i], from_leader, leg[0], clock, _xz(leader.global_position), _xz(-leader.global_transform.basis.z), _xz(allies[i].global_position), (allies[i].get_node("AIBrain") as AIBrain).formation_slot])
+					for j in range(i + 1, allies.size()):
+						var apart: float = _flat_distance(allies[i], allies[j])
+						worst_pair = minf(worst_pair, apart)
+						if apart < 6.5:
+							contact += delta
+							if debug:
+								print("FORMACION   pegados: %s y %s a %.1f m en «%s» t=%.1f  %s %s  puestos %d y %d" % [ids[i], ids[j], apart, leg[0], clock, _xz(allies[i].global_position), _xz(allies[j].global_position), (allies[i].get_node("AIBrain") as AIBrain).formation_slot, (allies[j].get_node("AIBrain") as AIBrain).formation_slot])
+			# Parados: la foto de la formación.
+			var forward: Vector3 = -leader.global_transform.basis.z
+			var nearest_pair: float = INF
+			var nearest: float = INF
+			var farthest: float = 0.0
+			var ahead: int = 0
+			var moving: int = 0
+			for i in allies.size():
+				var offset: Vector3 = allies[i].global_position - leader.global_position
+				offset.y = 0.0
+				nearest = minf(nearest, offset.length())
+				farthest = maxf(farthest, offset.length())
+				if offset.dot(forward) > 6.0:
+					ahead += 1
+				if Vector2(allies[i].velocity.x, allies[i].velocity.z).length() > 0.5:
+					moving += 1
+				for j in range(i + 1, allies.size()):
+					nearest_pair = minf(nearest_pair, _flat_distance(allies[i], allies[j]))
+			var ok: bool = nearest_pair >= 12.0 and nearest >= 12.0 and farthest <= 50.0 and ahead == 0 and moving == 0
+			if not ok:
+				bad += 1
+			print("FORMACION %-13s %-17s entre aliados %.1f m | al líder de %.1f a %.1f m | delante %d | aún moviéndose %d  %s" % [field, leg[0], nearest_pair, nearest, farthest, ahead, moving, "OK" if ok else "MAL"])
+		Engine.time_scale = 1.0
+		var unstuck: int = 0
+		for ally: Tank in allies:
+			unstuck += (ally.get_node("AIBrain") as AIBrain).unstuck_total
+		# Por el camino pueden cruzarse, pero no ir chocando: ni pegados más que un momento.
+		var transit_ok: bool = contact <= 3.0 and worst_leader >= 5.0
+		if not transit_ok:
+			bad += 1
+		print("FORMACION %-13s por el camino: mínimo entre aliados %.1f m, al líder %.1f m | pegados %.1f s | desatascos %d  %s" % [field, worst_pair, worst_leader, contact, unstuck, "OK" if transit_ok else "MAL"])
+		stage.queue_free()
+		await _frames(2)
+		return bad
+
+	## Los aliados siguiendo al jugador, vistos desde arriba: en marcha y ya parados. El jugador
+	## avanza recto 80 m y se detiene. Solo se lanza a mano (SHOTS_ONLY=vista_formacion).
+	func _formation_shots() -> void:
+		GameSession.debug_bare = true
+		var hud: Hud = await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 5)
+		hud.visible = false
+		var scene: Node = get_tree().current_scene
+		# Sin interfaz: solo el campo.
+		for child in scene.get_children():
+			if child is CanvasLayer:
+				(child as CanvasLayer).visible = false
+		var mode: GameMode = scene.get_node("GameMode")
+		mode.set_process(false)
+		mode.raid_interval = Vector2.ZERO
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team != GameMode.PLAYER_TEAM:
+				tank.get_node("AIBrain").process_mode = Node.PROCESS_MODE_DISABLED
+				tank.process_mode = Node.PROCESS_MODE_DISABLED
+				tank.remove_from_group(&"tanks")
+				tank.global_position = Vector3(0.0, -200.0, 0.0)
+		var leader: Tank = _player_tank()
+		scene.get_node("PlayerInputSource").process_mode = Node.PROCESS_MODE_DISABLED
+		_camera = Camera3D.new()
+		_camera.far = 700.0
+		scene.add_child(_camera)
+		await get_tree().create_timer(1.0).timeout
+		mode.toggle_follow()
+		var clock: float = 0.0
+		var start_z: float = leader.global_position.z
+		var shot_moving: bool = false
+		while clock < 26.0:
+			await get_tree().physics_frame
+			clock += get_physics_process_delta_time()
+			var advanced: float = start_z - leader.global_position.z
+			leader.drive_input = Vector2(0.0, 1.0) if advanced < 80.0 and clock > 2.0 else Vector2.ZERO
+			if not shot_moving and advanced > 55.0:
+				shot_moving = true
+				await _formation_snap(leader, "formacion_en_marcha")
+		await _formation_snap(leader, "formacion_parados")
+		GameSession.debug_bare = false
+		GameSession.debug_weather = -1
+
+	func _formation_snap(leader: Tank, shot: String) -> void:
+		var origin: Vector3 = leader.global_position
+		_look(origin + Vector3(0.0, 62.0, 58.0), origin + Vector3(0.0, 0.0, 12.0), 50.0)
+		await _snap(shot)
+		var at: Vector2 = _camera.unproject_position(leader.global_position + Vector3.UP * 2.0)
+		var spots: Array[String] = []
+		for ally: Tank in _allies_alive():
+			var p: Vector2 = _camera.unproject_position(ally.global_position + Vector3.UP * 2.0)
+			spots.append("%d,%d" % [roundi(p.x), roundi(p.y)])
+		print("SHOTPOS %s jugador %d,%d aliados %s" % [shot, roundi(at.x), roundi(at.y), " ".join(spots)])
+
+	## La formación en un campo de verdad, con su decorado (pueblos, setos, colinas, lomas): una
+	## misión de la campaña sin enemigos en la que un piloto automático lleva el tanque del
+	## jugador por todo el mapa, con paradas. Es una prueba de exploración (el decorado cambia en
+	## cada partida): no entra en la comprobación automática, se lanza con SHOTS_ONLY=mapaformacion.
+	func _formation_map(front: int) -> void:
+		await _start_game(GameSession.Mode.STORY, front, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 5)
+		var scene: Node = get_tree().current_scene
+		var mode: StoryMode = scene.get_node("GameMode") as StoryMode
+		# Sin enemigos ni bombardeos: solo interesa cómo se mueve el bando propio.
+		mode.set_process(false)
+		mode.raid_interval = Vector2.ZERO
+		mode.allies_reserve = 0
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team != GameMode.PLAYER_TEAM:
+				# Dormido y fuera del campo, no borrado: un proyectil suyo en vuelo aún lo nombra.
+				tank.get_node("AIBrain").process_mode = Node.PROCESS_MODE_DISABLED
+				tank.process_mode = Node.PROCESS_MODE_DISABLED
+				tank.remove_from_group(&"tanks")
+				tank.global_position = Vector3(0.0, -200.0, 0.0)
+		var leader: Tank = _player_tank()
+		scene.get_node("PlayerInputSource").process_mode = Node.PROCESS_MODE_DISABLED
+		var pilot := AIBrain.new()
+		pilot.name = "Pilot"
+		leader.add_child(pilot)
+		pilot.setup(leader)
+		pilot.remove_from_group(&"ai_brains")
+		pilot.smart_nav = true
+		pilot.hunt = false
+		await get_tree().create_timer(1.5).timeout
+		var allies: Array = _allies_alive()
+		mode.toggle_follow()
+		var stops: Array[Vector3] = [Vector3(0.0, 0.0, 70.0), Vector3(-90.0, 0.0, 30.0), Vector3(-100.0, 0.0, -70.0), Vector3(0.0, 0.0, -110.0), Vector3(100.0, 0.0, -50.0), Vector3(80.0, 0.0, 60.0), Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 120.0)]
+		var contact: float = 0.0
+		var worst_pair: float = INF
+		var worst_leader: float = INF
+		var bad_stops: int = 0
+		var seen_unstuck: Dictionary = {}
+		Engine.time_scale = 4.0
+		for stop_index in stops.size():
+			var target: Vector3 = stops[stop_index]
+			var clock: float = 0.0
+			var hold: float = 0.0
+			pilot.process_mode = Node.PROCESS_MODE_INHERIT
+			pilot.order(target, 2.0, true)
+			while hold < 20.0 and clock < 110.0:
+				await get_tree().physics_frame
+				var delta: float = get_physics_process_delta_time()
+				clock += delta
+				var to: Vector3 = target - leader.global_position
+				to.y = 0.0
+				if hold > 0.0 or to.length() < 8.0 or clock > 70.0:
+					# Parada: el piloto suelta los mandos.
+					pilot.process_mode = Node.PROCESS_MODE_DISABLED
+					leader.drive_input = Vector2.ZERO
+					leader.trigger_held = false
+					hold += delta
+				for i in allies.size():
+					var from_leader: float = _flat_distance(allies[i], leader)
+					worst_leader = minf(worst_leader, from_leader)
+					if from_leader < 7.5:
+						contact += delta
+					for j in range(i + 1, allies.size()):
+						var apart: float = _flat_distance(allies[i], allies[j])
+						worst_pair = minf(worst_pair, apart)
+						if apart < 6.5:
+							contact += delta
+					# Cada atasco, con lo que tenía delante.
+					var ab: AIBrain = allies[i].get_node("AIBrain")
+					if ab.unstuck_total != seen_unstuck.get(allies[i], 0):
+						seen_unstuck[allies[i]] = ab.unstuck_total
+						var grid: NavGrid = NavGrid.of(scene)
+						var goal_dir: Vector3 = ab.objective - allies[i].global_position
+						goal_dir.y = 0.0
+						var hits: Array[String] = []
+						for angle: float in [0.0, 0.5, -0.5, 1.2, -1.2]:
+							var from: Vector3 = allies[i].global_position + Vector3.UP * 0.6
+							var query := PhysicsRayQueryParameters3D.create(from, from + goal_dir.normalized().rotated(Vector3.UP, angle) * 14.0, 3)
+							query.exclude = [allies[i].get_rid()]
+							var hit: Dictionary = allies[i].get_world_3d().direct_space_state.intersect_ray(query)
+							hits.append("-" if hit.is_empty() else "%s/%s a %.1f m" % [hit["collider"].get_parent().name, hit["collider"].name, from.distance_to(hit["position"])])
+						var cells: String = ""
+						for dz in range(-2, 3):
+							for dx in range(-2, 3):
+								cells += "." if grid.is_free_at(allies[i].global_position + Vector3(dx * 4.0, 0.0, dz * 4.0)) else "#"
+							cells += " "
+						print("MAPAFORMACION    atasco %d de %s en %s yendo a %s (%.0f m): delante %s | celdas %s" % [ab.unstuck_total, allies[i].stats.id, _xz(allies[i].global_position), _xz(ab.objective), goal_dir.length(), str(hits), cells])
+			var nearest_pair: float = INF
+			var nearest: float = INF
+			var farthest: float = 0.0
+			var moving: int = 0
+			var ahead: int = 0
+			var forward: Vector3 = mode.formation.heading if mode.formation != null else -leader.global_transform.basis.z
+			for i in allies.size():
+				var offset: Vector3 = allies[i].global_position - leader.global_position
+				offset.y = 0.0
+				nearest = minf(nearest, offset.length())
+				farthest = maxf(farthest, offset.length())
+				if offset.dot(forward) > 6.0:
+					ahead += 1
+				if Vector2(allies[i].velocity.x, allies[i].velocity.z).length() > 0.5:
+					moving += 1
+					var b: AIBrain = allies[i].get_node("AIBrain")
+					print("MAPAFORMACION    sigue moviéndose: %s en %s, puesto %d %s (a %.1f m), estado %s%s, mando (%.2f, %.2f), vel %.1f, bloqueado %s, desatascos %d, libre el puesto: %s" % [allies[i].stats.id, _xz(allies[i].global_position), b.formation_slot, _xz(b.follow_point()), Vector2(b.follow_point().x - allies[i].global_position.x, b.follow_point().z - allies[i].global_position.z).length(), b.state_name(), " LEJOS" if b.follow_far else "", allies[i].drive_input.x, allies[i].drive_input.y, Vector2(allies[i].velocity.x, allies[i].velocity.z).length(), str(b._nav_blocked), b.unstuck_total, str(NavGrid.of(scene).is_free_at(b.follow_point()))])
+				for j in range(i + 1, allies.size()):
+					nearest_pair = minf(nearest_pair, _flat_distance(allies[i], allies[j]))
+			var ok: bool = nearest_pair >= 11.0 and nearest >= 11.0 and farthest <= 60.0 and ahead == 0 and moving == 0
+			if not ok:
+				bad_stops += 1
+			print("MAPAFORMACION %-13s parada %d en %s (tardó %.0f s): entre aliados %.1f m | al líder de %.1f a %.1f m | delante %d | aún moviéndose %d  %s" % [Fronts.NAMES[front], stop_index + 1, _xz(leader.global_position), clock - hold, nearest_pair, nearest, farthest, ahead, moving, "OK" if ok else "MAL"])
+		Engine.time_scale = 1.0
+		var unstuck: int = pilot.unstuck_total
+		var ally_unstuck: int = 0
+		for ally: Tank in allies:
+			if is_instance_valid(ally):
+				ally_unstuck += (ally.get_node("AIBrain") as AIBrain).unstuck_total
+		print("MAPAFORMACION %-13s %d aliados | paradas mal %d de %d | por el camino: mínimo entre aliados %.1f m, al líder %.1f m, pegados %.1f s | desatascos: aliados %d, piloto %d" % [Fronts.NAMES[front], allies.size(), bad_stops, stops.size(), worst_pair, worst_leader, contact, ally_unstuck, unstuck])
+		GameSession.debug_weather = -1
+
+	func _xz(v: Vector3) -> String:
+		return "(%.0f, %.0f)" % [v.x, v.z] if v.length() > 1.5 else "(%.2f, %.2f)" % [v.x, v.z]
+
+	func _flat_distance(a: Node3D, b: Node3D) -> float:
+		return Vector2(a.global_position.x - b.global_position.x, a.global_position.z - b.global_position.z).length()
 
 	func _secs(value: float) -> String:
 		return "a los %.0f s" % value if value >= 0.0 else "NUNCA"

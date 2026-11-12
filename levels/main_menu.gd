@@ -36,6 +36,12 @@ var _title: Label
 var _subtitle: Label
 var _era: Label
 var _version: Label
+## Estado de los anuncios (oculto): se enseña con TITLE_TAPS toques seguidos en el título.
+const TITLE_TAPS: int = 5
+const TITLE_TAP_GAP_MS: int = 1200
+var _title_taps: int = 0
+var _title_tap_ms: int = 0
+var _ads_overlay: Label
 var _radio: AudioStreamPlayer
 var _radio_timer: Timer
 ## Partes de radio por bando: [aliados, alemanes].
@@ -54,7 +60,7 @@ func _ready() -> void:
 	GameSettings.ensure_loaded()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if OS.is_debug_build() and OS.get_name() == "Android":
-		_add_ads_overlay.call_deferred()
+		_toggle_ads_overlay.call_deferred()
 	# Portada en 3D detrás del menú y un velo oscuro para que se lea el texto.
 	add_child(CoverDiorama.new())
 	var veil := ColorRect.new()
@@ -84,6 +90,10 @@ func _ready() -> void:
 	_title.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
 	_title.add_theme_constant_override("shadow_offset_x", 4)
 	_title.add_theme_constant_override("shadow_offset_y", 5)
+	# Cinco toques seguidos en el título enseñan (o quitan) el estado de los anuncios: sirve para
+	# ver, también en la versión de Google Play, por qué no sale publicidad.
+	_title.mouse_filter = Control.MOUSE_FILTER_PASS
+	_title.gui_input.connect(_on_title_input)
 	column.add_child(_title)
 	_era = _label("", 22, Color(0.9, 0.88, 0.8))
 	_era.add_theme_color_override("font_outline_color", Color.BLACK)
@@ -655,25 +665,45 @@ func _page_premium(index: int = -1) -> void:
 	_back(_page_missions)
 
 
-## Solo en compilaciones de depuración en Android: estado de los anuncios en una esquina.
-func _add_ads_overlay() -> void:
+func _on_title_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
+		return
+	var now: int = Time.get_ticks_msec()
+	if now - _title_tap_ms > TITLE_TAP_GAP_MS:
+		_title_taps = 0
+	_title_tap_ms = now
+	_title_taps += 1
+	if _title_taps >= TITLE_TAPS:
+		_title_taps = 0
+		_toggle_ads_overlay()
+
+
+## Estado de los anuncios en una esquina del menú. Siempre a la vista en las compilaciones de
+## depuración en Android; en las demás, con cinco toques seguidos en el título.
+func _toggle_ads_overlay() -> void:
+	if _ads_overlay != null:
+		_ads_overlay.queue_free()
+		_ads_overlay = null
+		return
 	var diag := Label.new()
 	diag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	diag.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	diag.offset_left = 6.0
 	diag.offset_bottom = -4.0
 	diag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	diag.add_theme_font_size_override("font_size", 11)
-	diag.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
-	diag.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	diag.add_theme_constant_override("outline_size", 4)
+	diag.add_theme_font_size_override("font_size", 13)
+	diag.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
+	diag.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
+	diag.add_theme_constant_override("outline_size", 5)
 	diag.text = Ads.debug_status()
 	add_child(diag)
 	var timer := Timer.new()
-	timer.wait_time = 1.5
+	timer.wait_time = 1.0
 	timer.autostart = true
 	timer.timeout.connect(func() -> void: diag.text = Ads.debug_status())
-	add_child(timer)
+	diag.add_child(timer)
+	_ads_overlay = diag
 
 
 func _watch_ad() -> void:

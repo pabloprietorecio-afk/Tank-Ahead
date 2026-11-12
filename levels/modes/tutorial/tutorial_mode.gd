@@ -212,6 +212,11 @@ func wants_scenery() -> bool:
 	return false
 
 
+## El campo de prácticas es pequeño: la formación de los aliados no sale de la valla.
+func formation_limit() -> float:
+	return FIELD - 10.0
+
+
 func wants_pickups() -> bool:
 	return false
 

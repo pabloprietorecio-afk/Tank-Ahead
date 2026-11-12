@@ -97,6 +97,35 @@ func find_path(from: Vector3, to: Vector3) -> PackedVector3Array:
 	return path
 
 
+## ¿Está libre la celda en la que cae este punto?
+func is_free_at(point: Vector3) -> bool:
+	return not _astar.is_point_solid(cell_of(point))
+
+
+## Centro de la celda libre más cercana a `point` que además cumpla `accept` (Callable(Vector3)
+## -> bool), mirando hasta `max_radius` celdas alrededor. Vector3.INF si no hay ninguna.
+func free_point_near(point: Vector3, accept: Callable, max_radius: int = 8) -> Vector3:
+	var cell: Vector2i = cell_of(point)
+	for radius in range(0, max_radius + 1):
+		var best := Vector3.INF
+		var best_distance: float = INF
+		for dx in range(-radius, radius + 1):
+			for dy in range(-radius, radius + 1):
+				if maxi(absi(dx), absi(dy)) != radius:
+					continue
+				var other := cell + Vector2i(dx, dy)
+				if other.x < 0 or other.y < 0 or other.x >= SIZE or other.y >= SIZE or _astar.is_point_solid(other):
+					continue
+				var center: Vector3 = cell_center(other)
+				var distance: float = center.distance_squared_to(point)
+				if distance < best_distance and accept.call(center):
+					best_distance = distance
+					best = center
+		if best != Vector3.INF:
+			return best
+	return Vector3.INF
+
+
 func nearest_free(cell: Vector2i) -> Vector2i:
 	if not _astar.is_point_solid(cell):
 		return cell

@@ -15,7 +15,8 @@ func enter(_previous: StringName) -> void:
 func update(delta: float) -> void:
 	_time += delta
 	brain.tank.turret_controller.aim_yaw(brain.tank.global_rotation.y + sin(_time * 0.8) * 1.0)
-	if brain.focus_objective:
+	if brain.focus_objective or brain.follow != null:
+		# Con una orden que cumplir (o siguiendo al jugador) no hay pausa que valga.
 		machine.change_to(&"Patrol")
 	elif brain.perception.can_see:
 		machine.change_to(&"Chase")

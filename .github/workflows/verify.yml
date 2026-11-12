@@ -41,10 +41,10 @@ jobs:
 
       - name: Misiones, navegación, tutorial, lomas, menús y tanques del jugador (sin gráficos)
         env:
-          SHOTS_ONLY: "story nav tutorial sky ai ctf fit lomas pausa tanques aliados halo"
+          SHOTS_ONLY: "story nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion"
         run: |
           timeout 1200 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO)" logic.log || true
+          grep -E "^(NAV|STORY|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
 
       - name: Anuncios coherentes (AdsConfig y android_export.cfg)
         run: |
@@ -80,6 +80,8 @@ jobs:
           grep -q "TANQUES RESULT el casco de un cazacarros sigue a la mira: OK" logic.log || { echo "El casco de un cazacarros no sigue a la mira del jugador"; grep "^TANQUES casamata" logic.log; exit 1; }
           grep -q "ALIADOS RESULT fallos de aliados y refuerzos: 0" logic.log || { echo "Los aliados o sus refuerzos no salen como deben"; grep "^ALIADOS" logic.log; exit 1; }
           grep -q "HALO RESULT fallos de los bordes de ayuda: 0" logic.log || { echo "Los bordes de objetivos y enemigos no se ponen o no se quitan bien"; grep "^HALO" logic.log; exit 1; }
+          grep -q "FORMACION RESULT fallos de la formación de los aliados: 0" logic.log || { echo "Los aliados que siguen al jugador se amontonan, se le ponen delante o no llegan a su puesto"; grep "^FORMACION" logic.log; exit 1; }
+          grep -q "ADS DIAG RESULT fallos del diagnóstico oculto de anuncios: 0" logic.log || { echo "El diagnóstico oculto de los anuncios no se enseña o no se quita bien"; grep "^ADS" logic.log; exit 1; }
           grep -q "SOMBRAS RESULT.*(OK)" run.log || { echo "Los bordes de ayuda o el contorno de los tanques cambian las sombras del campo"; grep "^SOMBRAS" run.log; exit 1; }
           grep -q "FIT RESULT páginas del menú que no caben en pantalla: 0 de" logic.log || { echo "Alguna página del menú no cabe en la pantalla sin desplazarla"; grep "^FIT" logic.log; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi

@@ -69,6 +69,16 @@ En la historia salen dos aliados más de los que marca cada misión (`StoryMode.
 blindaje reforzado, y por cada uno que cae entra un refuerzo por el borde sur hasta agotar la reserva.
 Supervivencia no tiene aliados; captura la bandera sigue siendo 4 contra 4.
 
+Con la orden «todos conmigo» los aliados marchan en formación (`entities/enemies/ai/formation.gd`): una
+cuña abierta por detrás del jugador, con cada puesto a 18 m o más de los demás y del propio jugador,
+ninguno por delante de él y la calle del centro libre para que pueda recular o dar media vuelta. La
+formación sigue el rumbo de marcha del jugador (no gira si él gira parado), se invierte en vez de barrer
+por delante cuando da media vuelta, corre a un hueco libre los puestos que caen dentro de un edificio y
+reparte los puestos para que nadie se cruce. Cada aliado mantiene su puesto (`PatrolState._keep_station`):
+acompasa su velocidad a la del jugador, se para cuando él se para, recula si el puesto le queda detrás,
+no pasa rozando a un compañero y se aparta si el jugador viene hacia él. Lejos de su puesto lo deja todo
+para volver; cerca, sigue saliendo a por el enemigo que vea.
+
 ## Ayudas para ver mejor
 - Opciones «Destacar enemigos (borde amarillo)» y «Destacar objetivos (borde azul)»: edificios objetivo,
   comandante enemigo, bandera enemiga y salida de las misiones de ruptura (`shaders/outline.gdshader`; el
@@ -98,9 +108,15 @@ Los motores de tanque y de avión son grabaciones reales (ver `assets/audio/CRED
   vez (hasta superarla). Solo se ofrece para la siguiente misión por jugar.
 - Premium quita todos los anuncios. Sin consentimiento (UMP) tampoco se piden; en las regiones que lo exigen
   hay un botón «Privacidad de los anuncios» en Opciones.
-- Hoy usa anuncios de **prueba** de Google. Para publicar: `IS_REAL = true` y los dos ID de bloque en
-  `core/ads_config.gd`, y `is_real=true` más el ID de aplicación real en
-  `addons/AdmobPlugin/android_export.cfg` (la verificación comprueba que ambos coinciden).
+- El AAB de Google Play lleva los anuncios **reales** (`IS_REAL = true` y los dos ID de bloque en
+  `core/ads_config.gd`; `is_real=true` y el ID de aplicación en `addons/AdmobPlugin/android_export.cfg`; la
+  verificación comprueba que coinciden). Los APK de pruebas usan siempre los de prueba de Google.
+- Si una carga falla (sin red, o «sin relleno» mientras AdMob no tiene anuncios para la app) se reintenta
+  al minuto, a los dos, a los tres... y después cada cinco, sin dejar de intentarlo.
+- Diagnóstico: cinco toques seguidos en el título «A TANK STORY» del menú enseñan en una esquina el estado
+  de los anuncios (en marcha o no, consentimiento, si hay alguno cargado, cuándo toca el próximo y el
+  último error de Google). Funciona también en la versión de Google Play; en los APK de pruebas está
+  siempre a la vista.
 - Plugin oficial `godot-sdk-integrations/godot-admob` v7.0 (paquete Android ya compilado, ver
   `addons/AdmobPlugin/ORIGEN.txt`).
 
@@ -127,7 +143,7 @@ Workflow `build-aab.yml` (Actions > *Build AAB (Google Play)* > *Run workflow*, 
 5. Los textos de la ficha (incluido el aviso de voces IA, obligatorio por la licencia de Supertonic) están en `store/`.
 
 ## Comprobación
-Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones nuevas, la navegación de los tanques aliados y el tutorial completo
+Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones nuevas, la navegación de los tanques aliados, su formación al seguir al jugador (recta, giros, media vuelta, marcha atrás, en campo abierto y entre casas) y el tutorial completo
 (un jugador automático hace la acción correcta en cada lección) sin gráficos, y guarda capturas y registros en la rama `verify-shots`.
 También comprueba que los tanques suben y bajan las lomas (y siguen sin poder subir a las colinas), que el menú de opciones cabe en
 pantalla en los diez idiomas, las fichas de los tanques que puede llevar el jugador, los refuerzos aliados y los bordes de ayuda.

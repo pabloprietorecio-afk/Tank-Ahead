@@ -27,13 +27,27 @@ var priority_target: Tank = null
 ## Segundos entre correcciones de puntería: los reflejos del tirador (lo ajusta la dificultad).
 var aim_interval: float = 0.6
 
-## Orden «todos conmigo»: acompaña a este tanque (el del jugador) y solo pelea con quien tenga
-## cerca de él; si se queda lejos, corre a reunirse con él disparando sobre la marcha.
+## Orden «todos conmigo»: acompaña a este tanque (el del jugador) en su puesto de la formación
+## y solo pelea con quien tenga cerca de él; si se queda lejos de su puesto, corre a ocuparlo
+## disparando sobre la marcha.
 var follow: Tank = null
-const FOLLOW_RADIUS: float = 14.0
-const FOLLOW_CATCHUP: float = 38.0
+## Formación en la que marcha y su puesto en ella (los reparte el modo de juego; ver Formation).
+var formation: Formation = null
+var formation_slot: int = -1
+## Lejos de su puesto: deja lo que esté haciendo y va derecho a ocuparlo.
+var follow_far: bool = false
+## A esta distancia de su puesto lo deja todo para volver; se da por reincorporado a FOLLOW_REJOINED.
+const FOLLOW_CATCHUP: float = 36.0
+const FOLLOW_REJOINED: float = 12.0
+## Sin formación (no debería pasar), se queda a esta distancia del tanque al que sigue.
+const FOLLOW_LOOSE: float = 18.0
 ## Los enemigos más lejos que esto del tanque al que sigue se ignoran.
-const FOLLOW_LEASH: float = 60.0
+const FOLLOW_LEASH: float = 70.0
+## En formación deja este aire de más, a cada lado, al pasar junto a otro tanque (m).
+const FOLLOW_BERTH: float = 2.5
+## Y frena si tiene a otro tanque delante: del todo despacio a BRAKE_NEAR metros, nada a BRAKE_FAR.
+const BRAKE_NEAR: float = 6.0
+const BRAKE_FAR: float = 11.0
 ## Siguiendo al jugador se retira antes (para sobrevivir): a partir de esta fracción de blindaje.
 const FOLLOW_RETREAT: float = 0.4
 ## Enemigo al que debe atacar sin distraerse (lo marca el jugador para todo su bando).
@@ -128,9 +142,37 @@ func set_follow(leader: Tank) -> void:
 		return
 	var was_following: bool = follow != null
 	follow = leader
-	if leader == null and was_following:
-		objective = Vector3.INF
-		focus_objective = false
+	follow_far = false
+	if leader == null:
+		formation = null
+		formation_slot = -1
+		if was_following:
+			objective = Vector3.INF
+			focus_objective = false
+	elif machine.current_name == &"Idle":
+		# A formar ya, sin acabar la pausa en la que estuviera.
+		machine.change_to(&"Patrol")
+
+
+## Su puesto en la formación (dónde debe estar ahora mismo el tanque que sigue al jugador).
+func follow_point() -> Vector3:
+	if formation != null and formation_slot >= 0:
+		return formation.point(formation_slot)
+	# Sin formación: a FOLLOW_LOOSE metros del líder, por el lado en el que ya está.
+	var away: Vector3 = tank.global_position - follow.global_position
+	away.y = 0.0
+	if away.length() < 0.5:
+		away = Vector3.BACK
+	return follow.global_position + away.normalized() * FOLLOW_LOOSE
+
+
+## Rumbo de marcha de la formación (o el del casco del tanque al que sigue, si no la hay).
+func follow_heading() -> Vector3:
+	if formation != null:
+		return formation.heading
+	var forward: Vector3 = -follow.global_transform.basis.z
+	forward.y = 0.0
+	return forward.normalized()
 
 
 func _follow_tick() -> void:
@@ -139,8 +181,11 @@ func _follow_tick() -> void:
 	if not is_instance_valid(follow) or follow.is_destroyed:
 		set_follow(null)
 		return
-	var far: bool = tank.global_position.distance_to(follow.global_position) > FOLLOW_CATCHUP
-	order(follow.global_position, 10.0 if far else FOLLOW_RADIUS, far)
+	var point: Vector3 = follow_point()
+	var gap: float = Vector2(point.x - tank.global_position.x, point.z - tank.global_position.z).length()
+	# Con margen entre irse y volver, para no dudar justo en el límite.
+	follow_far = gap > (FOLLOW_REJOINED if follow_far else FOLLOW_CATCHUP)
+	order(point, 2.0, follow_far)
 
 
 ## Fracción de blindaje a partir de la cual se retira (más alta si sigue al jugador).
@@ -461,7 +506,41 @@ func _clearance(dir: Vector3, reach: float) -> float:
 		if collider is Destructible and (collider as Destructible).crushable:
 			continue
 		free = minf(free, from.distance_to(hit["position"]))
+	if follow != null:
+		# En formación no se pasa rozando a los compañeros: dos rayos más, por fuera del casco,
+		# que solo ven tanques.
+		for side: float in [1.0, -1.0]:
+			var from: Vector3 = base + right.normalized() * (half_width + FOLLOW_BERTH) * side + Vector3.UP * 0.5 * k
+			var query := PhysicsRayQueryParameters3D.create(from, from + dir * reach, Tank.LAYER_TANK)
+			query.exclude = exclude
+			var hit: Dictionary = space.intersect_ray(query)
+			if not hit.is_empty():
+				free = minf(free, from.distance_to(hit["position"]))
 	return free
+
+
+## Freno por cercanía (0..1): 1 con el camino despejado y menos cuanto más encima tiene a otro
+## tanque por delante. Así, en formación, se pone a su cola en vez de abrirse paso a empujones.
+func crowding_brake() -> float:
+	var forward: Vector3 = -tank.global_transform.basis.z
+	var brake: float = 1.0
+	for node in get_tree().get_nodes_in_group(&"tanks"):
+		var other: Tank = node as Tank
+		if other == null or other == tank:
+			continue
+		var to: Vector3 = other.global_position - tank.global_position
+		to.y = 0.0
+		var distance: float = to.length()
+		# Solo cuentan los que tiene delante (en un cono de 60 grados a cada lado).
+		if distance >= BRAKE_FAR or to.dot(forward) < distance * 0.5:
+			continue
+		brake = minf(brake, clampf((distance - BRAKE_NEAR) / (BRAKE_FAR - BRAKE_NEAR), 0.15, 1.0))
+	return brake
+
+
+## ¿Hay paso libre en línea recta hasta `reach` metros en esa dirección?
+func is_clear(dir: Vector3, reach: float) -> bool:
+	return _clearance(dir, reach) >= reach - 0.3
 
 
 func _avoidance() -> float:

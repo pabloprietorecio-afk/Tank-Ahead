@@ -174,7 +174,11 @@ func _do_follow() -> void:
 	if mode.step == 0:
 		_press("follow")
 	elif not mode.beacons.is_empty() and is_instance_valid(mode.beacons[0]):
-		_drive_to(mode.beacons[0].point())
+		# Llega a la baliza y se para a esperar a los aliados, como pide la lección. (Antes no
+		# paraba: se quedaba allí porque los aliados, amontonados a su alrededor, le cerraban el paso.)
+		var point: Vector2 = mode.beacons[0].point()
+		if Vector2(player.global_position.x, player.global_position.z).distance_to(point) > 5.0:
+			_drive_to(point)
 
 
 func _do_focus() -> void:
