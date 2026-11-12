@@ -62,4 +62,9 @@ func _settle(delta: float) -> void:
 		tilt = _tank.global_basis.inverse() * pose.basis
 	elif _tank.is_on_floor():
 		_rest_y = _tank.global_position.y
-	_tank.chassis.basis = _tank.chassis.basis.slerp(tilt, 1.0 - exp(-TILT_SMOOTHING * delta)).orthonormalized()
+	# Con cuaterniones sacados de bases ortonormalizadas, no con Basis.slerp: de tanto girar, la
+	# base del cuerpo queda un pelo fuera de escala y Basis.slerp no la admite (en las
+	# compilaciones de depuración da un error en ese fotograma y toma el giro por nulo).
+	var from: Quaternion = _tank.chassis.basis.get_rotation_quaternion()
+	var to: Quaternion = tilt.get_rotation_quaternion()
+	_tank.chassis.basis = Basis(from.slerp(to, 1.0 - exp(-TILT_SMOOTHING * delta)))

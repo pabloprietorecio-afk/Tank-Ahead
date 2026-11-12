@@ -1199,6 +1199,11 @@ class Runner extends Node:
 		# Parado en plena ladera, apuntando a un blanco lejano en el llano.
 		var gunner: Tank = mode.spawn_tank(Fronts.tank("m4_sherman"), GameMode.PLAYER_TEAM, Vector2(13.0, 3.0), 0.6)
 		gunner.get_node("AIBrain").queue_free()
+		# Otro parado en la ladera de enfrente, con la base del cuerpo un pelo fuera de escala: así
+		# queda tras muchos minutos girando (rotate_y acumula el error). Se tiene que inclinar igual.
+		var veteran: Tank = mode.spawn_tank(Fronts.tank("m4_sherman"), GameMode.PLAYER_TEAM, Vector2(-13.0, 3.0), -0.6)
+		veteran.get_node("AIBrain").queue_free()
+		veteran.global_basis = veteran.global_basis * Basis.from_scale(Vector3(1.00004, 1.0, 1.00004))
 		var mark := Vector3(120.0, 1.2, -90.0)
 		var peak: float = 0.0
 		var tilt: float = 0.0
@@ -1223,6 +1228,7 @@ class Runner extends Node:
 		# Puntería del tanque inclinado: lo que se desvía el cañón del blanco, en grados.
 		var gunner_tilt: float = rad_to_deg(gunner.chassis.basis.y.angle_to(Vector3.UP))
 		var aim_error: float = rad_to_deg((-gunner.muzzle.global_basis.z).angle_to(mark - gunner.muzzle.global_position))
+		var veteran_tilt: float = rad_to_deg(veteran.chassis.basis.y.angle_to(Vector3.UP))
 		# Un enemigo al sur y el conductor al norte, con la loma en medio.
 		var enemy: Tank = mode.spawn_tank(Fronts.tank("panzer4"), GameMode.ENEMY_TEAM, Vector2(0.0, 45.0), 0.0)
 		enemy.get_node("AIBrain").queue_free()
@@ -1235,10 +1241,11 @@ class Runner extends Node:
 		query.exclude = [enemy.hurtbox.get_rid()]
 		var hit: Dictionary = stage.get_world_3d().direct_space_state.intersect_ray(query)
 		var stopped: bool = not hit.is_empty() and (hit["collider"] as Node).is_in_group(&"terrain")
-		var ok: bool = peak > top * 0.8 and crossed and tilt > 3.0 and tilt < 17.0 and walker_time >= 0.0 and walker_peak > 1.0 and hidden and stopped and gunner_tilt > 3.0 and aim_error < 1.5
+		var ok: bool = peak > top * 0.8 and crossed and tilt > 3.0 and tilt < 17.0 and walker_time >= 0.0 and walker_peak > 1.0 and hidden and stopped and gunner_tilt > 3.0 and aim_error < 1.5 and veteran_tilt > 3.0
 		print("LOMA cima %.2f m | el tanque sube a %.2f m con el chasis inclinado hasta %.1f grados y %s por el otro lado" % [top, peak, tilt, "baja" if crossed else "NO BAJA"])
 		print("LOMA la máquina la cruza: %s (sube a %.2f m) | tapa la vista: %s | para el disparo: %s" % [_secs(walker_time), walker_peak, hidden, stopped])
 		print("LOMA puntería de un tanque inclinado %.1f grados: se desvía %.2f grados del blanco" % [gunner_tilt, aim_error])
+		print("LOMA con la base del cuerpo fuera de escala, como tras mucho girar: el chasis se inclina %.1f grados" % veteran_tilt)
 		print("LOMA RESULT los tanques suben y bajan las lomas: %s" % ("OK" if ok else "MAL"))
 		Terrain.clear()
 		stage.queue_free()

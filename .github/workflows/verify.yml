@@ -83,6 +83,10 @@ jobs:
           grep -q "SOMBRAS RESULT.*(OK)" run.log || { echo "Los bordes de ayuda o el contorno de los tanques cambian las sombras del campo"; grep "^SOMBRAS" run.log; exit 1; }
           grep -q "FIT RESULT páginas del menú que no caben en pantalla: 0 de" logic.log || { echo "Alguna página del menú no cabe en la pantalla sin desplazarla"; grep "^FIT" logic.log; exit 1; }
           if grep -qE "SCRIPT ERROR|SHADER ERROR|Parse Error|Compile Error" errors.txt; then exit 1; fi
+          # Errores del motor durante las pruebas (no los de recursos sin liberar al salir): salen
+          # cuando el juego le pasa algo que no admite y, en el teléfono, frenan y dejan cosas a medias.
+          grep -hE "^ERROR" logic.log run.log | grep -vE "at exit" > engine_errors.txt || true
+          if [ -s engine_errors.txt ]; then echo "El motor ha dado errores durante las pruebas:"; sed -E 's/-?[0-9]+(\.[0-9]+)?/N/g' engine_errors.txt | sort | uniq -c | sort -rn | head -20; exit 1; fi
 
       - name: Publicar capturas en la rama verify-shots
         if: always()
