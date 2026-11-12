@@ -12,7 +12,7 @@ const RETICLE_WIDTH: float = 4.0
 const RETICLE_EDGE_EXTRA: float = 3.0
 const RETICLE_INNER: float = 8.0
 const RETICLE_OUTER: float = 22.0
-const RETICLE_FRAME: float = 30.0
+const RETICLE_FRAME: float = 23.0
 
 var touch: TouchControls
 var input_source: PlayerInputSource
@@ -686,8 +686,11 @@ func _draw_reticle(aim: Vector2, locked: bool) -> void:
 		[Vector2(0.0, RETICLE_INNER), Vector2(0.0, RETICLE_OUTER)],
 	]
 	# Primero el borde oscuro (algo más ancho y largo) y encima el color.
+	# Con el objetivo fijado no lleva borde oscuro: se ve menos y no tapa al enemigo.
 	for pass_index in 2:
 		var dark: bool = pass_index == 0
+		if dark and locked:
+			continue
 		var line_color: Color = RETICLE_EDGE if dark else color
 		var width: float = RETICLE_WIDTH + (RETICLE_EDGE_EXTRA if dark else 0.0)
 		var grow: float = RETICLE_EDGE_EXTRA * 0.5 if dark else 0.0
@@ -698,7 +701,7 @@ func _draw_reticle(aim: Vector2, locked: bool) -> void:
 			draw_line(aim + from - along * grow, aim + to + along * grow, line_color, width, true)
 		if locked:
 			var half: float = RETICLE_FRAME
-			var corner: float = RETICLE_FRAME * 0.4
+			var corner: float = RETICLE_FRAME * 0.35
 			for sx in [-1.0, 1.0]:
 				for sy in [-1.0, 1.0]:
 					var c := aim + Vector2(sx * (half + grow), sy * (half + grow))

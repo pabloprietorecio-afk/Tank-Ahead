@@ -245,6 +245,9 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			"auto_recenter": GameSettings.auto_recenter, "camera_view": GameSettings.camera_view,
 		}
 	GameSettings.auto_recenter = false
+	# El tutorial empieza con la cámara fuera del tanque (vista trasera); la lección de CÁM la cambia.
+	GameSettings.camera_view = 1
+	player.set_view.call_deferred(1)
 	PracticeProps.build_fence(world, FIELD)
 	player.health.invulnerable = true
 	player.health.min_health = 1.0
