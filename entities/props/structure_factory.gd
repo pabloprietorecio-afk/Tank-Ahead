@@ -74,6 +74,7 @@ static func _prize(prop: Destructible, name: String, points: int) -> Destructibl
 ## Marca una pieza como objetivo de misión (rombo amarillo en el radar).
 static func _objective(prop: Destructible, name: String) -> Destructible:
 	prop.objective_name = name
+	prop.add_to_group(&"objectives")
 	prop.add_to_group(&"radar_marks")
 	prop.set_meta("radar_color", OBJECTIVE_COLOR)
 	prop.set_meta("radar_shape", "diamond")

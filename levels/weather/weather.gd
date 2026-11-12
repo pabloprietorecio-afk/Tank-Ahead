@@ -1,12 +1,17 @@
 class_name Weather
 extends Node3D
-## Clima de la partida: atardecer despejado, niebla, tormenta (lluvia y rayos) o nieve.
+## Clima de la partida: día soleado, sol y nubes, atardecer, niebla (tormenta de arena en el
+## desierto), tormenta (lluvia y rayos) o nieve.
 ## Ajusta cielo, sol, niebla y lo que cae: lluvia con sus salpicaduras, nieve o arena, que se
 ## pintan solo alrededor de la cámara (más lejos las tapa la niebla).
 
-enum Kind { CLEAR, FOG, RAIN, SNOW }
+## CLEAR es el atardecer despejado (el clima «despejado» original). Los valores no cambian de
+## sitio: el clima elegido se guarda por su número en los ajustes del jugador.
+enum Kind { CLEAR, FOG, RAIN, SNOW, SUNNY, CLOUDS }
 
-const NAMES: Array[String] = ["DESPEJADO", "NIEBLA", "LLUVIA", "NIEVE"]
+const NAMES: Array[String] = ["ATARDECER", "NIEBLA", "LLUVIA", "NIEVE", "SOLEADO", "NUBES Y CLAROS"]
+## Orden en que se ofrecen en el selector de clima: primero los días claros.
+const MENU_ORDER: Array[int] = [Kind.SUNNY, Kind.CLOUDS, Kind.CLEAR, Kind.FOG, Kind.RAIN, Kind.SNOW]
 ## Parte de las gotas o copos que se pintan con efectos bajos, medios y altos.
 const AMOUNT_SCALE: Array[float] = [0.4, 0.7, 1.0]
 
@@ -28,6 +33,8 @@ var _rain_loop: AudioStreamPlayer
 var _lightning_timer: float = 10.0
 var _flash: float = 0.0
 var _sun_energy: float = 1.0
+## Luz ambiente del clima (el relámpago la sube un instante y vuelve a ella).
+var _ambient_energy: float = 0.6
 var _front: int = 0
 ## Luz ambiente que reciben el humo y el polvo (lineal), para devolverla tras un relámpago.
 var _fx_sun: Color
@@ -42,7 +49,7 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 	sun = sun_light
 	follow = target
 	ground_material = ground
-	kind = (randi() % 4) as Kind if forced < 0 else forced as Kind
+	kind = (randi() % Kind.size()) as Kind if forced < 0 else forced as Kind
 	ground_material.set_shader_parameter("tint", 0.0)
 	ground_material.set_shader_parameter("wet", 0.0)
 	clouds = CloudDome.new()
@@ -51,8 +58,25 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 	sky = SkyDome.new()
 	sky.follow = target
 	add_child(sky)
+	# Estrellas y luna: solo al atardecer.
 	sky.visible = kind == Kind.CLEAR
+	var desert: bool = front == Fronts.Id.AFRICA
 	match kind:
+		Kind.SUNNY:
+			# Mediodía despejado: sol alto y blanco, cielo azul y casi nada de bruma. Todo se ve
+			# nítido, con sombras cortas y marcadas.
+			_aim_sun(50.0, -35.0)
+			if desert:
+				_apply(Color(0.12, 0.35, 0.8), Color(0.62, 0.75, 0.9), Color(1.0, 0.96, 0.87), 1.75, 0.0011, Color(0.74, 0.78, 0.8), 0.9)
+			else:
+				_apply(Color(0.13, 0.34, 0.78), Color(0.6, 0.75, 0.93), Color(1.0, 0.97, 0.9), 1.6, 0.0011, Color(0.66, 0.77, 0.9), 0.9)
+		Kind.CLOUDS:
+			# Sol y nubes: día luminoso con cúmulos que pasan; luz algo más suave.
+			_aim_sun(40.0, -52.0)
+			if desert:
+				_apply(Color(0.14, 0.36, 0.78), Color(0.66, 0.76, 0.88), Color(1.0, 0.95, 0.86), 1.5, 0.0017, Color(0.76, 0.78, 0.78), 0.9)
+			else:
+				_apply(Color(0.15, 0.36, 0.76), Color(0.64, 0.76, 0.9), Color(1.0, 0.96, 0.88), 1.4, 0.0017, Color(0.7, 0.78, 0.88), 0.9)
 		Kind.CLEAR:
 			# Atardecer: cielo azul profundo, horizonte cálido, sol bajo.
 			_apply(Color(0.05, 0.08, 0.2), Color(0.85, 0.45, 0.25), Color(1.0, 0.75, 0.5), 1.3, 0.004, Color(0.55, 0.4, 0.35))
@@ -115,6 +139,11 @@ func _setup_effects(top: Color, horizon: Color, light: Color, energy: float, fog
 	# Nubes: encendidas por el sol poniente si está despejado; un techo plomizo con mal tiempo.
 	var haze: Color = horizon.srgb_to_linear()
 	match kind:
+		Kind.SUNNY:
+			# Unos pocos cúmulos blancos y pequeños.
+			clouds.setup(Color(1.0, 1.0, 1.0), Color(0.5, 0.56, 0.68), haze, 0.28, 0.75, fx.wind)
+		Kind.CLOUDS:
+			clouds.setup(Color(1.0, 0.99, 0.96), Color(0.4, 0.45, 0.56), haze, 0.46, 0.95, fx.wind)
 		Kind.CLEAR:
 			clouds.setup(Color(0.85, 0.34, 0.17), Color(0.1, 0.055, 0.1), haze, 0.42, 0.8, fx.wind)
 		Kind.FOG:
@@ -127,12 +156,29 @@ func _setup_effects(top: Color, horizon: Color, light: Color, energy: float, fog
 
 
 func display_name() -> String:
-	if kind == Kind.FOG and _front == Fronts.Id.AFRICA:
+	return name_of(kind, _front)
+
+
+## Nombre (ya traducido) de un clima en un frente: en el desierto la niebla es tormenta de arena.
+static func name_of(weather: int, front: int) -> String:
+	if weather == Kind.FOG and front == Fronts.Id.AFRICA:
 		return Loc.t("TORMENTA DE ARENA")
-	return Loc.t(NAMES[kind])
+	return Loc.t(NAMES[weather])
 
 
-func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float, fog_color: Color) -> void:
+## ¿Es un clima de día claro? (Sol alto y nada que tape la vista.)
+static func is_bright(weather: int) -> bool:
+	return weather == Kind.SUNNY or weather == Kind.CLOUDS
+
+
+## Coloca el sol: `elevation` grados sobre el horizonte y `heading` grados de rumbo.
+func _aim_sun(elevation: float, heading: float) -> void:
+	sun.rotation = Vector3(deg_to_rad(-elevation), deg_to_rad(heading), 0.0)
+
+
+## `ambient` es la luz que llega del cielo a lo que está en sombra (más alta en los días claros,
+## para que las sombras no sean un pozo negro).
+func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float, fog_color: Color, ambient: float = 0.6) -> void:
 	sky_material.sky_top_color = top
 	sky_material.sky_horizon_color = horizon
 	sky_material.ground_horizon_color = horizon.darkened(0.3)
@@ -141,8 +187,17 @@ func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float,
 	sun.light_color = light
 	sun.light_energy = energy
 	_sun_energy = energy
+	_ambient_energy = ambient
+	environment.ambient_light_energy = ambient
 	environment.fog_density = fog
 	environment.fog_light_color = fog_color
+	if is_bright(kind):
+		# A pleno sol el resplandor de lo muy iluminado estorba más que adorna, y la escena
+		# admite un punto más de contraste y de color.
+		environment.glow_intensity = 0.35
+		environment.glow_bloom = 0.0
+		environment.adjustment_contrast = 1.1
+		environment.adjustment_saturation = 1.14
 	_setup_effects(top, horizon, light, energy, fog)
 
 
@@ -225,7 +280,7 @@ func _process(delta: float) -> void:
 		_flash = maxf(_flash - delta * 4.0, 0.0)
 		var strength: float = _flash * (0.6 + 0.4 * sin(_flash * 40.0))
 		sun.light_energy = _sun_energy + strength * 3.0
-		environment.ambient_light_energy = 0.6 + strength * 2.0
+		environment.ambient_light_energy = _ambient_energy + strength * 2.0
 		# El relámpago alumbra también el humo, el polvo y la propia lluvia.
 		Fx.set_lighting(sun.global_basis.z, _fx_sun, _fx_ambient + Color(0.5, 0.55, 0.65) * strength, _fx_fog)
 

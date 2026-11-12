@@ -7,7 +7,7 @@ const TURN_RATE: float = 2.2
 const LIFETIME: float = 6.0
 const DAMAGE: float = 120.0
 const SPLASH_RADIUS: float = 7.0
-const MASK: int = 1 | 4
+const MASK: int = 1 | 4 | Terrain.LAYER
 
 var target: Tank
 var shooter: Tank

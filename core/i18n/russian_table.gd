@@ -436,7 +436,6 @@ const TABLE: Dictionary = {
 	"INFERNO": "АД",
 	"RADIO": "РАЦИЯ",
 	"NIVEL PREMIUM": "УРОВЕНЬ PREMIUM",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Первые три миссии каждого фронта бесплатны. Оформите Premium, чтобы пройти остальную кампанию и убрать рекламу.",
 	"HAZTE PREMIUM": "ПОЛУЧИТЬ PREMIUM",
 	"RESTAURAR COMPRA": "ВОССТАНОВИТЬ ПОКУПКУ",
 	"SIGUIENTE MISIÓN (PREMIUM)": "СЛЕДУЮЩАЯ МИССИЯ (PREMIUM)",
@@ -453,6 +452,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "Загрузка рекламы…",
 	"No se ha completado el anuncio.": "Рекламу не досмотрели до конца.",
 	"PRIVACIDAD DE LOS ANUNCIOS": "КОНФИДЕНЦИАЛЬНОСТЬ РЕКЛАМЫ",
+	"ATARDECER": "ЗАКАТ",
+	"SOLEADO": "СОЛНЕЧНО",
+	"NUBES Y CLAROS": "ПЕРЕМЕННАЯ ОБЛАЧНОСТЬ",
+	"ALEATORIO": "СЛУЧАЙНАЯ",
+	"CLIMA: %s": "ПОГОДА: %s",
+	"TANQUE: %s": "ТАНК: %s",
+	"★ OTRO TANQUE (PREMIUM)": "★ ДРУГОЙ ТАНК (PREMIUM)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "БРОНЯ %d   АТАКА %d   СКОРОСТЬ %d км/ч",
+	"Destacar objetivos (borde azul)": "Выделять цели (синяя кайма)",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "Первые три миссии каждого фронта бесплатны. Оформите Premium, чтобы пройти остальную кампанию, переигрывать пройденные миссии на любом другом танке и убрать рекламу.",
+	"REPETIR CON OTRO TANQUE": "ПОВТОРИТЬ НА ДРУГОМ ТАНКЕ",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "ПОВТОРИТЬ НА ДРУГОМ ТАНКЕ (PREMIUM)",
+	"REFUERZO ALIADO: LLEGA UN %s": "ПОДКРЕПЛЕНИЕ: ПРИБЫВАЕТ %s",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

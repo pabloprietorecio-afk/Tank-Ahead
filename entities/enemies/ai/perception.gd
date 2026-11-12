@@ -66,5 +66,6 @@ func forget() -> void:
 func line_of_sight(other: Tank) -> bool:
 	var from: Vector3 = _owner.global_position + Vector3.UP * 1.6
 	var to: Vector3 = other.global_position + Vector3.UP * 1.2
-	var query := PhysicsRayQueryParameters3D.create(from, to, WORLD_MASK)
+	# Una loma entre los dos también tapa la vista.
+	var query := PhysicsRayQueryParameters3D.create(from, to, WORLD_MASK | Terrain.LAYER)
 	return _owner.get_world_3d().direct_space_state.intersect_ray(query).is_empty()

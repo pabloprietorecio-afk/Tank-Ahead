@@ -28,6 +28,13 @@ var _penalty_cooldown: float = 0.0
 ## Objetivos secundarios repartidos lejos del complejo principal (alargan la misión).
 var _outposts: Array[Vector2] = []
 const MAX_ALIVE: int = 6
+## Aliados: dos más de los que marca cada misión, con algo más de blindaje que el modelo de
+## serie (son los que aguantan a tu lado) y con refuerzos: por cada uno que cae entra otro por
+## la retaguardia al cabo de un rato, hasta agotar la reserva (tantos como al empezar).
+const EXTRA_ALLIES: int = 2
+const ALLY_ARMOR: float = 1.4
+const ALLY_REINFORCE_DELAY: float = 14.0
+var allies_reserve: int = 0
 ## Ruptura: salida al norte y líneas de defensa que hay que cruzar por el camino.
 const EXIT_POINT := Vector3(0.0, 0.0, -165.0)
 const EXIT_RADIUS: float = 14.0
@@ -73,10 +80,14 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
 	message.emit("%s — %s" % [Loc.t(mission["title"]), _objective_line()], true)
 	get_tree().call_group(&"voice", &"say", "mission_start", VoiceManager.Priority.HIGH)
-	for i in mission.get("allies", 0):
-		var stats: TankStats = roster(PLAYER_TEAM).filter(func(s: TankStats) -> bool: return s.tier <= 2).pick_random()
-		var spawn: Vector3 = player_spawn().origin
-		spawn_tank(stats, PLAYER_TEAM, Vector2(spawn.x + (i + 1) * 9.0 * (1 if i % 2 == 0 else -1), spawn.z + 6.0))
+	var allies: int = mission.get("allies", 0) + EXTRA_ALLIES
+	var spawn: Vector3 = player_spawn().origin
+	for i in allies:
+		# En abanico a los dos lados del jugador; cada pareja, un poco más atrás.
+		var rank: int = i / 2 + 1
+		var side: float = 1.0 if i % 2 == 0 else -1.0
+		spawn_tank(_ally_stats(), PLAYER_TEAM, Vector2(spawn.x + side * rank * 9.0, spawn.z + 6.0 + (rank - 1) * 4.0))
+	allies_reserve = allies
 	match kind:
 		"assault":
 			remaining = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 2)
@@ -120,6 +131,8 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			boss_stats.display_name = Loc.t("COMANDANTE (%s)") % heaviest.display_name
 			boss_stats.score_value *= 3
 			_commander = spawn_tank(boss_stats, ENEMY_TEAM, Vector2(randf_range(-60.0, 60.0), -150.0), 0.0)
+			_commander.is_objective = true
+			_commander.refresh_highlight()
 			_commander.add_to_group(&"radar_marks")
 			_commander.set_meta("radar_color", Color(0.85, 0.3, 1.0))
 			_commander.set_meta("radar_shape", "diamond")
@@ -279,17 +292,25 @@ func _exit_distance() -> float:
 
 ## Salida de las misiones de ruptura: un círculo de postes azules y un rombo en el radar.
 func _build_exit() -> void:
+	var marker := ExitMarker.new()
 	for i in 16:
 		var angle: float = TAU * i / 16.0
 		var post := VectorMaterials.make_box(Vector3(0.3, 2.2, 0.3), Color(0.3, 0.9, 1.0), 0, 1.0)
-		post.position = EXIT_POINT + Vector3(cos(angle) * EXIT_RADIUS, 1.1, sin(angle) * EXIT_RADIUS)
-		world.add_child(post)
-	var marker := Node3D.new()
+		post.position = Vector3(cos(angle) * EXIT_RADIUS, 1.1, sin(angle) * EXIT_RADIUS)
+		marker.add_child(post)
+	marker.add_to_group(&"objectives")
 	marker.add_to_group(&"radar_marks")
 	marker.set_meta("radar_color", Color(0.3, 0.9, 1.0))
 	marker.set_meta("radar_shape", "diamond")
 	world.add_child(marker)
 	marker.position = EXIT_POINT
+	marker.refresh_highlight()
+
+
+## Salida de las misiones de ruptura: sus postes llevan el borde azul de los objetivos.
+class ExitMarker extends Node3D:
+	func refresh_highlight() -> void:
+		VectorMaterials.set_outline(self, VectorMaterials.OBJECTIVE_OUTLINE if GameSettings.highlight_objectives else Color(0.0, 0.0, 0.0, 0.0), 0.06, 2.0)
 
 
 func _build_zone() -> void:
@@ -320,9 +341,35 @@ func _on_objective_destroyed(prop: Destructible) -> void:
 		_win(Loc.t("LAS ALAMBRADAS HAN CAÍDO. LOS PRISIONEROS SON LIBRES") if kind == "liberate" else Loc.t("OBJETIVOS CUMPLIDOS"))
 
 
+## Ficha de un aliado: un modelo ligero o medio del bando, con el blindaje reforzado.
+func _ally_stats() -> TankStats:
+	var stats: TankStats = (roster(PLAYER_TEAM).filter(func(s: TankStats) -> bool: return s.tier <= 2).pick_random() as TankStats).duplicate()
+	stats.max_armor = roundf(stats.max_armor * ALLY_ARMOR)
+	return stats
+
+
+## Cae un aliado: si queda reserva, al rato entra otro por la retaguardia (el borde sur).
+func _ally_lost() -> void:
+	if is_over or allies_reserve <= 0:
+		return
+	allies_reserve -= 1
+	get_tree().create_timer(ALLY_REINFORCE_DELAY, false).timeout.connect(_reinforce_ally)
+
+
+func _reinforce_ally() -> void:
+	if is_over or not is_inside_tree() or not is_instance_valid(player):
+		return
+	var stats: TankStats = _ally_stats()
+	var point: Vector2 = edge_point(0.0, false, true)
+	spawn_tank(stats, PLAYER_TEAM, point, yaw_towards(point, Vector2(player.global_position.x, player.global_position.z)))
+	message.emit(Loc.t("REFUERZO ALIADO: LLEGA UN %s") % stats.display_name, false)
+
+
 func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 	super._on_tank_destroyed(tank, killer)
 	if tank.team != ENEMY_TEAM:
+		if tank != player:
+			_ally_lost()
 		return
 	alive -= 1
 	if tank == _commander:

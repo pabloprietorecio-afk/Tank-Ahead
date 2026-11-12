@@ -38,6 +38,47 @@ Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
 - Los textos de las voces de los idiomas nuevos están en `tools/voice_gen/lines/<idioma>.txt` y son
   traducciones propias, sin revisar por un nativo.
 
+## Clima
+Seis climas (`levels/weather/weather.gd`): soleado y nubes y claros (los días claros, con el sol alto),
+atardecer, niebla (tormenta de arena en África), lluvia y nieve. Cada frente admite los suyos
+(`Fronts.weathers`: África sin lluvia ni nieve, Normandía sin nieve) y al sortear salen más a menudo los
+días claros. El jugador elige «aleatorio» o uno de los climas del frente con un desplegable: en la historia,
+en el parte de la misión; en supervivencia y captura la bandera, en una pantalla previa (`_page_start`).
+La elección se guarda (`GameSettings.weather`) y vale para las partidas siguientes. El tutorial es siempre
+soleado.
+
+## Relieve: lomas
+`levels/terrain.gd`. Además de las colinas y montañas (empinadas: hacen de pared, como siempre), cada
+campo lleva tres o cuatro lomas suaves, de unos 12 grados de pendiente como mucho, por las que suben y
+bajan todos los tanques. Cada loma es una función de altura conocida: `TankMovement` posa el tanque en
+ella e inclina su chasis (`Tank.chassis`), y `TurretController` compensa esa inclinación para que el cañón
+apunte igual que en el llano. La máquina las trata como suelo llano (no cuentan como obstáculo en sus
+rutas); para los disparos y la línea de visión llevan un cuerpo en la capa `Terrain.LAYER`, con la que los
+tanques no chocan. Nada del decorado se coloca encima de una loma.
+
+## Tanque del jugador
+El de serie de cada frente y bando (`Fronts.PLAYER_TANK`) tiene siempre la misma potencia. Con premium,
+una misión ya superada se puede repetir con cualquier otro tanque del bando en ese frente (desplegable en
+el parte de la misión, o «REPETIR CON OTRO TANQUE» al ganar): `Fronts.player_stats(frente, bando, id)`
+cambia la potencia según lo que ese vehículo es frente al de serie (los ligeros corren más y aguantan
+menos; los pesados son lentos, duros y pegan más), con su tamaño real y, en los cazacarros de casamata, el
+cañón casi fijo: entonces el casco gira solo hacia donde se apunta (`PlayerInputSource`).
+
+## Aliados
+En la historia salen dos aliados más de los que marca cada misión (`StoryMode.EXTRA_ALLIES`), con el
+blindaje reforzado, y por cada uno que cae entra un refuerzo por el borde sur hasta agotar la reserva.
+Supervivencia no tiene aliados; captura la bandera sigue siendo 4 contra 4.
+
+## Ayudas para ver mejor
+- Opciones «Destacar enemigos (borde amarillo)» y «Destacar objetivos (borde azul)»: edificios objetivo,
+  comandante enemigo, bandera enemiga y salida de las misiones de ruptura (`shaders/outline.gdshader`; el
+  borde nunca baja de un píxel y medio de grosor, para que se vea de lejos).
+- Siempre: los tanques de la máquina llevan un contorno oscuro de un píxel (`shaders/contour.gdshader`) y
+  todos una sombra de contacto bajo el casco (`shaders/contact_shadow.gdshader`), que los separan de un
+  terreno de color parecido.
+- El menú de opciones de la partida se monta a la mayor escala que cabe en la pantalla
+  (`Hud._fit_pause_menu`), con interruptores y deslizadores grandes (`ui/ui_kit.gd`).
+
 ## Tutorial
 Modo propio (`levels/modes/tutorial`): diecisiete lecciones (las dos últimas antes del combate final enseñan las órdenes a los aliados) en un campo de prácticas. Se ofrece la
 primera vez que se abre el juego y está siempre en el menú. Lo ofrecido y lo completado se
@@ -88,3 +129,7 @@ Workflow `build-aab.yml` (Actions > *Build AAB (Google Play)* > *Run workflow*, 
 ## Comprobación
 Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones nuevas, la navegación de los tanques aliados y el tutorial completo
 (un jugador automático hace la acción correcta en cada lección) sin gráficos, y guarda capturas y registros en la rama `verify-shots`.
+También comprueba que los tanques suben y bajan las lomas (y siguen sin poder subir a las colinas), que el menú de opciones cabe en
+pantalla en los diez idiomas, las fichas de los tanques que puede llevar el jugador, los refuerzos aliados y los bordes de ayuda.
+Y, ya con gráficos, que los bordes de ayuda y el contorno de los tanques no cambian las sombras del campo: son el modelo hinchado y en la
+pasada de sombras se reducen a un punto (`IN_SHADOW_PASS`), porque ahí el grosor «en píxeles» sale de metros.

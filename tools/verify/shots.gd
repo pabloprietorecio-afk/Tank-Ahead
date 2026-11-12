@@ -76,6 +76,29 @@ class Runner extends Node:
 			await _store_cover()
 		elif only.contains("store"):
 			await _store()
+		if only.contains("lomas"):
+			await _lomas()
+		if only.contains("pausa"):
+			await _pause_fit()
+		if only.contains("tanques"):
+			_player_tanks()
+			await _casemate()
+		if only.contains("aliados"):
+			await _allies()
+		if only.contains("halo"):
+			await _halo()
+		if _wants(only, "vista_clima"):
+			await _weather_shots()
+		if only.contains("vista_contraste"):
+			await _contrast_shots()
+		if _wants(only, "vista_loma"):
+			await _mound_shots()
+		if _wants(only, "vista_halo"):
+			await _halo_shots()
+		if _wants(only, "vista_sombra"):
+			await _overlay_shadows()
+		if _wants(only, "vista_ui"):
+			await _ui_shots()
 		print("SHOTS DONE")
 		get_tree().quit()
 
@@ -358,6 +381,24 @@ class Runner extends Node:
 						GameSession.faction = faction
 						GameSession.front_choice = front
 						menu._page_briefing(i)])
+		# Supervivencia y captura la bandera: pantalla previa con el clima.
+		for mode: int in [GameSession.Mode.SURVIVAL, GameSession.Mode.CTF]:
+			for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+				pages.append(["inicio (modo %d, frente %d)" % [mode, front], func() -> void:
+					GameSession.mode = mode
+					GameSession.faction = Fronts.Faction.ALLIES
+					GameSession.front_choice = front
+					menu._page_start()])
+		# Partes de misión ya superada con premium: llevan además el selector de tanque.
+		var saved: Dictionary = _unlock_everything()
+		for faction in [Fronts.Faction.ALLIES, Fronts.Faction.AXIS]:
+			for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+				for i in Campaign.PER_CAMPAIGN:
+					pages.append(["parte de misión superada %d (bando %d, frente %d)" % [i + 1, faction, front], func() -> void:
+						GameSession.mode = GameSession.Mode.STORY
+						GameSession.faction = faction
+						GameSession.front_choice = front
+						menu._page_briefing(i)])
 		var too_tall: int = 0
 		var worst: float = 0.0
 		for page: Array in pages:
@@ -368,7 +409,27 @@ class Runner extends Node:
 			if needed > 720.0:
 				too_tall += 1
 				print("FIT MAL «%s» necesita %d de alto y la pantalla tiene 720" % [page[0], roundi(needed)])
+		_restore_progress(saved)
 		print("FIT RESULT páginas del menú que no caben en pantalla: %d de %d (la más alta: %d de 720)" % [too_tall, pages.size(), roundi(worst)])
+
+	## Para probar lo que solo se ve con todo superado y con premium: lo activa y devuelve lo que
+	## había, para dejarlo luego como estaba con _restore_progress().
+	func _unlock_everything() -> Dictionary:
+		var saved: Dictionary = {"premium": Premium.is_premium(), "progress": FileAccess.get_file_as_string(GameSession.PROGRESS_PATH) if FileAccess.file_exists(GameSession.PROGRESS_PATH) else ""}
+		Premium.set_premium(true)
+		var cfg := ConfigFile.new()
+		cfg.load(GameSession.PROGRESS_PATH)
+		for faction in 2:
+			for front in 3:
+				cfg.set_value("campaign", "f%d_c%d" % [faction, front], Campaign.PER_CAMPAIGN)
+		cfg.save(GameSession.PROGRESS_PATH)
+		return saved
+
+	func _restore_progress(saved: Dictionary) -> void:
+		Premium.set_premium(saved["premium"])
+		var file := FileAccess.open(GameSession.PROGRESS_PATH, FileAccess.WRITE)
+		file.store_string(saved["progress"])
+		file.close()
 
 	func _menu() -> void:
 		if not GameSession.tutorial_offered():
@@ -1086,6 +1147,640 @@ class Runner extends Node:
 		for view in views:
 			_look(view[0], view[1], view[2])
 			await _snap("store_" + view[3])
+
+	func _wants(only: String, key: String) -> bool:
+		return only == "" or only.contains("mejoras") or only.contains(key)
+
+	## Escenario vacío con suelo firme para las pruebas sin gráficos (como el de la navegación).
+	func _bare_stage(stage_name: String) -> GameMode:
+		var old_scene: Node = get_tree().current_scene
+		if old_scene != null:
+			old_scene.queue_free()
+		await _frames(2)
+		var stage := Node3D.new()
+		stage.name = stage_name
+		get_tree().root.add_child(stage)
+		get_tree().current_scene = stage
+		var floor_body := StaticBody3D.new()
+		floor_body.collision_layer = 1
+		var floor_shape := CollisionShape3D.new()
+		var floor_box := BoxShape3D.new()
+		floor_box.size = Vector3(1200.0, 2.0, 1200.0)
+		floor_shape.shape = floor_box
+		floor_shape.position.y = -1.0
+		floor_body.add_child(floor_shape)
+		stage.add_child(floor_body)
+		GameSession.mode = GameSession.Mode.SURVIVAL
+		GameSession.front = Fronts.Id.NORMANDY
+		GameSession.faction = Fronts.Faction.ALLIES
+		var mode := GameMode.new()
+		mode.set_physics_process(false)
+		stage.add_child(mode)
+		mode.world = stage
+		return mode
+
+	## Lomas (sin gráficos): un tanque que avanza recto contra una loma la sube, con el chasis
+	## inclinado, y baja por el otro lado; un tanque de la máquina la cruza para ir a su destino
+	## en vez de rodearla; la loma tapa la vista entre dos tanques y para los disparos; y el
+	## cañón de un tanque inclinado sigue apuntando a donde se le manda.
+	func _lomas() -> void:
+		var mode: GameMode = await _bare_stage("LomaStage")
+		var stage: Node3D = mode.world
+		Terrain.clear()
+		stage.add_child(Terrain.add_mound(Vector2.ZERO, 26.0, VectorMaterials.ground(), 0.37))
+		var top: float = Terrain.height(0.0, 0.0)
+		var driver: Tank = mode.spawn_tank(Fronts.tank("m4_sherman"), GameMode.PLAYER_TEAM, Vector2(0.0, 45.0), 0.0)
+		driver.get_node("AIBrain").queue_free()
+		var walker: Tank = mode.spawn_tank(Fronts.tank("churchill"), GameMode.PLAYER_TEAM, Vector2(7.0, 48.0), 0.0)
+		var brain: AIBrain = walker.get_node("AIBrain")
+		brain.hunt = false
+		brain.objective = Vector3(4.0, 0.0, -46.0)
+		brain.objective_radius = 2.0
+		# Parado en plena ladera, apuntando a un blanco lejano en el llano.
+		var gunner: Tank = mode.spawn_tank(Fronts.tank("m4_sherman"), GameMode.PLAYER_TEAM, Vector2(13.0, 3.0), 0.6)
+		gunner.get_node("AIBrain").queue_free()
+		var mark := Vector3(120.0, 1.2, -90.0)
+		var peak: float = 0.0
+		var tilt: float = 0.0
+		var walker_peak: float = 0.0
+		var walker_time: float = -1.0
+		Engine.time_scale = 4.0
+		var clock: float = 0.0
+		while clock < 45.0:
+			await get_tree().physics_frame
+			clock += get_physics_process_delta_time()
+			driver.drive_input = Vector2(0.0, 1.0) if driver.global_position.z > -46.0 else Vector2.ZERO
+			peak = maxf(peak, driver.global_position.y)
+			tilt = maxf(tilt, rad_to_deg(driver.chassis.basis.y.angle_to(Vector3.UP)))
+			walker_peak = maxf(walker_peak, walker.global_position.y)
+			gunner.turret_controller.aim_at(mark)
+			var gap: Vector3 = brain.objective - walker.global_position
+			gap.y = 0.0
+			if walker_time < 0.0 and gap.length() <= 8.0:
+				walker_time = clock
+		Engine.time_scale = 1.0
+		var crossed: bool = driver.global_position.z < -40.0 and driver.global_position.y < 0.3
+		# Puntería del tanque inclinado: lo que se desvía el cañón del blanco, en grados.
+		var gunner_tilt: float = rad_to_deg(gunner.chassis.basis.y.angle_to(Vector3.UP))
+		var aim_error: float = rad_to_deg((-gunner.muzzle.global_basis.z).angle_to(mark - gunner.muzzle.global_position))
+		# Un enemigo al sur y el conductor al norte, con la loma en medio.
+		var enemy: Tank = mode.spawn_tank(Fronts.tank("panzer4"), GameMode.ENEMY_TEAM, Vector2(0.0, 45.0), 0.0)
+		enemy.get_node("AIBrain").queue_free()
+		await _frames(3)
+		await get_tree().physics_frame
+		var hidden: bool = not Perception.new(enemy).line_of_sight(driver)
+		var from: Vector3 = enemy.global_position + Vector3.UP * 1.9
+		var query := PhysicsRayQueryParameters3D.create(from, driver.global_position + Vector3.UP * 1.2, Projectile.MASK_WORLD | Projectile.MASK_HURTBOX | Terrain.LAYER)
+		query.collide_with_areas = true
+		query.exclude = [enemy.hurtbox.get_rid()]
+		var hit: Dictionary = stage.get_world_3d().direct_space_state.intersect_ray(query)
+		var stopped: bool = not hit.is_empty() and (hit["collider"] as Node).is_in_group(&"terrain")
+		var ok: bool = peak > top * 0.8 and crossed and tilt > 3.0 and tilt < 17.0 and walker_time >= 0.0 and walker_peak > 1.0 and hidden and stopped and gunner_tilt > 3.0 and aim_error < 1.5
+		print("LOMA cima %.2f m | el tanque sube a %.2f m con el chasis inclinado hasta %.1f grados y %s por el otro lado" % [top, peak, tilt, "baja" if crossed else "NO BAJA"])
+		print("LOMA la máquina la cruza: %s (sube a %.2f m) | tapa la vista: %s | para el disparo: %s" % [_secs(walker_time), walker_peak, hidden, stopped])
+		print("LOMA puntería de un tanque inclinado %.1f grados: se desvía %.2f grados del blanco" % [gunner_tilt, aim_error])
+		print("LOMA RESULT los tanques suben y bajan las lomas: %s" % ("OK" if ok else "MAL"))
+		Terrain.clear()
+		stage.queue_free()
+		await _frames(2)
+
+	## El menú de opciones (pausa) tiene que caber entero, sin desplazarlo, en una pantalla de
+	## 1280x720 y en una ancha de 1600x720, en los diez idiomas.
+	func _pause_fit() -> void:
+		var bad: int = 0
+		var smallest: float = 9.0
+		var screens: Array[Vector2] = [Vector2(1280.0, 720.0), Vector2(1600.0, 720.0)]
+		for code: String in Loc.LANGUAGES:
+			GameSettings.set_language(code)
+			GameSession.mode = GameSession.Mode.SURVIVAL
+			GameSession.front_choice = Fronts.Id.NORMANDY
+			GameSession.faction = Fronts.Faction.ALLIES
+			get_tree().change_scene_to_file("res://levels/arena.tscn")
+			await _frames(4)
+			var hud: Hud = get_tree().current_scene._hud
+			var line: String = ""
+			for screen in screens:
+				hud._fit_pause_menu(screen)
+				var needed: Vector2 = hud._pause_panel.get_combined_minimum_size()
+				var fits: bool = needed.x <= screen.x - Hud.MENU_MARGIN.x * 2.0 and needed.y <= screen.y - Hud.MENU_MARGIN.y * 2.0
+				if not fits:
+					bad += 1
+				smallest = minf(smallest, hud.menu_scale)
+				line += "  %dx%d: escala %.2f, ocupa %dx%d%s" % [roundi(screen.x), roundi(screen.y), hud.menu_scale, roundi(needed.x), roundi(needed.y), "" if fits else " NO CABE"]
+			print("PAUSA %s%s" % [code, line])
+		GameSettings.set_language("es")
+		print("PAUSA RESULT menús de opciones que no caben en pantalla: %d (escala mínima %.2f)" % [bad, smallest])
+
+	## Tanques que el jugador puede elegir (premium) en cada frente y bando, con la potencia que
+	## tienen en sus manos. El de serie debe conservar la de siempre.
+	func _player_tanks() -> void:
+		var bad: int = 0
+		for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+			for faction in [Fronts.Faction.ALLIES, Fronts.Faction.AXIS]:
+				var standard: TankStats = Fronts.player_stats(front, faction)
+				if not (is_equal_approx(standard.max_armor, 100.0) and is_equal_approx(standard.damage, 25.0) and is_equal_approx(standard.reload_time, 1.2) and is_equal_approx(standard.max_speed, 14.0) and is_equal_approx(standard.body_scale, 1.0)):
+					bad += 1
+				for id: String in Fronts.ROSTERS[front][faction]:
+					var stats: TankStats = Fronts.player_stats(front, faction, id)
+					if stats.max_armor < 60.0 or stats.max_armor > 260.0 or stats.max_speed < 8.0 or stats.max_speed > 24.0 or stats.damage < 15.0 or stats.damage > 42.0:
+						bad += 1
+					print("TANQUES %-16s %-10s %-14s blindaje %3d  ataque %2d  recarga %.2f s  %2d km/h  giro %.2f  escala %.2f%s" % [Fronts.NAMES[front], Fronts.FACTION_NAMES[faction], stats.display_name, roundi(stats.max_armor), roundi(stats.damage), stats.reload_time, roundi(stats.max_speed * 3.6), stats.hull_turn_speed, stats.body_scale, "  casamata" if stats.traverse_limit_deg > 0.0 else ""])
+		print("TANQUES RESULT fichas de jugador fuera de lo previsto: ", bad)
+
+	## Cazacarros de casamata en manos del jugador (el cañón apenas gira): al llevar la mira 90
+	## grados a un lado, el casco tiene que girar solo hasta dejar el cañón apuntando ahí.
+	func _casemate() -> void:
+		var mode: GameMode = await _bare_stage("CasamataStage")
+		var stage: Node3D = mode.world
+		Terrain.clear()
+		GameSession.faction = Fronts.Faction.AXIS
+		var was_easy: bool = GameSettings.easy_drive
+		var was_assist: bool = GameSettings.aim_assist
+		GameSettings.easy_drive = false
+		GameSettings.aim_assist = false
+		var tank := Tank.new()
+		tank.is_player = true
+		tank.team = GameMode.PLAYER_TEAM
+		tank.stats = Fronts.player_stats(Fronts.Id.NORMANDY, Fronts.Faction.AXIS, "stug3")
+		tank.paint = Fronts.paint(Fronts.Id.NORMANDY, Fronts.Faction.AXIS, tank.stats.nation)
+		tank.position = Vector3(0.0, 0.2, 0.0)
+		stage.add_child(tank)
+		var touch := TouchControls.new()
+		stage.add_child(touch)
+		var input := PlayerInputSource.new()
+		input.tank = tank
+		input.touch = touch
+		stage.add_child(input)
+		await _frames(5)
+		var limit: float = tank.turret_controller.traverse_limit
+		# Arrastre de la mira: 90 grados a la izquierda.
+		touch._look_delta = Vector2(-(PI * 0.5) / input.look_sensitivity, 0.0)
+		var widest: float = 0.0
+		Engine.time_scale = 4.0
+		var clock: float = 0.0
+		while clock < 8.0:
+			await get_tree().physics_frame
+			clock += get_physics_process_delta_time()
+			widest = maxf(widest, absf(tank.turret_controller.local_yaw))
+		Engine.time_scale = 1.0
+		var hull: float = rad_to_deg(angle_difference(0.0, tank.global_rotation.y))
+		var gun: float = rad_to_deg(angle_difference(0.0, tank.turret_controller.world_yaw))
+		var ok: bool = limit > 0.0 and absf(hull - 90.0) < 6.0 and absf(gun - 90.0) < 3.0 and widest <= limit + 0.01
+		print("TANQUES casamata (StuG III, el cañón gira %.0f grados a cada lado): con la mira 90 grados a la izquierda el casco queda a %.1f y el cañón a %.1f; giro máximo usado %.1f: %s" % [rad_to_deg(limit), hull, gun, rad_to_deg(widest), "OK" if ok else "MAL"])
+		print("TANQUES RESULT el casco de un cazacarros sigue a la mira: %s" % ("OK" if ok else "MAL"))
+		GameSettings.easy_drive = was_easy
+		GameSettings.aim_assist = was_assist
+		GameSession.faction = Fronts.Faction.ALLIES
+		stage.queue_free()
+		await _frames(2)
+
+	## Aliados de la historia: salen dos más de los que marca la misión, con el blindaje
+	## reforzado, y por cada uno que cae entra un refuerzo por el sur hasta agotar la reserva.
+	func _allies() -> void:
+		var bad: int = 0
+		GameSession.debug_bare = true
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 0)
+		var mode: StoryMode = get_tree().current_scene.get_node("GameMode") as StoryMode
+		# Sin enemigos: solo interesa lo que pasa con el bando propio.
+		mode.set_process(false)
+		var expected: int = int(mode.mission.get("allies", 0)) + StoryMode.EXTRA_ALLIES
+		var allies: Array = _allies_alive()
+		var sturdy: int = 0
+		for ally: Tank in allies:
+			if ally.health.max_health > Fronts.tank(ally.stats.id).max_armor:
+				sturdy += 1
+		if allies.size() != expected or mode.allies_reserve != expected or sturdy != allies.size():
+			bad += 1
+		print("ALIADOS al empezar: %d (la misión marca %d) | con blindaje reforzado: %d | refuerzos en reserva: %d" % [allies.size(), int(mode.mission.get("allies", 0)), sturdy, mode.allies_reserve])
+		for i in 2:
+			(allies[i] as Tank).health.apply_damage(99999.0, null)
+		await _frames(2)
+		var after_loss: int = _allies_alive().size()
+		Engine.time_scale = 4.0
+		await get_tree().create_timer(StoryMode.ALLY_REINFORCE_DELAY + 4.0).timeout
+		Engine.time_scale = 1.0
+		var now: Array = _allies_alive()
+		var from_south: int = 0
+		for ally: Tank in now:
+			if not ally in allies and ally.global_position.z > 120.0:
+				from_south += 1
+		if after_loss != expected - 2 or now.size() != expected or from_south != 2 or mode.allies_reserve != expected - 2:
+			bad += 1
+		print("ALIADOS tras perder 2: quedan %d | al rato vuelven a ser %d, %d de ellos recién llegados por el sur | reserva: %d" % [after_loss, now.size(), from_south, mode.allies_reserve])
+		# Agotada la reserva ya no llega nadie más.
+		mode.allies_reserve = 0
+		(now[0] as Tank).health.apply_damage(99999.0, null)
+		Engine.time_scale = 4.0
+		await get_tree().create_timer(StoryMode.ALLY_REINFORCE_DELAY + 4.0).timeout
+		Engine.time_scale = 1.0
+		if _allies_alive().size() != expected - 1:
+			bad += 1
+		print("ALIADOS sin reserva: cae otro y quedan %d" % _allies_alive().size())
+		print("ALIADOS RESULT fallos de aliados y refuerzos: ", bad)
+		GameSession.debug_bare = false
+		GameSession.debug_weather = -1
+
+	func _allies_alive() -> Array:
+		var list: Array = []
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team == GameMode.PLAYER_TEAM and not tank.is_player and not tank.is_destroyed:
+				list.append(tank)
+		return list
+
+	## Bordes de ayuda (sin gráficos): con «Destacar objetivos» cada pieza objetivo lleva el
+	## borde azul y sin él no; lo destruido no deja el borde en sus restos; el comandante va de
+	## azul aunque también se destaquen los enemigos; los enemigos van de amarillo con su ajuste
+	## y, sin ajustes, todos los tanques de la máquina llevan solo el contorno fino.
+	func _halo() -> void:
+		var bad: int = 0
+		var was_enemies: bool = GameSettings.highlight_enemies
+		var was_objectives: bool = GameSettings.highlight_objectives
+		GameSettings.highlight_enemies = false
+		GameSettings.highlight_objectives = false
+		var blue: Material = VectorMaterials.outline(VectorMaterials.OBJECTIVE_OUTLINE, 0.05, 1.8)
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 1)
+		var arena: Node = get_tree().current_scene
+		var mode: StoryMode = arena.get_node("GameMode") as StoryMode
+		mode.set_process(false)
+		var pieces: Array = mode._objectives.duplicate()
+		var off: int = 0
+		for piece: Node in pieces:
+			off += _overlaid(piece, null)
+		GameSettings.highlight_objectives = true
+		get_tree().call_group(&"objectives", &"refresh_highlight")
+		var on: int = 0
+		var meshes: int = 0
+		for piece: Node in pieces:
+			on += _overlaid(piece, blue)
+			meshes += piece.find_children("*", "MeshInstance3D", true, false).size()
+		if off != meshes or on != meshes or meshes == 0:
+			bad += 1
+		print("HALO aeródromo: %d objetivos con %d mallas | sin ayuda, sin borde: %d | con ayuda, borde azul: %d" % [pieces.size(), meshes, off, on])
+		# Un objetivo destruido: sus restos no conservan el borde.
+		var before: int = _overlaid(arena, blue)
+		var victim: Destructible = pieces[0]
+		var victim_meshes: int = victim.find_children("*", "MeshInstance3D", true, false).size()
+		victim.take_hit(99999.0, null, victim.global_position + Vector3.UP)
+		await _frames(3)
+		var after: int = _overlaid(arena, blue)
+		if after != before - victim_meshes:
+			bad += 1
+		print("HALO al destruir un objetivo de %d mallas: de %d mallas con borde azul quedan %d" % [victim_meshes, before, after])
+		# Comandante y escolta.
+		GameSettings.highlight_enemies = false
+		GameSettings.highlight_objectives = false
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 4)
+		var boss_mode: StoryMode = get_tree().current_scene.get_node("GameMode") as StoryMode
+		await get_tree().create_timer(4.0).timeout
+		boss_mode.set_process(false)
+		var commander: Tank = boss_mode._commander
+		var escort: Tank = null
+		var ally: Tank = null
+		for tank: Tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team == GameMode.ENEMY_TEAM and tank != commander:
+				escort = tank
+			elif tank.team == GameMode.PLAYER_TEAM and not tank.is_player:
+				ally = tank
+		var player: Tank = _player_tank()
+		var contour: Material = VectorMaterials.contour()
+		var yellow: Material = VectorMaterials.outline(VectorMaterials.ENEMY_OUTLINE, 0.03, 1.5)
+		var boss_blue: Material = VectorMaterials.outline(VectorMaterials.OBJECTIVE_OUTLINE, 0.04, 1.8)
+		var plain_ok: bool = _tank_overlay(commander) == contour and _tank_overlay(escort) == contour and _tank_overlay(ally) == contour and _tank_overlay(player) == null
+		GameSettings.highlight_enemies = true
+		GameSettings.highlight_objectives = true
+		for tank: Tank in get_tree().get_nodes_in_group(&"tanks"):
+			tank.refresh_highlight()
+		var helped_ok: bool = _tank_overlay(commander) == boss_blue and _tank_overlay(escort) == yellow and _tank_overlay(ally) == contour and _tank_overlay(player) == null
+		escort.health.apply_damage(99999.0, null)
+		await _frames(2)
+		var wreck_ok: bool = _tank_overlay(escort) == null
+		if not (plain_ok and helped_ok and wreck_ok) or commander == null or escort == null or ally == null:
+			bad += 1
+		print("HALO tanques sin ayudas (contorno fino en los de la máquina, nada en el del jugador): %s | con ayudas (comandante azul, escolta amarilla, aliado con contorno): %s | destruido, sin borde: %s" % [plain_ok, helped_ok, wreck_ok])
+		print("HALO RESULT fallos de los bordes de ayuda: ", bad)
+		GameSession.debug_weather = -1
+		GameSettings.highlight_enemies = was_enemies
+		GameSettings.highlight_objectives = was_objectives
+
+	## Cuántas mallas bajo `root` llevan `overlay` como material superpuesto.
+	func _overlaid(root: Node, overlay: Material) -> int:
+		var count: int = 0
+		for node in root.find_children("*", "MeshInstance3D", true, false):
+			if (node as MeshInstance3D).material_overlay == overlay:
+				count += 1
+		return count
+
+	func _tank_overlay(tank: Tank) -> Material:
+		return (tank._meshes[0] as MeshInstance3D).material_overlay if tank != null else null
+
+	## Arranca una partida con el clima y la vista indicados y devuelve el HUD.
+	func _start_game(mode: int, front: int, faction: int, weather: int, view: int, mission: int = 0) -> Hud:
+		GameSession.mode = mode
+		GameSession.front_choice = front
+		GameSession.faction = faction
+		GameSession.mission_index = mission
+		GameSession.debug_weather = weather
+		GameSettings.ensure_loaded()
+		GameSettings.camera_view = view
+		get_tree().change_scene_to_file("res://levels/arena.tscn")
+		await _frames(4)
+		return get_tree().current_scene._hud
+
+	func _player_tank() -> Tank:
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.is_player:
+				return tank
+		return null
+
+	## Coloca un tanque de la máquina delante del jugador (a `ahead` metros y `aside` a un lado),
+	## de costado, y le quita el cerebro para que se quede quieto.
+	func _pose_tank(player: Tank, hostile: bool, ahead: float, aside: float, yaw_offset: float = 1.1) -> Tank:
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.is_player or tank.has_meta(&"posed") or (tank.team != player.team) != hostile:
+				continue
+			var fwd: Vector3 = -player.global_basis.z
+			fwd.y = 0.0
+			fwd = fwd.normalized()
+			var spot: Vector3 = player.global_position + fwd * ahead + fwd.cross(Vector3.UP) * aside
+			tank.set_meta(&"posed", true)
+			var brain: Node = tank.get_node_or_null("AIBrain")
+			if brain != null:
+				# Dormido, no borrado: el modo de juego sigue contando con él.
+				brain.process_mode = Node.PROCESS_MODE_DISABLED
+			tank.drive_input = Vector2.ZERO
+			tank.trigger_held = false
+			tank.global_position = Vector3(spot.x, tank.global_position.y + 0.3, spot.z)
+			tank.rotation.y = player.rotation.y + yaw_offset
+			return tank
+		return null
+
+	## Climas claros nuevos en los tres frentes, con el atardecer de siempre para comparar: la
+	## partida tal como se ve y un enemigo y un aliado a media distancia, sin bordes de ayuda,
+	## para juzgar cuánto destacan los tanques sobre el terreno.
+	func _weather_shots() -> void:
+		var was_enemies: bool = GameSettings.highlight_enemies
+		GameSettings.highlight_enemies = false
+		var games: Array = [
+			[Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, "normandia_soleado"],
+			[Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.CLOUDS, "normandia_nubes"],
+			[Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.CLEAR, "normandia_atardecer"],
+			[Fronts.Id.AFRICA, Fronts.Faction.AXIS, Weather.Kind.SUNNY, "africa_soleado"],
+			[Fronts.Id.AFRICA, Fronts.Faction.ALLIES, Weather.Kind.CLOUDS, "africa_nubes"],
+			[Fronts.Id.KURSK, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, "kursk_soleado"],
+			[Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.CLOUDS, "kursk_nubes"],
+		]
+		for spec: Array in games:
+			# En captura la bandera hay tanques de los dos bandos desde el primer momento.
+			var hud: Hud = await _start_game(GameSession.Mode.CTF, spec[0], spec[1], spec[2], 1)
+			hud._info.visible = false
+			var player: Tank = _player_tank()
+			await get_tree().create_timer(2.5).timeout
+			_pose_tank(player, true, 45.0, -7.0)
+			_pose_tank(player, true, 85.0, 9.0, 0.4)
+			_pose_tank(player, false, 60.0, 16.0, 2.2)
+			await get_tree().create_timer(1.0).timeout
+			await _snap("clima_%s" % spec[3])
+			GameSettings.camera_view = 0
+			player.set_view(0)
+			await _snap("clima_%s_cabina" % spec[3])
+		GameSession.debug_weather = -1
+		GameSettings.camera_view = 1
+		GameSettings.highlight_enemies = was_enemies
+
+	## Tabla de contraste (solo para comparar, no va en la comprobación): en un campo sin
+	## decorado, tanques de los dos bandos a 35, 70 y 120 m vistos desde la cabina. De izquierda
+	## a derecha, tres enemigos y tres propios: sin ayudas, con sombra de contacto, y con sombra
+	## y contorno.
+	func _contrast_shots() -> void:
+		GameSession.debug_bare = true
+		var was_enemies: bool = GameSettings.highlight_enemies
+		GameSettings.highlight_enemies = false
+		for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+			for weather: int in [Weather.Kind.SUNNY, Weather.Kind.CLOUDS, Weather.Kind.CLEAR, Weather.Kind.FOG]:
+				var hud: Hud = await _start_game(GameSession.Mode.SURVIVAL, front, Fronts.Faction.ALLIES, weather, 0)
+				hud.visible = false
+				var arena: Node = get_tree().current_scene
+				var mode: GameMode = arena.get_node("GameMode")
+				mode.set_process(false)
+				mode.set_physics_process(false)
+				var rows: Array = [[35.0, 7.5], [70.0, 9.5], [120.0, 13.0]]
+				for row: Array in rows:
+					for column in 6:
+						Tank.contact_shadow_enabled = column % 3 >= 1
+						Tank.contour_enabled = column % 3 == 2
+						var team: int = GameMode.ENEMY_TEAM if column < 3 else GameMode.PLAYER_TEAM
+						var stats: TankStats = mode.roster(team)[1]
+						var tank: Tank = mode.spawn_tank(stats, team, Vector2((column - 2.5) * row[1], -row[0]), PI * 0.5 + 0.35)
+						tank.get_node("AIBrain").process_mode = Node.PROCESS_MODE_DISABLED
+				Tank.contact_shadow_enabled = true
+				Tank.contour_enabled = true
+				await get_tree().create_timer(1.5).timeout
+				await _snap("contraste_%d_%d" % [front, weather])
+				var player: Tank = _player_tank()
+				player.set_binoculars(true)
+				await _snap("contraste_%d_%d_zoom" % [front, weather])
+		GameSession.debug_bare = false
+		GameSession.debug_weather = -1
+		GameSettings.highlight_enemies = was_enemies
+
+	## Una loma con tanques subiéndola: de lado (se ve la inclinación) y desde el del jugador.
+	func _mound_shots() -> void:
+		for front in [Fronts.Id.NORMANDY, Fronts.Id.AFRICA]:
+			var hud: Hud = await _start_game(GameSession.Mode.CTF, front, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+			hud._info.visible = false
+			var arena: Node = get_tree().current_scene
+			if Terrain.mounds().is_empty():
+				print("LOMA SHOT: este campo no tiene lomas")
+				continue
+			var mound: Terrain.Mound = Terrain.mounds()[0]
+			var player: Tank = _player_tank()
+			await get_tree().create_timer(1.5).timeout
+			# El jugador en la ladera sur, subiendo hacia la cima; un enemigo en la ladera de enfrente.
+			player.global_position = Vector3(mound.x + 2.0, 1.0, mound.z + mound.radius * 0.55)
+			player.rotation.y = 0.0
+			var enemy: Tank = _pose_tank(player, true, mound.radius * 0.95, -5.0, 2.6)
+			var ally: Tank = _pose_tank(player, false, mound.radius * 0.5, 9.0, 0.3)
+			await get_tree().create_timer(1.2).timeout
+			await _snap("loma_%d_jugador" % front)
+			_camera = Camera3D.new()
+			_camera.far = 700.0
+			arena.add_child(_camera)
+			var center := Vector3(mound.x, mound.height * 0.5, mound.z)
+			_look(center + Vector3(mound.radius * 1.5, 5.0, mound.radius * 0.45), center, 50.0)
+			await _snap("loma_%d_lado" % front)
+			_look(player.global_position + Vector3(9.0, 2.2, 3.0), player.global_position + Vector3(0.0, 1.2, 0.0), 45.0)
+			await _snap("loma_%d_cerca" % front)
+			if enemy != null and ally != null:
+				_look(center + Vector3(-mound.radius * 0.2, 26.0, mound.radius * 1.5), center, 55.0)
+				await _snap("loma_%d_alto" % front)
+		GameSession.debug_weather = -1
+
+	## Bordes de ayuda: azul en los objetivos (edificios, comandante, bandera enemiga y salida) y
+	## amarillo en los enemigos, de cerca y de lejos.
+	func _halo_shots() -> void:
+		var was_enemies: bool = GameSettings.highlight_enemies
+		var was_objectives: bool = GameSettings.highlight_objectives
+		GameSettings.highlight_enemies = true
+		GameSettings.highlight_objectives = true
+		# Aeródromo (sabotaje), comandante (jefe) y campo de prisioneros (alambradas).
+		var games: Array = [
+			[Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 1, Weather.Kind.SUNNY, "aerodromo"],
+			[Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 4, Weather.Kind.CLOUDS, "comandante"],
+			[Fronts.Faction.ALLIES, Fronts.Id.KURSK, 4, Weather.Kind.FOG, "alambradas"],
+		]
+		for spec: Array in games:
+			var hud: Hud = await _start_game(GameSession.Mode.STORY, spec[1], spec[0], spec[3], 1, spec[2])
+			hud._info.visible = false
+			var arena: Node = get_tree().current_scene
+			var mode: StoryMode = arena.get_node("GameMode") as StoryMode
+			await get_tree().create_timer(2.0).timeout
+			_camera = Camera3D.new()
+			_camera.far = 700.0
+			arena.add_child(_camera)
+			var focus: Vector3 = StoryMode.TARGET_CENTER
+			if mode.kind == "boss" and is_instance_valid(mode._commander):
+				focus = mode._commander.global_position
+				_look(focus + Vector3(12.0, 5.0, 16.0), focus + Vector3(0.0, 1.2, 0.0), 50.0)
+				await _snap("halo_%s_cerca" % spec[4])
+				_look(focus + Vector3(40.0, 14.0, 70.0), focus, 50.0)
+			else:
+				_look(focus + Vector3(30.0, 16.0, 62.0), focus + Vector3(0.0, 4.0, 0.0), 55.0)
+				await _snap("halo_%s_cerca" % spec[4])
+				_look(focus + Vector3(20.0, 9.0, 150.0), focus + Vector3(0.0, 4.0, 0.0), 45.0)
+			await _snap("halo_%s_lejos" % spec[4])
+		# Captura la bandera: la bandera enemiga.
+		var ctf_hud: Hud = await _start_game(GameSession.Mode.CTF, Fronts.Id.AFRICA, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+		ctf_hud._info.visible = false
+		var ctf: CtfMode = get_tree().current_scene.get_node("GameMode") as CtfMode
+		await get_tree().create_timer(1.5).timeout
+		_camera = Camera3D.new()
+		_camera.far = 700.0
+		get_tree().current_scene.add_child(_camera)
+		var flag_at: Vector3 = ctf.flags[1].global_position
+		_look(flag_at + Vector3(10.0, 6.0, 24.0), flag_at + Vector3(0.0, 3.0, 0.0), 50.0)
+		await _snap("halo_bandera")
+		GameSession.debug_weather = -1
+		GameSettings.highlight_enemies = was_enemies
+		GameSettings.highlight_objectives = was_objectives
+
+	## Los bordes de ayuda y el contorno de los tanques son el mismo modelo, hinchado: una ayuda
+	## para la pantalla que no debe dar sombra. Se dibuja el mismo campo, parado y visto desde
+	## arriba, con ellos y sin ellos, y se cuentan los píxeles que cambian lejos de los tanques,
+	## donde solo hay suelo y sombras. (Con el grosor medido en píxeles, en la pasada de sombras
+	## el modelo se hinchaba metros y metros y sus sombras cruzaban medio campo.)
+	func _overlay_shadows() -> void:
+		if DisplayServer.get_name() == "headless":
+			return
+		GameSession.debug_bare = true
+		var was_enemies: bool = GameSettings.highlight_enemies
+		var was_objectives: bool = GameSettings.highlight_objectives
+		var hud: Hud = await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 0)
+		hud.visible = false
+		var arena: Node = get_tree().current_scene
+		var mode: GameMode = arena.get_node("GameMode")
+		mode.set_process(false)
+		mode.set_physics_process(false)
+		# Un objetivo (borde azul), un enemigo (borde amarillo) y un aliado (contorno fino).
+		var tanks: Array[Tank] = []
+		for i in 3:
+			var team: int = GameMode.PLAYER_TEAM if i == 2 else GameMode.ENEMY_TEAM
+			var tank: Tank = mode.spawn_tank(mode.roster(team)[1], team, Vector2((i - 1) * 24.0, -60.0), 0.6 + i * 1.3)
+			tank.get_node("AIBrain").process_mode = Node.PROCESS_MODE_DISABLED
+			tanks.append(tank)
+		tanks[0].is_objective = true
+		await get_tree().create_timer(1.5).timeout
+		_camera = Camera3D.new()
+		_camera.far = 700.0
+		arena.add_child(_camera)
+		_look(Vector3(0.0, 75.0, -59.0), Vector3(0.0, 0.0, -60.0), 50.0)
+		# Todo parado: entre una imagen y otra solo cambian los bordes.
+		get_tree().paused = true
+		var images: Array[Image] = []
+		for with_overlays: bool in [true, false]:
+			GameSettings.highlight_enemies = with_overlays
+			GameSettings.highlight_objectives = with_overlays
+			Tank.contour_enabled = with_overlays
+			for tank in tanks:
+				tank.refresh_highlight()
+			await _frames(4)
+			await RenderingServer.frame_post_draw
+			var image: Image = get_viewport().get_texture().get_image()
+			image.save_jpg(_dir.path_join("sombras_%s.jpg" % ("con_bordes" if with_overlays else "sin_bordes")), 0.88)
+			images.append(image)
+		# Píxeles que cambian a más de 8 m de cualquier tanque (el borde solo toca su silueta).
+		var pixels := Vector2(images[0].get_size())
+		var to_pixels: Vector2 = pixels / get_viewport().get_visible_rect().size
+		var metre: float = pixels.y / (2.0 * 75.0 * tan(deg_to_rad(25.0)))
+		var spots: Array[Vector2] = []
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			spots.append(_camera.unproject_position(tank.global_position) * to_pixels)
+		var stray: int = 0
+		var near: int = 0
+		for y in images[0].get_height():
+			for x in images[0].get_width():
+				var a: Color = images[0].get_pixel(x, y)
+				var b: Color = images[1].get_pixel(x, y)
+				if absf(a.r - b.r) + absf(a.g - b.g) + absf(a.b - b.b) < 0.12:
+					continue
+				var far_from_all: bool = true
+				for spot in spots:
+					if spot.distance_to(Vector2(x, y)) < 8.0 * metre:
+						far_from_all = false
+						break
+				if far_from_all:
+					stray += 1
+				else:
+					near += 1
+		print("SOMBRAS píxeles que cambian junto a los tanques (los propios bordes): ", near)
+		print("SOMBRAS RESULT píxeles que cambian lejos de los tanques al poner bordes y contornos: %d (%s)" % [stray, "OK" if stray <= 20 and near > 0 else "MAL"])
+		get_tree().paused = false
+		Tank.contour_enabled = true
+		GameSession.debug_bare = false
+		GameSession.debug_weather = -1
+		GameSettings.highlight_enemies = was_enemies
+		GameSettings.highlight_objectives = was_objectives
+
+	## Menús: opciones de la pausa (letra grande), parte de misión con el clima y el tanque, la
+	## pantalla previa de supervivencia, las opciones del menú y el final de una misión ganada.
+	func _ui_shots() -> void:
+		var saved: Dictionary = _unlock_everything()
+		var hud: Hud = await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 0)
+		await get_tree().create_timer(2.0).timeout
+		hud._set_paused(true)
+		print("UI menú de opciones a escala ", hud.menu_scale, " en una pantalla de ", hud.size)
+		await _snap("ui_opciones_pausa")
+		hud._set_paused(false)
+		(get_tree().current_scene.get_node("GameMode") as StoryMode)._win("ZONA DESPEJADA")
+		await get_tree().create_timer(1.6).timeout
+		await _snap("ui_fin_victoria")
+		GameSession.debug_weather = -1
+		get_tree().paused = false
+		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
+		await _frames(4)
+		var menu: Control = get_tree().current_scene
+		menu._version.visible = false
+		GameSession.mode = GameSession.Mode.STORY
+		GameSession.faction = Fronts.Faction.ALLIES
+		GameSession.front_choice = Fronts.Id.NORMANDY
+		menu._page_briefing(0)
+		await _frames(4)
+		await get_tree().create_timer(1.0).timeout
+		await _snap("ui_mision")
+		for picker in menu._content.find_children("*", "OptionButton", true, false):
+			(picker as OptionButton).show_popup()
+			await _frames(3)
+			await _snap("ui_mision_lista_%d" % picker.get_index())
+			(picker as OptionButton).get_popup().hide()
+			await _frames(2)
+		GameSession.mode = GameSession.Mode.SURVIVAL
+		GameSession.front_choice = Fronts.Id.AFRICA
+		menu._page_start()
+		await _frames(4)
+		await _snap("ui_inicio_supervivencia")
+		menu._page_audio()
+		await _frames(4)
+		await _snap("ui_opciones_menu")
+		_restore_progress(saved)
 
 	func _secs(value: float) -> String:
 		return "a los %.0f s" % value if value >= 0.0 else "NUNCA"

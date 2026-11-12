@@ -38,6 +38,9 @@ var trigger_held: bool = false
 ## Factor sobre la velocidad máxima (quien lleva la bandera va más lento).
 var speed_factor: float = 1.0
 
+## Parte visible del vehículo (casco y torreta). El cuerpo que choca solo gira sobre sí mismo; el
+## chasis se inclina además con el terreno al subir y bajar lomas (lo mueve TankMovement).
+var chassis: Node3D
 var turret: Node3D
 var gun_pivot: Node3D
 var muzzle: Marker3D
@@ -86,9 +89,13 @@ var _engine_sound: AudioStreamPlayer3D
 var _idle_sound: AudioStreamPlayer3D
 var _engine_pitch: float = 1.0
 var _engine_level: float = 0.0
-## Borde amarillo que destaca a los enemigos (ajuste «Destacar enemigos»): el mismo modelo, un poco
-## más gordo y dibujado solo por sus caras traseras, asoma alrededor de la silueta.
-static var _outline: StandardMaterial3D
+## Es un objetivo de la misión (el comandante enemigo): con «Destacar objetivos» lleva borde azul.
+var is_objective: bool = false
+## Ayudas para que el tanque destaque sobre el terreno (se pueden quitar para comparar en las
+## capturas de prueba): contorno oscuro de un píxel y sombra de contacto bajo el casco.
+static var contour_enabled: bool = true
+static var contact_shadow_enabled: bool = true
+var _contact_shadow: MeshInstance3D
 
 
 func _ready() -> void:
@@ -194,7 +201,9 @@ func set_view(view: int) -> void:
 
 
 func _chase_transform() -> Transform3D:
-	var offset: Vector2 = CHASE_OFFSETS[clampi(_view - 1, 0, 1)]
+	# Con un tanque grande (los pesados que se pueden elegir con premium) la cámara se aleja
+	# un poco para que quepa igual en pantalla.
+	var offset: Vector2 = CHASE_OFFSETS[clampi(_view - 1, 0, 1)] * (1.0 + 0.6 * maxf(_scale_factor - 1.0, 0.0))
 	var yaw: float = turret_controller.world_yaw
 	var forward := Vector3(-sin(yaw), 0.0, -cos(yaw))
 	var eye: Vector3 = global_position - forward * offset.x + Vector3.UP * offset.y
@@ -240,20 +249,22 @@ func _animate_tracks(delta: float) -> void:
 	_track_material.set_shader_parameter("track_offset", _track_scroll)
 
 
-## Pone o quita el borde amarillo según el ajuste. Solo en tanques enemigos enteros.
+## Pone o quita el borde que destaca al tanque según los ajustes: azul si es un objetivo de la
+## misión («Destacar objetivos») y, si no, amarillo si es enemigo («Destacar enemigos»). Solo en
+## tanques enteros y nunca en el del jugador.
 func refresh_highlight() -> void:
-	var on: bool = GameSettings.highlight_enemies and team != 0 and not is_player and not is_destroyed
-	if on and _outline == null:
-		_outline = StandardMaterial3D.new()
-		_outline.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_outline.albedo_color = Color(1.0, 0.9, 0.1)
-		_outline.cull_mode = BaseMaterial3D.CULL_FRONT
-		_outline.grow = true
-		_outline.grow_amount = 0.03
-		_outline.disable_fog = true
+	var overlay: Material = null
+	if not is_player and not is_destroyed:
+		if is_objective and GameSettings.highlight_objectives:
+			overlay = VectorMaterials.outline(VectorMaterials.OBJECTIVE_OUTLINE, 0.04, 1.8)
+		elif GameSettings.highlight_enemies and team != 0:
+			overlay = VectorMaterials.outline(VectorMaterials.ENEMY_OUTLINE, 0.03, 1.5)
+		elif contour_enabled:
+			# Sin borde de ayuda: un contorno oscuro finísimo, que solo recorta la silueta.
+			overlay = VectorMaterials.contour()
 	for mesh in _meshes:
 		if is_instance_valid(mesh):
-			mesh.material_overlay = _outline if on else null
+			mesh.material_overlay = overlay
 
 
 ## Motor: grabaciones de tanques de verdad. En el tanque propio suenan dos bucles que se funden
@@ -340,13 +351,13 @@ func _update_effects(delta: float) -> void:
 	_exhaust_due += delta * lerpf(4.0, 14.0, throttle) * near
 	while _exhaust_due >= 1.0:
 		_exhaust_due -= 1.0
-		_fx.exhaust(global_transform * _exhaust_at, global_basis.z * randf_range(1.0, 2.5) + Vector3.UP * randf_range(0.5, 1.2) + velocity * 0.4, k, throttle * randf_range(0.6, 1.0))
+		_fx.exhaust(chassis.global_transform * _exhaust_at, global_basis.z * randf_range(1.0, 2.5) + Vector3.UP * randf_range(0.5, 1.2) + velocity * 0.4, k, throttle * randf_range(0.6, 1.0))
 	if speed > 2.0 and _fx.dustiness > 0.05:
 		_dust_due += delta * minf(speed, 14.0) * 1.0 * near * minf(_fx.dustiness, 1.5)
 		while _dust_due >= 1.0:
 			_dust_due -= 1.0
 			var side: float = -1.0 if randf() < 0.5 else 1.0
-			var at: Vector3 = global_transform * Vector3(_track_at.x * side, _track_at.y, _track_at.z)
+			var at: Vector3 = chassis.global_transform * Vector3(_track_at.x * side, _track_at.y, _track_at.z)
 			_fx.track_dust(at, -velocity * 0.12 + Vector3(randf_range(-0.6, 0.6), randf_range(0.5, 1.4), randf_range(-0.6, 0.6)), k, clampf(speed / 9.0, 0.3, 0.85))
 	var armor: float = health.fraction()
 	if armor < 0.5:
@@ -354,7 +365,7 @@ func _update_effects(delta: float) -> void:
 		_smoke_due += delta * lerpf(2.5, 7.0, level) * near
 		while _smoke_due >= 1.0:
 			_smoke_due -= 1.0
-			_fx.damage_smoke(global_transform * _deck_at, velocity * 0.3, k, level)
+			_fx.damage_smoke(chassis.global_transform * _deck_at, velocity * 0.3, k, level)
 
 
 ## Restos ardiendo: llamas en la cubierta del motor y en el anillo de la torreta, columna de
@@ -382,8 +393,8 @@ func _update_wreck(delta: float) -> bool:
 	if near <= 0.0:
 		return false
 	var k: float = _scale_factor
-	var ring: Vector3 = global_transform * Vector3(_turret_home.x, _turret_home.y - 0.2 * k, _turret_home.z)
-	var deck: Vector3 = global_transform * _deck_at
+	var ring: Vector3 = chassis.global_transform * Vector3(_turret_home.x, _turret_home.y - 0.2 * k, _turret_home.z)
+	var deck: Vector3 = chassis.global_transform * _deck_at
 	if fire > 0.02:
 		_exhaust_due += delta * 20.0 * fire * near
 		while _exhaust_due >= 1.0:
@@ -514,7 +525,10 @@ func revive(spawn: Transform3D) -> void:
 
 
 func _build_body() -> void:
-	var model: TankModel = TankModel.build(self, stats, paint, is_player)
+	chassis = Node3D.new()
+	chassis.name = "Chassis"
+	add_child(chassis)
+	var model: TankModel = TankModel.build(chassis, stats, paint, is_player)
 	turret = model.turret
 	gun_pivot = model.gun_pivot
 	muzzle = model.muzzle
@@ -524,6 +538,18 @@ func _build_body() -> void:
 	for mesh in _meshes:
 		_materials.append(mesh.material_override)
 	var k: float = _scale_factor
+	if contact_shadow_enabled:
+		# Sombra de contacto: va con el chasis, así que se inclina con él en las lomas.
+		var patch := PlaneMesh.new()
+		patch.size = Vector2(model.hull_size.x + 2.6 * k, model.hull_size.z + 2.4 * k)
+		_contact_shadow = MeshInstance3D.new()
+		_contact_shadow.name = "ContactShadow"
+		_contact_shadow.mesh = patch
+		_contact_shadow.material_override = VectorMaterials.contact_shadow()
+		_contact_shadow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		# El cuerpo descansa con su origen unos centímetros bajo el suelo (ver TankMovement).
+		_contact_shadow.position.y = 0.05 * k + 0.03
+		chassis.add_child(_contact_shadow)
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	box.size = Vector3(model.hull_size.x + 1.0 * k, 1.4 * k, model.hull_size.z)
@@ -534,6 +560,8 @@ func _build_body() -> void:
 	if is_player:
 		for mesh in _meshes:
 			mesh.layers = VISUAL_LAYER_OWN
+		if _contact_shadow != null:
+			_contact_shadow.layers = VISUAL_LAYER_OWN
 		camera = Camera3D.new()
 		camera.name = "Camera"
 		camera.fov = 75.0

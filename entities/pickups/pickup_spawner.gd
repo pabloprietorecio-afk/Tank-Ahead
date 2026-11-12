@@ -31,7 +31,7 @@ func _process(delta: float) -> void:
 
 func spawn(kind: String, point: Vector2) -> void:
 	var pickup := Pickup.create(kind, player)
-	pickup.position = Vector3(point.x, 0.0, point.y)
+	pickup.position = Vector3(point.x, Terrain.height(point.x, point.y), point.y)
 	get_parent().add_child(pickup)
 
 

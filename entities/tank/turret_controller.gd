@@ -100,6 +100,11 @@ func _desired_world() -> float:
 	return _target_world if _world_mode else _tank.global_rotation.y + _target_local
 
 
+## Rumbo del mundo al que se quiere llevar el cañón (puede quedar fuera de su giro si es de casamata).
+func desired_world_yaw() -> float:
+	return _desired_world()
+
+
 func _process(delta: float) -> void:
 	if _tank == null:
 		return
@@ -115,5 +120,13 @@ func _process(delta: float) -> void:
 	pitch += clampf((_target_pitch - pitch) * ease, -max_step, max_step)
 	if traverse_limit > 0.0:
 		local_yaw = clampf(local_yaw, -traverse_limit, traverse_limit)
-	_tank.turret.rotation.y = local_yaw
-	_tank.gun_pivot.rotation.x = pitch
+	var tilt: Basis = _tank.chassis.basis if _tank.chassis != null else Basis.IDENTITY
+	if tilt.is_equal_approx(Basis.IDENTITY):
+		_tank.turret.rotation.y = local_yaw
+		_tank.gun_pivot.rotation.x = pitch
+	else:
+		# Casco inclinado (en una loma): el cañón mantiene su rumbo y su elevación en el mundo,
+		# como con un estabilizador, para que se apunte igual que en el llano.
+		var aim: Vector3 = tilt.inverse() * Vector3(-sin(local_yaw) * cos(pitch), sin(pitch), -cos(local_yaw) * cos(pitch))
+		_tank.turret.rotation.y = atan2(-aim.x, -aim.z)
+		_tank.gun_pivot.rotation.x = asin(clampf(aim.y, -1.0, 1.0))

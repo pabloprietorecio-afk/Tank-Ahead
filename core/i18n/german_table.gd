@@ -436,7 +436,6 @@ const TABLE: Dictionary = {
 	"INFERNO": "HÖLLE",
 	"RADIO": "FUNK",
 	"NIVEL PREMIUM": "PREMIUM-STUFE",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Die ersten drei Missionen jeder Front sind kostenlos. Mit Premium spielst du den Rest der Kampagne und entfernst die Werbung.",
 	"HAZTE PREMIUM": "PREMIUM HOLEN",
 	"RESTAURAR COMPRA": "KAUF WIEDERHERSTELLEN",
 	"SIGUIENTE MISIÓN (PREMIUM)": "NÄCHSTE MISSION (PREMIUM)",
@@ -453,6 +452,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "Werbung wird geladen …",
 	"No se ha completado el anuncio.": "Die Werbung wurde nicht zu Ende angesehen.",
 	"PRIVACIDAD DE LOS ANUNCIOS": "WERBE-DATENSCHUTZ",
+	"ATARDECER": "SONNENUNTERGANG",
+	"SOLEADO": "SONNIG",
+	"NUBES Y CLAROS": "HEITER BIS WOLKIG",
+	"ALEATORIO": "ZUFÄLLIG",
+	"CLIMA: %s": "WETTER: %s",
+	"TANQUE: %s": "PANZER: %s",
+	"★ OTRO TANQUE (PREMIUM)": "★ ANDERER PANZER (PREMIUM)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "PANZERUNG %d   ANGRIFF %d   GESCHWINDIGKEIT %d km/h",
+	"Destacar objetivos (borde azul)": "Ziele hervorheben (blauer Rand)",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "Die ersten drei Missionen jeder Front sind kostenlos. Mit Premium spielst du den Rest der Kampagne, wiederholst abgeschlossene Missionen mit jedem anderen Panzer und entfernst die Werbung.",
+	"REPETIR CON OTRO TANQUE": "MIT ANDEREM PANZER WIEDERHOLEN",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "MIT ANDEREM PANZER WIEDERHOLEN (PREMIUM)",
+	"REFUERZO ALIADO: LLEGA UN %s": "VERBÜNDETE VERSTÄRKUNG: EIN %s TRIFFT EIN",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

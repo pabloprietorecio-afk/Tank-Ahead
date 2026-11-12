@@ -60,6 +60,14 @@ func _build(faction: int) -> void:
 	light.position.y = 5.0
 	add_child(light)
 	add_to_group(&"radar_marks")
+	add_to_group(&"objectives")
+	refresh_highlight()
+
+
+## Borde azul de la bandera enemiga, que es el objetivo (ajuste «Destacar objetivos»).
+func refresh_highlight() -> void:
+	var on: bool = GameSettings.highlight_objectives and team != GameMode.PLAYER_TEAM
+	VectorMaterials.set_outline(self, VectorMaterials.OBJECTIVE_OUTLINE if on else Color(0.0, 0.0, 0.0, 0.0), 0.06, 2.0)
 
 
 func set_radar_color(color: Color) -> void:
@@ -75,7 +83,7 @@ func drop() -> void:
 	state = Status.DROPPED
 	carrier = null
 	dropped_time = 0.0
-	global_position = Vector3(global_position.x, 0.0, global_position.z)
+	global_position = Terrain.on_ground(global_position)
 
 
 func return_home() -> void:

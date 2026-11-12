@@ -11,7 +11,7 @@ static func spawn(host: Node, point: Vector3, strength: float = 1.0, color: Colo
 	if color.r <= color.b + 0.25:
 		fx.rubble(point, strength * 1.6, color)
 	elif strength < 0.6:
-		if point.y < 0.8:
+		if point.y - Terrain.height(point.x, point.z) < 0.8:
 			fx.shell_ground(point, strength / 0.4)
 		else:
 			fx.pop(point, strength / 0.4)

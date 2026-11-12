@@ -42,7 +42,7 @@ static func launch(host: Node, center: Vector3, enemy_strike: bool, by: Node = n
 		strike.damage = 140.0
 		strike.warning_time = 3.0
 	host.add_child(strike)
-	strike.global_position = Vector3(center.x, 0.05, center.z)
+	strike.global_position = Terrain.on_ground(center, 0.05)
 	return strike
 
 
@@ -92,7 +92,7 @@ func _process(delta: float) -> void:
 	while _released < BOMBS and _time >= warning_time - FALL_TIME + _released * 0.12:
 		var offset: Vector2 = _offsets[_released]
 		_released += 1
-		Bomb.drop(get_parent(), global_position + Vector3(offset.x, 0.3, offset.y), _heading, FALL_TIME - maxf(_time - (warning_time - FALL_TIME + (_released - 1) * 0.12), 0.0))
+		Bomb.drop(get_parent(), Terrain.on_ground(global_position + Vector3(offset.x, 0.0, offset.y), 0.3), _heading, FALL_TIME - maxf(_time - (warning_time - FALL_TIME + (_released - 1) * 0.12), 0.0))
 	if not _dropping:
 		# Anillo que se cierra hacia el centro como cuenta atrás, y el velo que parpadea.
 		_zone_material.set_shader_parameter("progress", clampf(_time / warning_time, 0.0, 1.0))
@@ -111,7 +111,7 @@ func _process(delta: float) -> void:
 		_bomb_timer = 0.12
 		var offset: Vector2 = _offsets[BOMBS - _bombs_left]
 		_bombs_left -= 1
-		Explosion.spawn(self, global_position + Vector3(offset.x, 0.5, offset.y), 2.0)
+		Explosion.spawn(self, Terrain.on_ground(global_position + Vector3(offset.x, 0.0, offset.y), 0.5), 2.0)
 		if _bombs_left == BOMBS - 1:
 			_apply_damage()
 	if _bombs_left == 0 and _bomb_timer <= -0.8:

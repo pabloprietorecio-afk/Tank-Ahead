@@ -19,6 +19,7 @@ var _spawn_point: Vector2
 func _ready() -> void:
 	_rng.randomize()
 	Engine.time_scale = 1.0
+	Terrain.clear()
 	GameSettings.ensure_loaded()
 	AudioSetup.ensure()
 	GameSession.resolve_front()
@@ -30,7 +31,7 @@ func _ready() -> void:
 	_build_environment()
 	_build_ground()
 	_build_walls()
-	if _mode.wants_scenery():
+	if _mode.wants_scenery() and not GameSession.debug_bare:
 		_build_scenery()
 	_spawn_player(spawn)
 	Fx.on(self).player = _player
@@ -41,7 +42,7 @@ func _ready() -> void:
 		return true
 	add_child(_mode)
 	_build_weather()
-	if _mode.wants_scenery():
+	if _mode.wants_scenery() and not GameSession.debug_bare:
 		# Aviones de paso, antiaérea y algún derribo lejano: solo ambiente.
 		var sky := SkyWar.new()
 		sky.name = "SkyWar"
@@ -234,6 +235,14 @@ func _build_scenery() -> void:
 		mountain.position = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
 		mountain.rotation.y = _rng.randf() * TAU
 		add_child(mountain)
+	# Lomas suaves (dunas tendidas en el desierto): relieve por el que los tanques sí suben. Van
+	# las primeras, que son las que más sitio piden; nada más se coloca encima de ellas.
+	for i in (4 if desert else 3):
+		var radius: float = _rng.randf_range(21.0, 30.0)
+		var pos := _free_spot(radius)
+		if pos != Vector2.INF:
+			add_child(Terrain.add_mound(pos, radius, VectorMaterials.ground(), _rng.randf()))
+			_obstacle_rects.append(Rect2(pos - Vector2.ONE * (radius + 2.0), Vector2.ONE * (radius + 2.0) * 2.0))
 	# Colinas o dunas dentro.
 	for i in (5 if desert else 3):
 		var radius: float = _rng.randf_range(10.0, 18.0)
@@ -394,7 +403,7 @@ func _spawn_player(spawn: Transform3D) -> void:
 	_player.name = "PlayerTank"
 	_player.is_player = true
 	_player.team = GameMode.PLAYER_TEAM
-	_player.stats = Fronts.player_stats(GameSession.front, GameSession.faction)
+	_player.stats = Fronts.player_stats(GameSession.front, GameSession.faction, GameSession.player_tank_id())
 	_player.paint = Fronts.paint(GameSession.front, GameSession.faction, _player.stats.nation)
 	_player.transform = spawn
 	add_child(_player)
@@ -406,6 +415,9 @@ func _build_weather() -> void:
 	add_child(weather)
 	var options: Array[int] = Fronts.weathers(GameSession.front)
 	var kind: int = _mode.forced_weather()
+	if kind < 0:
+		# El que eligió el jugador al empezar (o -1: aleatorio).
+		kind = GameSession.chosen_weather(GameSession.front)
 	if GameSession.debug_weather >= 0:
 		kind = GameSession.debug_weather
 	if kind < 0:

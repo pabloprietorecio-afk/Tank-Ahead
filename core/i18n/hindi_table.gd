@@ -436,7 +436,6 @@ const TABLE: Dictionary = {
 	"INFERNO": "नर्क",
 	"RADIO": "रेडियो",
 	"NIVEL PREMIUM": "प्रीमियम स्तर",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "हर मोर्चे के पहले तीन मिशन मुफ़्त हैं। बाकी अभियान खेलने और विज्ञापन हटाने के लिए प्रीमियम लें।",
 	"HAZTE PREMIUM": "प्रीमियम लें",
 	"RESTAURAR COMPRA": "खरीद बहाल करें",
 	"SIGUIENTE MISIÓN (PREMIUM)": "अगला मिशन (प्रीमियम)",
@@ -453,6 +452,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "विज्ञापन लोड हो रहा है…",
 	"No se ha completado el anuncio.": "विज्ञापन पूरा नहीं देखा गया।",
 	"PRIVACIDAD DE LOS ANUNCIOS": "विज्ञापन गोपनीयता",
+	"ATARDECER": "सूर्यास्त",
+	"SOLEADO": "धूप",
+	"NUBES Y CLAROS": "धूप-छाँव",
+	"ALEATORIO": "कोई भी",
+	"CLIMA: %s": "मौसम: %s",
+	"TANQUE: %s": "टैंक: %s",
+	"★ OTRO TANQUE (PREMIUM)": "★ दूसरा टैंक (प्रीमियम)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "कवच %d   हमला %d   गति %d किमी/घंटा",
+	"Destacar objetivos (borde azul)": "लक्ष्यों को उभारें (नीला किनारा)",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "हर मोर्चे के पहले तीन मिशन मुफ़्त हैं। बाकी अभियान खेलने, पूरे किए मिशन किसी भी दूसरे टैंक से दोबारा खेलने और विज्ञापन हटाने के लिए प्रीमियम लें।",
+	"REPETIR CON OTRO TANQUE": "दूसरे टैंक से दोबारा खेलें",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "दूसरे टैंक से दोबारा खेलें (प्रीमियम)",
+	"REFUERZO ALIADO: LLEGA UN %s": "साथी की मदद: %s आ रहा है",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

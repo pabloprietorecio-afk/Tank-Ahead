@@ -469,8 +469,14 @@ func mark(pos: Vector3, radius: float, crater: bool) -> void:
 	_mark_count = mini(_mark_count + 1, MAX_MARKS)
 	_marks.visible_instance_count = _mark_count
 	var turn := Basis(Vector3.UP, randf() * TAU) * Basis.from_scale(Vector3(radius * 2.0, 1.0, radius * 2.0))
+	# En una loma la marca se tumba con el terreno y sube a su altura.
+	var floor_y: float = Terrain.height(pos.x, pos.z)
+	if floor_y > 0.0:
+		var slope: Vector3 = Terrain.normal(pos.x, pos.z)
+		turn = Basis(Quaternion(Vector3.UP, slope)) * turn
+		floor_y += 0.04
 	# Cada marca un pelo más alta que la anterior: las que se pisan no parpadean.
-	_marks.set_instance_transform(slot, Transform3D(turn, Vector3(pos.x, 0.03 + slot * 0.0006, pos.z)))
+	_marks.set_instance_transform(slot, Transform3D(turn, Vector3(pos.x, floor_y + 0.03 + slot * 0.0006, pos.z)))
 	_marks.set_instance_color(slot, soil)
 	_mark_seed[slot] = randf() + (1.0 if crater else 0.0)
 	_mark_born[slot] = _clock
@@ -549,11 +555,12 @@ func on_gpu() -> bool:
 ## estalla. En el suelo levanta tierra y polvo y deja marca; en el aire, no.
 func explosion(pos: Vector3, s: float) -> void:
 	var lod: float = _lod(pos)
-	var grounded: bool = pos.y < 1.5 + s
+	var floor_y: float = Terrain.height(pos.x, pos.z)
+	var grounded: bool = pos.y - floor_y < 1.5 + s
 	var root: float = sqrt(s)
 	var slow: float = clampf(root, 0.75, 1.7)
 	var up := Vector3.UP
-	var c: Vector3 = Vector3(pos.x, maxf(pos.y, 0.35 * s), pos.z) if grounded else pos
+	var c: Vector3 = Vector3(pos.x, maxf(pos.y, floor_y + 0.35 * s), pos.z) if grounded else pos
 	glow(Glow.FLASH, c + up * 0.3 * s, Vector3.ZERO, 9.0 * s, 0.14, FLASH, 1.0)
 	glow(Glow.HALO, c + up * 0.5 * s, Vector3.ZERO, 7.0 * s, 0.5 * slow, FIRE_GLOW, 0.6)
 	light(c + up * (0.8 + s), Color(1.0, 0.62, 0.3), 4.0 + 2.5 * s, 10.0 + 12.0 * s, 0.4 + 0.15 * s)
@@ -571,7 +578,7 @@ func explosion(pos: Vector3, s: float) -> void:
 		var side := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)) * 0.8 * s
 		puff(Puff.SMOKE, c + side * (1.0 - late * 0.5) + up * randf_range(0.3, 2.2) * s * (1.0 - late), side * 0.4 + up * randf_range(1.6, 3.6) * root * (1.0 - late * 0.45), randf_range(1.3, 2.2) * s * (1.0 - late * 0.3), randf_range(3.5, 6.0) * slow, SOOT.lerp(DARK_SMOKE, randf()), -randf_range(0.5, 1.0) * (1.0 - late), 0.1 + late * 2.2 * slow)
 	if grounded:
-		var g := Vector3(pos.x, 0.0, pos.z)
+		var g := Vector3(pos.x, floor_y, pos.z)
 		# Corona de polvo que barre el suelo.
 		var ring: int = _n(10.0 * lod * dustiness)
 		for i in ring:
@@ -635,7 +642,7 @@ func pop(pos: Vector3, s: float = 1.0) -> void:
 func shell_ground(pos: Vector3, s: float = 1.0) -> void:
 	var lod: float = _lod(pos)
 	var up := Vector3.UP
-	var g := Vector3(pos.x, 0.0, pos.z)
+	var g := Vector3(pos.x, Terrain.height(pos.x, pos.z), pos.z)
 	glow(Glow.FLASH, g + up * 0.4, Vector3.ZERO, 4.5 * s, 0.1, FLASH, 0.9)
 	light(g + up, Color(1.0, 0.66, 0.34), 3.0, 9.0 * s, 0.18)
 	for i in _n(3.0 * lod):
@@ -717,8 +724,9 @@ func muzzle(at: Transform3D, k: float, carry: Vector3, brake: bool) -> void:
 			puff(Puff.JET, p + jet * randf_range(0.2, 1.0) * k, jet * lerpf(4.0, 30.0, along * along) * k * reach + ball() * 1.3 + carry, randf_range(0.28, 0.5) * k, randf_range(0.7, 1.5), Color(GUN_SMOKE, randf_range(0.5, 0.75)), -0.7, i * 0.006)
 	for i in _n(6.0 * lod):
 		spark(p, (f + ball() * 0.22).normalized() * randf_range(18.0, 42.0) + carry, 0.05, randf_range(0.2, 0.5), SPARK)
-	if p.y < 3.6 and dustiness > 0.05:
-		var g := Vector3(p.x + f.x * 1.6 * k, 0.0, p.z + f.z * 1.6 * k)
+	var muzzle_floor: float = Terrain.height(p.x, p.z)
+	if p.y - muzzle_floor < 3.6 and dustiness > 0.05:
+		var g := Vector3(p.x + f.x * 1.6 * k, muzzle_floor, p.z + f.z * 1.6 * k)
 		var ring: int = _n(8.0 * lod * dustiness)
 		for i in ring:
 			var angle: float = TAU * (i + randf()) / ring

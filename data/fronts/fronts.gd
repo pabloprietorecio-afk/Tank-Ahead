@@ -76,15 +76,28 @@ static func ground_colors(front: int) -> Array[Color]:
 			return [Color(0.18, 0.3, 0.1), Color(0.28, 0.35, 0.14), Color(0.28, 0.22, 0.14), Color(0.4, 0.4, 0.38)]
 
 
-## Climas posibles (Weather.Kind).
+## Climas posibles (Weather.Kind) al sortear. Los repetidos salen más a menudo: más de la mitad
+## de las partidas tocan un día claro (soleado o con nubes y claros).
 static func weathers(front: int) -> Array[int]:
+	var sunny: int = Weather.Kind.SUNNY
+	var clouds: int = Weather.Kind.CLOUDS
 	match front:
 		Id.AFRICA:
-			return [0, 0, 1]
+			return [sunny, sunny, sunny, clouds, Weather.Kind.CLEAR, Weather.Kind.FOG]
 		Id.KURSK:
-			return [0, 1, 2, 3]
+			return [sunny, sunny, clouds, clouds, Weather.Kind.CLEAR, Weather.Kind.FOG, Weather.Kind.RAIN, Weather.Kind.SNOW]
 		_:
-			return [0, 1, 2]
+			return [sunny, sunny, clouds, clouds, Weather.Kind.CLEAR, Weather.Kind.FOG, Weather.Kind.RAIN]
+
+
+## Climas que el jugador puede elegir en este frente, en el orden del selector.
+static func weather_choices(front: int) -> Array[int]:
+	var possible: Array[int] = weathers(front)
+	var list: Array[int] = []
+	for kind in Weather.MENU_ORDER:
+		if kind in possible:
+			list.append(kind)
+	return list
 
 
 static func mountain_color(front: int) -> Color:
@@ -97,17 +110,38 @@ static func mountain_color(front: int) -> Color:
 			return Color(0.26, 0.36, 0.18)
 
 
-## Ficha del tanque del jugador: el modelo histórico con la potencia de combate del jugador.
-static func player_stats(front: int, faction: int) -> TankStats:
-	var stats: TankStats = tank(PLAYER_TANK[front][faction]).duplicate()
-	stats.max_armor = 100.0
-	stats.reload_time = 1.2
-	stats.damage = 25.0
-	stats.projectile_speed = 150.0
-	stats.max_speed = 14.0
-	stats.acceleration = 18.0
-	stats.hull_turn_speed = 1.3
-	stats.turret_turn_speed = 3.0
-	stats.body_scale = 1.0
-	stats.traverse_limit_deg = 0.0
+## Potencia de combate del tanque de serie del jugador (la de siempre).
+const PLAYER_ARMOR: float = 100.0
+const PLAYER_RELOAD: float = 1.2
+const PLAYER_DAMAGE: float = 25.0
+const PLAYER_SHELL_SPEED: float = 150.0
+const PLAYER_SPEED: float = 14.0
+const PLAYER_ACCELERATION: float = 18.0
+const PLAYER_HULL_TURN: float = 1.3
+const PLAYER_TURRET_TURN: float = 3.0
+
+
+## Ficha del tanque del jugador. Con `id` vacío es el de serie del frente: el modelo histórico
+## con la potencia de combate del jugador. Con otro `id` (repetir una misión con otro tanque,
+## premium) esa potencia cambia según lo que ese vehículo es frente al de serie: un blindado de
+## exploración corre más y aguanta menos; un carro pesado es lento, duro y pega más fuerte. La
+## diferencia se suaviza (raíz) para que todos se puedan jugar. El tamaño y, en los cazacarros
+## de casamata, el giro limitado del cañón son los del vehículo.
+static func player_stats(front: int, faction: int, id: String = "") -> TankStats:
+	var standard: TankStats = tank(PLAYER_TANK[front][faction])
+	var chosen: TankStats = standard
+	if id != "" and id != standard.id and id in ROSTERS[front][faction]:
+		chosen = tank(id)
+	var stats: TankStats = chosen.duplicate()
+	stats.max_armor = roundf(PLAYER_ARMOR * pow(chosen.max_armor / standard.max_armor, 0.4))
+	stats.reload_time = PLAYER_RELOAD * sqrt(chosen.reload_time / standard.reload_time)
+	stats.damage = roundf(PLAYER_DAMAGE * sqrt(chosen.damage / standard.damage))
+	stats.projectile_speed = PLAYER_SHELL_SPEED * sqrt(chosen.projectile_speed / standard.projectile_speed)
+	stats.max_speed = PLAYER_SPEED * sqrt(chosen.max_speed / standard.max_speed)
+	stats.acceleration = PLAYER_ACCELERATION * sqrt(chosen.acceleration / standard.acceleration)
+	stats.hull_turn_speed = PLAYER_HULL_TURN * sqrt(chosen.hull_turn_speed / standard.hull_turn_speed)
+	stats.turret_turn_speed = PLAYER_TURRET_TURN * sqrt(chosen.turret_turn_speed / standard.turret_turn_speed)
+	if chosen == standard:
+		stats.body_scale = 1.0
+		stats.traverse_limit_deg = 0.0
 	return stats

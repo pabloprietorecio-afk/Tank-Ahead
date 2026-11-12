@@ -134,41 +134,91 @@ func _centered_panel(alpha: float = 0.97) -> PanelContainer:
 	return panel
 
 
-## Menú de opciones (pausa): a la izquierda las acciones, a la derecha sonido y ayudas.
+## Tamaños de referencia del menú de opciones (a escala 1): ancho de la columna de acciones, alto
+## de sus botones y alto de las filas de la derecha.
+const MENU_ACTION_WIDTH: float = 400.0
+const MENU_ACTION_HEIGHT: float = 76.0
+const MENU_ROW_HEIGHT: float = 60.0
+## Escalas que se prueban, de la más grande a la más pequeña (la última es la letra de antes).
+const MENU_SCALES: Array[float] = [1.25, 1.18, 1.12, 1.06, 1.0, 0.94, 0.88, 0.82, 0.78]
+## Margen que debe quedar entre el menú y los bordes de la pantalla.
+const MENU_MARGIN := Vector2(20.0, 12.0)
+
+## Piezas del menú de opciones que cambian con la escala: [control, tamaño de letra a escala 1],
+## [control, tamaño mínimo a escala 1] e interruptores [botón, tamaño de letra a escala 1].
+var _menu_fonts: Array = []
+var _menu_sizes: Array = []
+var _menu_toggles: Array = []
+var _menu_sliders: VolumeSliders
+var _menu_hint: Label
+## Escala con la que se ha montado el menú (para pruebas y capturas).
+var menu_scale: float = 1.0
+
+
+func _menu_font(control: Control, font_size: int) -> void:
+	_menu_fonts.append([control, font_size])
+	control.add_theme_font_size_override("font_size", font_size)
+
+
+func _menu_size(control: Control, minimum: Vector2) -> void:
+	_menu_sizes.append([control, minimum])
+	control.custom_minimum_size = minimum
+
+
+func _menu_button(text: String, font_size: int, minimum: Vector2) -> Button:
+	var button := Button.new()
+	button.text = text
+	_menu_font(button, font_size)
+	_menu_size(button, minimum)
+	return button
+
+
+## Menú de opciones (pausa): a la izquierda las acciones, a la derecha sonido, ayudas y gráficos.
+## La letra y los interruptores van al mayor tamaño que quepa en la pantalla (_fit_pause_menu).
 func _build_pause_and_history() -> void:
 	_pause_panel = _centered_panel()
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
+	box.add_theme_constant_override("separation", 8)
 	_pause_panel.add_child(box)
 	var title := Label.new()
 	title.text = Loc.t("OPCIONES — JUEGO EN PAUSA")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 30)
+	_menu_font(title, 34)
 	box.add_child(title)
 	var columns := HBoxContainer.new()
-	columns.add_theme_constant_override("separation", 30)
+	columns.add_theme_constant_override("separation", 26)
 	box.add_child(columns)
 	var actions := VBoxContainer.new()
-	actions.add_theme_constant_override("separation", 12)
+	actions.add_theme_constant_override("separation", 10)
 	columns.add_child(actions)
 	var options := VBoxContainer.new()
-	options.add_theme_constant_override("separation", 8)
+	options.add_theme_constant_override("separation", 4)
 	columns.add_child(options)
 
-	var resume := _button(Loc.t("CONTINUAR"))
+	var action_size := Vector2(MENU_ACTION_WIDTH, MENU_ACTION_HEIGHT)
+	var resume := _menu_button(Loc.t("CONTINUAR"), 30, action_size)
 	resume.pressed.connect(func() -> void: _set_paused(false))
 	actions.add_child(resume)
-	var difficulty := _button("", 22)
-	difficulty.custom_minimum_size = Vector2(380.0, 96.0)
+	# Dificultad: el botón la cambia y debajo va su explicación (en dos líneas como mucho).
+	var difficulty := _menu_button("", 28, action_size)
+	_menu_hint = Label.new()
+	_menu_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_menu_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_menu_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_menu_hint.add_theme_color_override("font_color", Color(0.82, 0.84, 0.78))
+	_menu_font(_menu_hint, 20)
 	var refresh: Callable = func() -> void:
-		difficulty.text = Loc.t("DIFICULTAD: %s\n%s") % [Loc.t(GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty]), Loc.t(GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty])]
+		var parts: PackedStringArray = (Loc.t("DIFICULTAD: %s\n%s") % [Loc.t(GameSettings.DIFFICULTY_NAMES[GameSettings.difficulty]), Loc.t(GameSettings.DIFFICULTY_HINTS[GameSettings.difficulty])]).split("\n", true, 1)
+		difficulty.text = parts[0]
+		_menu_hint.text = parts[1] if parts.size() > 1 else ""
 	difficulty.pressed.connect(func() -> void:
 		GameSettings.difficulty = (GameSettings.difficulty + 1) % 4
 		GameSettings.save()
 		refresh.call())
 	refresh.call()
 	actions.add_child(difficulty)
-	var vehicles := _button(Loc.t("HISTORIA: VEHÍCULOS DEL JUEGO"), 22)
+	actions.add_child(_menu_hint)
+	var vehicles := _menu_button(Loc.t("HISTORIA: VEHÍCULOS DEL JUEGO"), 24, action_size)
 	vehicles.pressed.connect(func() -> void:
 		_history_from_menu = true
 		_pause_panel.visible = false
@@ -176,22 +226,45 @@ func _build_pause_and_history() -> void:
 		move_child(_history_panel, -1)
 		_history_panel.visible = true)
 	actions.add_child(vehicles)
-	var restart := _button(Loc.t("REINICIAR"))
+	var restart := _menu_button(Loc.t("REINICIAR"), 30, action_size)
 	restart.pressed.connect(_restart)
 	actions.add_child(restart)
-	var menu := _button(Loc.t("ABANDONAR"))
+	var menu := _menu_button(Loc.t("ABANDONAR"), 30, action_size)
 	menu.add_theme_color_override("font_color", VectorMaterials.ORANGE)
 	menu.pressed.connect(_to_menu)
 	actions.add_child(menu)
 
-	options.add_child(VolumeSliders.create())
+	_menu_sliders = VolumeSliders.create(2, 26, Vector2(220.0, 50.0))
+	options.add_child(_menu_sliders)
 	options.add_child(_make_toggle(Loc.t("Destacar enemigos (borde amarillo)"), GameSettings.highlight_enemies, func(on: bool) -> void:
 		GameSettings.highlight_enemies = on
 		GameSettings.save()
 		for node in get_tree().get_nodes_in_group(&"tanks"):
 			(node as Tank).refresh_highlight()))
-	var effects := _button("", 22)
-	effects.custom_minimum_size = Vector2(0.0, 54.0)
+	options.add_child(_make_toggle(Loc.t("Destacar objetivos (borde azul)"), GameSettings.highlight_objectives, func(on: bool) -> void:
+		GameSettings.highlight_objectives = on
+		GameSettings.save()
+		get_tree().call_group(&"objectives", &"refresh_highlight")
+		for node in get_tree().get_nodes_in_group(&"tanks"):
+			(node as Tank).refresh_highlight()))
+	toggles["easy_drive"] = _make_toggle(Loc.t("Movimiento fácil (el tanque se alinea con el cañón)"), GameSettings.easy_drive, func(on: bool) -> void:
+		GameSettings.easy_drive = on
+		GameSettings.save())
+	options.add_child(toggles["easy_drive"])
+	options.add_child(_make_toggle(Loc.t("Recentrar el cañón al frente (sin movimiento fácil)"), GameSettings.auto_recenter, func(on: bool) -> void:
+		GameSettings.auto_recenter = on
+		GameSettings.save()))
+	toggles["aim_assist"] = _make_toggle(Loc.t("Apuntado automático (cerca del enemigo)"), GameSettings.aim_assist, func(on: bool) -> void:
+		GameSettings.aim_assist = on
+		GameSettings.save())
+	options.add_child(toggles["aim_assist"])
+	options.add_child(_make_toggle(Loc.t("Sombras (desactivar si va lento)"), GameSettings.shadows, func(on: bool) -> void:
+		GameSettings.shadows = on
+		GameSettings.save()
+		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
+		if sun != null:
+			sun.shadow_enabled = on))
+	var effects := _menu_button("", 26, Vector2(0.0, MENU_ROW_HEIGHT))
 	_refresh_effects = func() -> void:
 		var text: String = Loc.t("EFECTOS GRÁFICOS: %s") % Loc.t(GameSettings.EFFECTS_NAMES[GameSettings.effects])
 		var in_use: int = Fx.on(self).level()
@@ -208,23 +281,6 @@ func _build_pause_and_history() -> void:
 		_refresh_effects.call())
 	_refresh_effects.call()
 	options.add_child(effects)
-	options.add_child(_make_toggle(Loc.t("Sombras (desactivar si va lento)"), GameSettings.shadows, func(on: bool) -> void:
-		GameSettings.shadows = on
-		GameSettings.save()
-		var sun := get_tree().current_scene.get_node_or_null("Sun") as DirectionalLight3D
-		if sun != null:
-			sun.shadow_enabled = on))
-	toggles["easy_drive"] = _make_toggle(Loc.t("Movimiento fácil (el tanque se alinea con el cañón)"), GameSettings.easy_drive, func(on: bool) -> void:
-		GameSettings.easy_drive = on
-		GameSettings.save())
-	options.add_child(toggles["easy_drive"])
-	options.add_child(_make_toggle(Loc.t("Recentrar el cañón al frente (sin movimiento fácil)"), GameSettings.auto_recenter, func(on: bool) -> void:
-		GameSettings.auto_recenter = on
-		GameSettings.save()))
-	toggles["aim_assist"] = _make_toggle(Loc.t("Apuntado automático (cerca del enemigo)"), GameSettings.aim_assist, func(on: bool) -> void:
-		GameSettings.aim_assist = on
-		GameSettings.save())
-	options.add_child(toggles["aim_assist"])
 
 	# Botón HISTORIA junto a la ficha del objetivo fijado.
 	_history_button = _button(Loc.t("HISTORIA"), 20)
@@ -339,6 +395,8 @@ func _set_paused(paused: bool) -> void:
 	get_tree().paused = paused
 	if paused and _refresh_effects.is_valid():
 		_refresh_effects.call()
+	if paused:
+		_fit_pause_menu()
 	move_child(_pause_panel, -1)
 	_pause_panel.visible = paused
 	_history_panel.visible = false
@@ -433,6 +491,15 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 		else:
 			_with_ad(_restart, ad_after))
 	box.add_child(retry)
+	if story_win:
+		# Repetir la misión recién superada con otro tanque del bando (premium): se elige en el
+		# parte de la misión. Sin premium lleva a la pantalla que lo explica.
+		var premium: bool = Premium.is_premium()
+		var other := _button(Loc.t("REPETIR CON OTRO TANQUE") if premium else Loc.t("REPETIR CON OTRO TANQUE (PREMIUM)"))
+		other.pressed.connect(func() -> void:
+			GameSession.menu_page = "briefing" if premium else "premium"
+			_to_menu())
+		box.add_child(other)
 	var menu := _button(Loc.t("MENÚ PRINCIPAL"))
 	# En supervivencia el anuncio sale también al volver al menú (es el final de la partida).
 	menu.pressed.connect(func() -> void:
@@ -444,13 +511,45 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 		_end_panel.visible = true)
 
 
+## Interruptor del menú de opciones (su tamaño lo pone _apply_menu_scale).
 func _make_toggle(text: String, value: bool, on_change: Callable) -> CheckButton:
-	var toggle := CheckButton.new()
-	toggle.text = text
-	toggle.button_pressed = value
-	toggle.add_theme_font_size_override("font_size", 24)
-	toggle.toggled.connect(on_change)
+	var toggle: CheckButton = UiKit.toggle(text, value, on_change, 30)
+	_menu_toggles.append([toggle, 30])
 	return toggle
+
+
+## Monta el menú de opciones a la mayor escala con la que cabe entero en la pantalla, sin
+## desplazarlo: prueba de la más grande a la más pequeña, con los cuatro volúmenes en una fila
+## (pantallas anchas) o en dos. `screen` es el tamaño de pantalla a usar (cero = el de verdad).
+func _fit_pause_menu(screen: Vector2 = Vector2.ZERO) -> void:
+	var room: Vector2 = (screen if screen != Vector2.ZERO else size) - MENU_MARGIN * 2.0
+	for scale: float in MENU_SCALES:
+		for per_row: int in [4, 2]:
+			_apply_menu_scale(scale, per_row)
+			var needed: Vector2 = _pause_panel.get_combined_minimum_size()
+			if needed.x <= room.x and needed.y <= room.y:
+				return
+
+
+func _apply_menu_scale(scale: float, sliders_per_row: int) -> void:
+	menu_scale = scale
+	for entry: Array in _menu_fonts:
+		(entry[0] as Control).add_theme_font_size_override("font_size", roundi(entry[1] * scale))
+	for entry: Array in _menu_sizes:
+		(entry[0] as Control).custom_minimum_size = (entry[1] as Vector2) * scale
+	for entry: Array in _menu_toggles:
+		UiKit.style_toggle(entry[0], roundi(entry[1] * scale))
+		(entry[0] as Control).custom_minimum_size.y = maxf((entry[0] as Control).custom_minimum_size.y, MENU_ROW_HEIGHT * scale)
+	_menu_sliders.layout(sliders_per_row, roundi(26.0 * scale), Vector2((200.0 if sliders_per_row == 4 else 240.0) * scale, 50.0 * scale))
+	# La explicación de la dificultad reserva sitio para la más larga de las cuatro, para que el
+	# menú no cambie de tamaño al cambiar de dificultad.
+	var font: Font = _menu_hint.get_theme_font("font")
+	var font_size: int = roundi(20.0 * scale)
+	var width: float = MENU_ACTION_WIDTH * scale
+	var height: float = 0.0
+	for hint: String in GameSettings.DIFFICULTY_HINTS:
+		height = maxf(height, font.get_multiline_string_size(Loc.t(hint), HORIZONTAL_ALIGNMENT_CENTER, width, font_size).y)
+	_menu_hint.custom_minimum_size = Vector2(width, height)
 
 
 func _make_label(font_size: int, pos: Vector2) -> Label:
@@ -458,6 +557,9 @@ func _make_label(font_size: int, pos: Vector2) -> Label:
 	label.position = pos
 	label.add_theme_color_override("font_color", VectorMaterials.GREEN)
 	label.add_theme_font_size_override("font_size", font_size)
+	# Con borde oscuro: el verde se pierde sobre un cielo claro o un suelo soleado.
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.8))
+	label.add_theme_constant_override("outline_size", 6)
 	add_child(label)
 	return label
 
@@ -585,7 +687,7 @@ func _aim_screen_point(center: Vector2) -> Vector2:
 		return center
 	var from: Vector3 = tank.muzzle.global_position
 	var to: Vector3 = from - tank.muzzle.global_transform.basis.z * 250.0
-	var query := PhysicsRayQueryParameters3D.create(from, to, 1)
+	var query := PhysicsRayQueryParameters3D.create(from, to, 1 | Terrain.LAYER)
 	var hit: Dictionary = tank.get_world_3d().direct_space_state.intersect_ray(query)
 	var point: Vector3 = hit["position"] if not hit.is_empty() else to
 	if tank.camera.is_position_behind(point):

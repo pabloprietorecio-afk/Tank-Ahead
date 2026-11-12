@@ -436,7 +436,6 @@ const TABLE: Dictionary = {
 	"INFERNO": "NERAKA",
 	"RADIO": "RADIO",
 	"NIVEL PREMIUM": "TINGKAT PREMIUM",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Tiga misi pertama di setiap front gratis. Jadilah Premium untuk memainkan sisa kampanye dan menghapus iklan.",
 	"HAZTE PREMIUM": "JADI PREMIUM",
 	"RESTAURAR COMPRA": "PULIHKAN PEMBELIAN",
 	"SIGUIENTE MISIÓN (PREMIUM)": "MISI BERIKUTNYA (PREMIUM)",
@@ -453,6 +452,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "Memuat iklan…",
 	"No se ha completado el anuncio.": "Iklan tidak ditonton sampai selesai.",
 	"PRIVACIDAD DE LOS ANUNCIOS": "PRIVASI IKLAN",
+	"ATARDECER": "SENJA",
+	"SOLEADO": "CERAH",
+	"NUBES Y CLAROS": "CERAH BERAWAN",
+	"ALEATORIO": "ACAK",
+	"CLIMA: %s": "CUACA: %s",
+	"TANQUE: %s": "TANK: %s",
+	"★ OTRO TANQUE (PREMIUM)": "★ TANK LAIN (PREMIUM)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "ARMOR %d   SERANGAN %d   KECEPATAN %d km/jam",
+	"Destacar objetivos (borde azul)": "Sorot target (tepi biru)",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "Tiga misi pertama di setiap front gratis. Jadilah Premium untuk memainkan sisa kampanye, mengulang misi yang sudah selesai dengan tank lain mana pun, dan menghapus iklan.",
+	"REPETIR CON OTRO TANQUE": "ULANGI DENGAN TANK LAIN",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "ULANGI DENGAN TANK LAIN (PREMIUM)",
+	"REFUERZO ALIADO: LLEGA UN %s": "BANTUAN SEKUTU: %s TIBA",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

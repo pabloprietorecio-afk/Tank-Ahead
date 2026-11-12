@@ -48,15 +48,19 @@ func _process(delta: float) -> void:
 		_update_lock()
 	elif tank.aim_lock != null:
 		release_lock()
-	if is_nan(_aim_world) or tank.aim_lock != null or not GameSettings.easy_drive:
+	# Un cazacarros de casamata apenas gira el cañón: se apunta siempre como en el movimiento
+	# fácil (la mira manda) y es el casco el que gira para seguirla, también parado.
+	var casemate: bool = tank.turret_controller.traverse_limit > 0.0
+	var world_aim: bool = GameSettings.easy_drive or casemate
+	if is_nan(_aim_world) or tank.aim_lock != null or not world_aim:
 		_aim_world = tank.turret_controller.world_yaw
-	if GameSettings.easy_drive:
-		stick.x = _easy_turn(touch.move_vector)
+	if world_aim:
+		stick.x = _easy_turn(touch.move_vector, casemate)
 	tank.drive_input = stick
 
 	if tank.aim_lock != null:
 		tank.turret_controller.aim_at(_lock_point(tank.aim_lock))
-	elif GameSettings.easy_drive:
+	elif world_aim:
 		_aim_world = wrapf(_aim_world - look.x * look_sensitivity, -PI, PI)
 		tank.turret_controller.aim_world_yaw(_aim_world, -look.y * look_sensitivity)
 	elif GameSettings.auto_recenter:
@@ -112,7 +116,7 @@ func _lock_valid(enemy: Tank) -> bool:
 	var point: Vector3 = _lock_point(enemy)
 	if origin.distance_to(point) > LOCK_RANGE:
 		return false
-	var query := PhysicsRayQueryParameters3D.create(origin, point, WORLD_MASK)
+	var query := PhysicsRayQueryParameters3D.create(origin, point, WORLD_MASK | Terrain.LAYER)
 	return tank.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
@@ -136,11 +140,15 @@ func _classic_aim(look: Vector2, delta: float) -> void:
 
 
 ## Movimiento fácil: si el jugador no gira a mano, el casco gira hacia donde apunta el cañón
-## mientras el tanque avanza o retrocede, hasta quedar alineados.
-func _easy_turn(raw: Vector2) -> float:
+## mientras el tanque avanza o retrocede, hasta quedar alineados. Con `casemate` (cañón casi
+## fijo) el casco gira hacia donde se quiere apuntar, aunque el tanque esté parado.
+func _easy_turn(raw: Vector2, casemate: bool = false) -> float:
 	if absf(raw.x) > 0.35:
 		# Giro manual: el cañón mantiene su rumbo en el mundo.
 		return _turn
+	if casemate:
+		var off: float = angle_difference(tank.global_rotation.y, tank.turret_controller.desired_world_yaw())
+		return 0.0 if absf(off) < deg_to_rad(1.5) else clampf(-off * ALIGN_GAIN, -1.0, 1.0)
 	if absf(raw.y) < 0.1:
 		return 0.0
 	var diff: float = angle_difference(tank.global_rotation.y, tank.turret_controller.world_yaw)

@@ -207,6 +207,59 @@ static func _edge_key(a: Vector3, b: Vector3) -> String:
 	return str(ka) + str(kb)
 
 
+## Colores de los bordes que destacan cosas: enemigos en amarillo, objetivos en azul.
+const ENEMY_OUTLINE := Color(1.0, 0.9, 0.1)
+const OBJECTIVE_OUTLINE := Color(0.16, 0.6, 1.0)
+
+static var _outlines: Dictionary = {}
+
+
+## Material de borde (ver outline.gdshader) para poner como `material_overlay` de una malla.
+## `width` es el grosor en metros y `min_pixels` el mínimo en pantalla cuando está lejos.
+static func outline(color: Color, width: float = 0.03, min_pixels: float = 1.5) -> ShaderMaterial:
+	var key: String = "%s|%.3f|%.2f" % [color.to_html(), width, min_pixels]
+	if not _outlines.has(key):
+		var mat := ShaderMaterial.new()
+		mat.shader = load("res://shaders/outline.gdshader")
+		mat.set_shader_parameter("color", color)
+		mat.set_shader_parameter("width", width)
+		mat.set_shader_parameter("min_pixels", min_pixels)
+		_outlines[key] = mat
+	return _outlines[key]
+
+
+static var _contour: ShaderMaterial
+static var _contact_shadow: ShaderMaterial
+
+
+## Contorno oscuro de un píxel que recorta la silueta de un vehículo contra el terreno (ver
+## contour.gdshader). Se pone como `material_overlay`, igual que el borde de ayuda.
+static func contour() -> ShaderMaterial:
+	if _contour == null:
+		_contour = ShaderMaterial.new()
+		_contour.shader = load("res://shaders/contour.gdshader")
+	return _contour
+
+
+## Material de la sombra de contacto de los vehículos (ver contact_shadow.gdshader).
+static func contact_shadow() -> ShaderMaterial:
+	if _contact_shadow == null:
+		_contact_shadow = ShaderMaterial.new()
+		_contact_shadow.shader = load("res://shaders/contact_shadow.gdshader")
+		# Sobre el suelo y sus marcas; por debajo del humo y el polvo.
+		_contact_shadow.render_priority = -4
+	return _contact_shadow
+
+
+## Pone (o quita, con `color` transparente) el borde a todas las mallas que cuelgan de `root`.
+static func set_outline(root: Node, color: Color, width: float = 0.05, min_pixels: float = 1.8) -> void:
+	var overlay: Material = outline(color, width, min_pixels) if color.a > 0.0 else null
+	for node in root.find_children("*", "MeshInstance3D", true, false):
+		(node as MeshInstance3D).material_overlay = overlay
+	if root is MeshInstance3D:
+		(root as MeshInstance3D).material_overlay = overlay
+
+
 static var _paint: Dictionary = {}
 
 

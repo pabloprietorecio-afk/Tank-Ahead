@@ -41,6 +41,15 @@ func _ready() -> void:
 	health = max_health
 	collision_layer = 1
 	collision_mask = 0
+	refresh_highlight()
+
+
+## Borde azul de los objetivos de misión (ajuste «Destacar objetivos»).
+func refresh_highlight() -> void:
+	if objective_name == "":
+		return
+	var on: bool = GameSettings.highlight_objectives and not is_destroyed
+	VectorMaterials.set_outline(self, VectorMaterials.OBJECTIVE_OUTLINE if on else Color(0.0, 0.0, 0.0, 0.0))
 
 
 func take_hit(amount: float, _source: Node = null, point: Vector3 = Vector3.ZERO) -> void:
@@ -65,6 +74,8 @@ func take_hit(amount: float, _source: Node = null, point: Vector3 = Vector3.ZERO
 
 func _destroy() -> void:
 	is_destroyed = true
+	# Los restos se quedan con las piezas visibles: que no hereden el borde de objetivo.
+	refresh_highlight()
 	collision_layer = 0
 	var strength: float = clampf(size_hint * 0.6, 0.5, 2.0)
 	var center: Vector3 = global_position + Vector3.UP * size_hint * 0.5

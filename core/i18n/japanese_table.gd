@@ -436,7 +436,6 @@ const TABLE: Dictionary = {
 	"INFERNO": "地獄",
 	"RADIO": "無線",
 	"NIVEL PREMIUM": "プレミアム",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "各戦線の最初の3ミッションは無料です。プレミアムにすると、キャンペーンの残りをプレイでき、バナーやCMも表示されなくなります。",
 	"HAZTE PREMIUM": "プレミアムにする",
 	"RESTAURAR COMPRA": "プレミアムを再確認",
 	"SIGUIENTE MISIÓN (PREMIUM)": "次のミッション(プレミアム)",
@@ -453,6 +452,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "CMを準備中…",
 	"No se ha completado el anuncio.": "CMを最後まで見られませんでした。",
 	"PRIVACIDAD DE LOS ANUNCIOS": "CMのプライバシー設定",
+	"ATARDECER": "夕暮れ",
+	"SOLEADO": "晴れ",
+	"NUBES Y CLAROS": "晴れ時々曇り",
+	"ALEATORIO": "ランダム",
+	"CLIMA: %s": "天候：%s",
+	"TANQUE: %s": "戦車：%s",
+	"★ OTRO TANQUE (PREMIUM)": "★ 別の戦車(プレミアム)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "装甲 %d   攻撃力 %d   速度 %d km/h",
+	"Destacar objetivos (borde azul)": "目標を強調表示（青色の縁取り）",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "各戦線の最初の3ミッションは無料です。プレミアムにすると、キャンペーンの残りをプレイでき、クリア済みのミッションを別の戦車でやり直せて、バナーやCMも表示されなくなります。",
+	"REPETIR CON OTRO TANQUE": "別の戦車でもう一度",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "別の戦車でもう一度(プレミアム)",
+	"REFUERZO ALIADO: LLEGA UN %s": "味方の増援：%s が到着",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

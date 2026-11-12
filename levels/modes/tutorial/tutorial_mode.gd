@@ -216,8 +216,9 @@ func wants_pickups() -> bool:
 	return false
 
 
+## Las prácticas se hacen a pleno sol: es cuando mejor se ve todo.
 func forced_weather() -> int:
-	return Weather.Kind.CLEAR
+	return Weather.Kind.SUNNY
 
 
 func bind_ui(new_hud: Hud, new_touch: TouchControls, new_radar: Radar, new_input: PlayerInputSource) -> void:

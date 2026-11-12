@@ -17,6 +17,10 @@ static var front: int = Fronts.Id.NORMANDY
 static var menu_page: String = ""
 ## Clima forzado para pruebas y capturas (Weather.Kind); -1 = el que toque.
 static var debug_weather: int = -1
+## Campo sin decorado (solo suelo, muros y clima), para pruebas y capturas de comparación.
+static var debug_bare: bool = false
+## Tanque elegido para repetir una misión ya superada (premium); "" = el de serie del frente.
+static var tank_choice: String = ""
 
 
 static func enemy_faction() -> int:
@@ -31,6 +35,32 @@ static func resolve_front() -> void:
 		front = current_mission().get("front", Fronts.Id.NORMANDY)
 	else:
 		front = front_choice
+
+
+## Clima de la partida que va a empezar en `for_front`: el que eligió el jugador si existe en ese
+## frente; si no (o si eligió «aleatorio»), -1 para sortearlo.
+static func chosen_weather(for_front: int) -> int:
+	GameSettings.ensure_loaded()
+	return GameSettings.weather if GameSettings.weather in Fronts.weather_choices(for_front) else -1
+
+
+## ¿Está ya superada la misión `index` de la campaña elegida?
+static func mission_completed(index: int) -> bool:
+	return index < completed_missions()
+
+
+## Repetir una misión con otro tanque: solo las ya superadas y solo con premium.
+static func can_choose_tank(index: int) -> bool:
+	return mode == Mode.STORY and mission_completed(index) and Premium.is_premium()
+
+
+## Tanque con el que se juega la partida en curso: el de serie, salvo que se repita una misión
+## superada con otro de los del bando en ese frente.
+static func player_tank_id() -> String:
+	var standard: String = Fronts.PLAYER_TANK[front][faction]
+	if tank_choice == "" or not can_choose_tank(mission_index):
+		return standard
+	return tank_choice if tank_choice in Fronts.ROSTERS[front][faction] else standard
 
 
 static func missions() -> Array[Dictionary]:

@@ -119,7 +119,7 @@ func _physics_process(delta: float) -> void:
 				return
 	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	for attempt in MAX_SKIPS:
-		var query := PhysicsRayQueryParameters3D.create(from, to, MASK_WORLD | MASK_HURTBOX)
+		var query := PhysicsRayQueryParameters3D.create(from, to, MASK_WORLD | MASK_HURTBOX | Terrain.LAYER)
 		query.collide_with_areas = true
 		query.exclude = _ignore
 		var result: Dictionary = space.intersect_ray(query)
@@ -157,7 +157,8 @@ func _impact(collider: Object, point: Vector3, normal: Vector3) -> void:
 		# Árboles, casas, vallas...: el propio objeto pone su polvo y sus cascotes.
 		collider.take_hit(damage, shooter, point)
 		fx.pop(point + normal * 0.2, power * 0.6)
-	elif normal.y > 0.6 and point.y < 1.0:
+	elif (normal.y > 0.6 and point.y < 1.0) or (collider is Node and (collider as Node).is_in_group(&"terrain")):
+		# En el llano o en la ladera de una loma: surtidor de tierra.
 		fx.shell_ground(point, power)
 	else:
 		fx.shell_solid(point, normal, WALL_COLOR, power)

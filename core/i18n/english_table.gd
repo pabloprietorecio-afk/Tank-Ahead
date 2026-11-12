@@ -434,7 +434,6 @@ const TABLE: Dictionary = {
 	"Tigre Real: el tanque más pesado que entró en combate en el frente occidental, con un 88 mm larguísimo. Se fabricaron menos de 500 desde 1944.": "King Tiger: the heaviest tank to see combat on the Western Front, with a very long 88 mm gun. Fewer than 500 were built from 1944.",
 	"RADIO": "RADIO",
 	"NIVEL PREMIUM": "PREMIUM TIER",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "The first three missions of each front are free. Go Premium to play the rest of the campaign and remove ads.",
 	"HAZTE PREMIUM": "GO PREMIUM",
 	"RESTAURAR COMPRA": "RESTORE PURCHASE",
 	"SIGUIENTE MISIÓN (PREMIUM)": "NEXT MISSION (PREMIUM)",
@@ -451,6 +450,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "Loading the ad…",
 	"No se ha completado el anuncio.": "The ad was not completed.",
 	"PRIVACIDAD DE LOS ANUNCIOS": "AD PRIVACY",
+	"ATARDECER": "SUNSET",
+	"SOLEADO": "SUNNY",
+	"NUBES Y CLAROS": "SUN AND CLOUDS",
+	"ALEATORIO": "RANDOM",
+	"CLIMA: %s": "WEATHER: %s",
+	"TANQUE: %s": "TANK: %s",
+	"★ OTRO TANQUE (PREMIUM)": "★ ANOTHER TANK (PREMIUM)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "ARMOUR %d   ATTACK %d   SPEED %d km/h",
+	"Destacar objetivos (borde azul)": "Highlight objectives (blue outline)",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "The first three missions of each front are free. Go Premium to play the rest of the campaign, replay completed missions with any other tank and remove ads.",
+	"REPETIR CON OTRO TANQUE": "REPLAY WITH ANOTHER TANK",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "REPLAY WITH ANOTHER TANK (PREMIUM)",
+	"REFUERZO ALIADO: LLEGA UN %s": "ALLIED REINFORCEMENT: %s ARRIVING",
 }
 
 ## Mismo texto en español con otro sentido: contexto → {texto: inglés}.

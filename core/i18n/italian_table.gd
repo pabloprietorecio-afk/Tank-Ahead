@@ -436,7 +436,6 @@ const TABLE: Dictionary = {
 	"INFERNO": "INFERNO",
 	"RADIO": "RADIO",
 	"NIVEL PREMIUM": "LIVELLO PREMIUM",
-	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios.": "Le prime tre missioni di ogni fronte sono gratuite. Passa a Premium per giocare il resto della campagna e rimuovere gli annunci.",
 	"HAZTE PREMIUM": "PASSA A PREMIUM",
 	"RESTAURAR COMPRA": "RIPRISTINA ACQUISTO",
 	"SIGUIENTE MISIÓN (PREMIUM)": "MISSIONE SUCCESSIVA (PREMIUM)",
@@ -453,6 +452,19 @@ const TABLE: Dictionary = {
 	"Cargando el anuncio…": "Caricamento della pubblicità…",
 	"No se ha completado el anuncio.": "La pubblicità non è stata completata.",
 	"PRIVACIDAD DE LOS ANUNCIOS": "PRIVACY DELLE PUBBLICITÀ",
+	"ATARDECER": "TRAMONTO",
+	"SOLEADO": "SOLEGGIATO",
+	"NUBES Y CLAROS": "NUBI E SCHIARITE",
+	"ALEATORIO": "CASUALE",
+	"CLIMA: %s": "METEO: %s",
+	"TANQUE: %s": "CARRO: %s",
+	"★ OTRO TANQUE (PREMIUM)": "★ ALTRO CARRO (PREMIUM)",
+	"BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h": "BLINDATURA %d   ATTACCO %d   VELOCITÀ %d km/h",
+	"Destacar objetivos (borde azul)": "Evidenzia gli obiettivi (bordo blu)",
+	"Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios.": "Le prime tre missioni di ogni fronte sono gratuite. Passa a Premium per giocare il resto della campagna, rigiocare le missioni completate con qualsiasi altro carro e rimuovere gli annunci.",
+	"REPETIR CON OTRO TANQUE": "RIGIOCA CON UN ALTRO CARRO",
+	"REPETIR CON OTRO TANQUE (PREMIUM)": "RIGIOCA CON UN ALTRO CARRO (PREMIUM)",
+	"REFUERZO ALIADO: LLEGA UN %s": "RINFORZO ALLEATO: ARRIVA UN %s",
 }
 
 ## Textos que en español se repiten con otro sentido (ver Loc.tc).

@@ -47,6 +47,11 @@ static var difficulty: int = 1
 
 ## Dibuja un borde amarillo alrededor de los tanques enemigos para verlos mejor.
 static var highlight_enemies: bool = false
+## Dibuja un borde azul alrededor de los objetivos de la misión (edificios, comandante, bandera).
+static var highlight_objectives: bool = false
+
+## Clima elegido por el jugador (Weather.Kind) o -1 para sortearlo en cada partida.
+static var weather: int = -1
 
 ## Idioma del juego: "es" (por defecto) o "en".
 static var language: String = "es"
@@ -70,6 +75,8 @@ static func ensure_loaded() -> void:
 		master_volume = cfg.get_value("audio", "master", master_volume)
 		difficulty = clampi(cfg.get_value("game", "difficulty", difficulty), 0, 3)
 		highlight_enemies = cfg.get_value("game", "highlight_enemies", highlight_enemies)
+		highlight_objectives = cfg.get_value("game", "highlight_objectives", highlight_objectives)
+		weather = clampi(cfg.get_value("game", "weather", weather), -1, Weather.Kind.size() - 1)
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 		language = str(cfg.get_value("game", "language", language))
@@ -89,6 +96,8 @@ static func save() -> void:
 	cfg.set_value("audio", "master", master_volume)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "highlight_enemies", highlight_enemies)
+	cfg.set_value("game", "highlight_objectives", highlight_objectives)
+	cfg.set_value("game", "weather", weather)
 	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.set_value("game", "language", language)

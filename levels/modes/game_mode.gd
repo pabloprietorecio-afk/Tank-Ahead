@@ -237,7 +237,7 @@ func call_air_strike() -> bool:
 		var from: Vector3 = player.muzzle.global_position
 		var to: Vector3 = from - player.muzzle.global_transform.basis.z * 300.0
 		to.y = minf(to.y, 0.0)
-		var query := PhysicsRayQueryParameters3D.create(from, to, 1)
+		var query := PhysicsRayQueryParameters3D.create(from, to, 1 | Terrain.LAYER)
 		var hit: Dictionary = player.get_world_3d().direct_space_state.intersect_ray(query)
 		point = hit["position"] if not hit.is_empty() else from - player.muzzle.global_transform.basis.z * 150.0
 	if Vector2(point.x - player.global_position.x, point.z - player.global_position.z).length() < 30.0:
@@ -294,7 +294,7 @@ func spawn_tank(stats: TankStats, team: int, pos: Vector2, yaw: float = 0.0) -> 
 	tank.stats = stats
 	tank.team = team
 	tank.paint = Fronts.paint(front, faction_of(team), stats.nation)
-	tank.position = Vector3(pos.x, 0.2, pos.y)
+	tank.position = Vector3(pos.x, 0.2 + Terrain.height(pos.x, pos.y), pos.y)
 	tank.rotation.y = yaw
 	world.add_child(tank)
 	var brain := AIBrain.new()
@@ -404,18 +404,21 @@ const EDGE: float = 186.0
 
 
 ## Punto libre en el límite del mapa, a `min_distance` o más del jugador: los enemigos entran
-## desde fuera en vez de aparecer de la nada. Con `north_only` solo por el lado norte.
-func edge_point(min_distance: float = 110.0, north_only: bool = false) -> Vector2:
+## desde fuera en vez de aparecer de la nada. Con `north_only` solo por el lado norte; con
+## `south_only`, solo por el sur (la retaguardia del jugador: por ahí llegan sus refuerzos).
+func edge_point(min_distance: float = 110.0, north_only: bool = false, south_only: bool = false) -> Vector2:
 	var origin := Vector2.ZERO
 	if is_instance_valid(player):
 		origin = Vector2(player.global_position.x, player.global_position.z)
-	var best := Vector2(0.0, -EDGE)
+	var best := Vector2(0.0, EDGE if south_only else -EDGE)
 	var best_distance: float = -1.0
 	var solids: Array = _solid_shapes()
 	for attempt in 40:
 		var along: float = randf_range(-EDGE, EDGE)
 		var point := Vector2(along, -EDGE)
-		if not north_only:
+		if south_only:
+			point = Vector2(along, EDGE)
+		elif not north_only:
 			match randi() % 4:
 				1:
 					point = Vector2(along, EDGE)

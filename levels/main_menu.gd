@@ -110,6 +110,9 @@ func _ready() -> void:
 	elif page == "premium":
 		# Viene del final de una misión cuya siguiente exige premium.
 		_page_premium()
+	elif page == "briefing":
+		# Viene del final de una misión: repetirla (con otro tanque, si es premium).
+		_page_briefing(GameSession.mission_index)
 	elif not GameSession.tutorial_offered():
 		_page_tutorial_offer()
 	else:
@@ -191,14 +194,19 @@ func _fit() -> void:
 	var over: float = needed_height() - screen
 	if over <= 0.0:
 		return
-	var rows: Array[Button] = []
+	# Cada fila es un botón o varios puestos en horizontal (que se encogen a la vez).
+	var rows: Array[Array] = []
 	var shown: int = 0
 	for child in _content.get_children():
 		if not (child as Control).visible:
 			continue
 		shown += 1
 		if child is Button:
-			rows.append(child)
+			rows.append([child])
+		elif child is HBoxContainer:
+			var group: Array = child.get_children().filter(func(item: Node) -> bool: return item is Button)
+			if not group.is_empty():
+				rows.append(group)
 	var gap: int = ROW_GAP
 	while gap > 5 and over > 0.0:
 		gap -= 1
@@ -207,16 +215,26 @@ func _fit() -> void:
 	# Se reparte el recorte entre las filas que aún pueden encogerse (varias pasadas: las que
 	# llegan al mínimo dejan su parte a las demás).
 	for step in 4:
-		var loose: Array[Button] = rows.filter(func(row: Button) -> bool: return row.custom_minimum_size.y > ROW_MIN)
+		var loose: Array[Array] = rows.filter(func(row: Array) -> bool: return _row_height(row) > ROW_MIN)
 		if over <= 0.0 or loose.is_empty():
 			break
 		var cut: float = ceilf(over / loose.size())
 		for row in loose:
-			var height: float = maxf(row.custom_minimum_size.y - cut, ROW_MIN)
-			over -= row.custom_minimum_size.y - height
-			row.custom_minimum_size.y = height
-			if height < 62.0 and row.get_theme_font_size("font_size") > 24:
-				row.add_theme_font_size_override("font_size", 24)
+			var before: float = _row_height(row)
+			var height: float = maxf(before - cut, ROW_MIN)
+			over -= before - height
+			for button: Button in row:
+				button.custom_minimum_size.y = minf(button.custom_minimum_size.y, height)
+				if height < 62.0 and button.get_theme_font_size("font_size") > 24:
+					button.add_theme_font_size_override("font_size", 24)
+
+
+## Alto de una fila de botones (el del más alto).
+func _row_height(row: Array) -> float:
+	var height: float = 0.0
+	for button: Button in row:
+		height = maxf(height, button.custom_minimum_size.y)
+	return height
 
 
 ## Fila de la categoría `tint`: fondo y borde izquierdo del color, y letra clara del mismo tono.
@@ -261,6 +279,78 @@ func _back(action: Callable) -> void:
 	var button := _button(Loc.t("◀ VOLVER"), action)
 	button.add_theme_font_size_override("font_size", 22)
 	button.custom_minimum_size.y = 56.0
+
+
+## Fila de controles en horizontal dentro de la página.
+func _row() -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", ROW_GAP)
+	_content.add_child(row)
+	return row
+
+
+## Pie de página: «volver» estrecho a la izquierda y la acción principal ocupando el resto.
+func _footer(back_action: Callable, text: String, action: Callable) -> void:
+	var footer := _row()
+	var back: Button = _button(Loc.t("◀ VOLVER"), back_action)
+	back.reparent(footer)
+	back.add_theme_font_size_override("font_size", 22)
+	back.custom_minimum_size = Vector2(210.0, ROW_HEIGHT)
+	var main: Button = _button(text, action, true, TINT_PLAY)
+	main.reparent(footer)
+	main.custom_minimum_size = Vector2(400.0, ROW_HEIGHT)
+	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+
+## Desplegable del clima de la partida: «aleatorio» o uno de los del frente. Lo elegido se guarda
+## y vale también para las partidas siguientes, mientras ese clima exista en su frente.
+func _weather_picker(front: int) -> OptionButton:
+	GameSettings.ensure_loaded()
+	var kinds: Array[int] = Fronts.weather_choices(front)
+	var names: Array = [Loc.t("ALEATORIO")]
+	for kind in kinds:
+		names.append(Weather.name_of(kind, front))
+	var picker: OptionButton = UiKit.dropdown(names, kinds.find(GameSettings.weather) + 1, func(index: int) -> void:
+		GameSettings.weather = -1 if index == 0 else kinds[index - 1]
+		GameSettings.save(), 26, Loc.t("CLIMA: %s"))
+	picker.custom_minimum_size = Vector2(370.0, ROW_HEIGHT)
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return picker
+
+
+## Tanque con el que repetir una misión ya superada: los del bando en ese frente (premium). Sin
+## premium es un botón que lleva a la pantalla premium; si la misión aún no se ha superado no
+## hay nada que elegir (devuelve null). `note` muestra los datos del tanque elegido.
+func _tank_picker(index: int, note: Label) -> Control:
+	if not GameSession.mission_completed(index):
+		return null
+	if not Premium.is_premium():
+		var locked := Button.new()
+		locked.text = Loc.t("★ OTRO TANQUE (PREMIUM)")
+		locked.add_theme_font_size_override("font_size", 24)
+		locked.custom_minimum_size = Vector2(370.0, ROW_HEIGHT)
+		locked.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		locked.modulate = Color(1.0, 1.0, 1.0, 0.92)
+		locked.pressed.connect(_page_premium.bind(index))
+		return locked
+	var front: int = GameSession.front_choice
+	var faction: int = GameSession.faction
+	var ids: Array = Fronts.ROSTERS[front][faction]
+	var standard: String = Fronts.PLAYER_TANK[front][faction]
+	var names: Array = []
+	for id: String in ids:
+		names.append(Fronts.tank(id).display_name)
+	var describe: Callable = func(id: String) -> void:
+		var stats: TankStats = Fronts.player_stats(front, faction, id)
+		note.text = Loc.t("BLINDAJE %d   ATAQUE %d   VELOCIDAD %d km/h") % [roundi(stats.max_armor), roundi(stats.damage), roundi(stats.max_speed * 3.6)]
+	var current: String = GameSession.tank_choice if GameSession.tank_choice in ids else standard
+	describe.call(current)
+	var picker: OptionButton = UiKit.dropdown(names, ids.find(current), func(choice: int) -> void:
+		GameSession.tank_choice = "" if ids[choice] == standard else ids[choice]
+		describe.call(ids[choice]), 26, Loc.t("TANQUE: %s"))
+	picker.custom_minimum_size = Vector2(370.0, ROW_HEIGHT)
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return picker
 
 
 func _page_mode() -> void:
@@ -411,15 +501,13 @@ func _page_audio() -> void:
 		Fx.on(self).set_level(GameSettings.effects)
 		refresh_effects.call())
 	refresh_effects.call()
-	var highlight := CheckButton.new()
-	highlight.text = Loc.t("Destacar enemigos (borde amarillo)")
-	highlight.button_pressed = GameSettings.highlight_enemies
-	highlight.add_theme_font_size_override("font_size", 26)
-	highlight.toggled.connect(func(on: bool) -> void:
+	_content.add_child(UiKit.toggle(Loc.t("Destacar enemigos (borde amarillo)"), GameSettings.highlight_enemies, func(on: bool) -> void:
 		GameSettings.highlight_enemies = on
-		GameSettings.save())
-	_content.add_child(highlight)
-	_content.add_child(VolumeSliders.create())
+		GameSettings.save(), 26))
+	_content.add_child(UiKit.toggle(Loc.t("Destacar objetivos (borde azul)"), GameSettings.highlight_objectives, func(on: bool) -> void:
+		GameSettings.highlight_objectives = on
+		GameSettings.save(), 26))
+	_content.add_child(VolumeSliders.create(2, 24, Vector2(180.0, 46.0)))
 	if Ads.privacy_options_available():
 		_button(Loc.t("PRIVACIDAD DE LOS ANUNCIOS"), Ads.show_privacy_options)
 	# Pie: idioma y volver en la misma fila (así la página cabe en pantallas bajas). El idioma se
@@ -483,7 +571,19 @@ func _choose_front(front: int) -> void:
 	if GameSession.mode == GameSession.Mode.STORY:
 		_page_missions()
 	else:
-		_play()
+		_page_start()
+
+
+## Supervivencia y captura la bandera: última pantalla antes del combate, con el clima.
+func _page_start() -> void:
+	var front: int = GameSession.front_choice
+	_clear("%s — %s" % [Loc.t(GameSession.MODE_NAMES[GameSession.mode]), Loc.t(Fronts.NAMES[front])])
+	var tank_name: String = Fronts.tank(Fronts.PLAYER_TANK[front][GameSession.faction]).display_name
+	_content.add_child(_label(Loc.t("%s  ·  tu tanque: %s") % [Loc.t(Fronts.FACTION_NAMES[GameSession.faction]), tank_name], 24, Color(0.85, 0.9, 0.85)))
+	var picker: OptionButton = _weather_picker(front)
+	picker.custom_minimum_size.x = 620.0
+	_content.add_child(picker)
+	_footer(_page_front, Loc.t("▶ COMENZAR"), _play)
 
 
 func _page_missions() -> void:
@@ -513,7 +613,7 @@ func _page_premium(index: int = -1) -> void:
 		return
 	_clear(Loc.t("NIVEL PREMIUM"))
 	_showing_premium = true
-	var text := _label(Loc.t("Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña y quitar los anuncios."), 26, Color(0.85, 0.9, 0.85))
+	var text := _label(Loc.t("Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios."), 26, Color(0.85, 0.9, 0.85))
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.custom_minimum_size = Vector2(760.0, 0.0)
 	_content.add_child(text)
@@ -525,7 +625,8 @@ func _page_premium(index: int = -1) -> void:
 	_button(Loc.t("RESTAURAR COMPRA"), PremiumStore.restore, idle)
 	# Anuncio recompensado: abre esta misión una vez (solo la siguiente por jugar, no saltándose ninguna).
 	var reward_note: String = ""
-	if GameSession.mission_index >= 0 and GameSession.mission_index <= GameSession.completed_missions() and Ads.rewarded_offered():
+	# No se ofrece si se ha llegado aquí desde una misión gratuita (para cambiar de tanque).
+	if GameSession.mission_index >= 0 and GameSession.mission_index <= GameSession.completed_missions() and Premium.mission_locked(GameSession.mission_index) and Ads.rewarded_offered():
 		var ready_ad: bool = Ads.rewarded_ready() and not _reward_busy
 		_button(Loc.t("VER UN ANUNCIO Y JUGAR ESTA MISIÓN"), _watch_ad, ready_ad)
 		if _reward_busy:
@@ -612,8 +713,18 @@ func _page_briefing(index: int) -> void:
 	text.custom_minimum_size = Vector2(760.0, 0.0)
 	_content.add_child(text)
 	_content.add_child(_label(Loc.t("Frente: %s") % Loc.t(Fronts.NAMES[mission["front"]]), 22, AMBER))
-	_button(Loc.t("▶ COMENZAR"), _play)
-	_back(_page_missions)
+	# El clima de la partida y, en las misiones ya superadas, el tanque con el que repetirla.
+	var choices := _row()
+	choices.add_child(_weather_picker(mission["front"]))
+	var tank_note := _label("", 20, Color(0.85, 0.9, 0.85))
+	var tank_picker: Control = _tank_picker(index, tank_note)
+	if tank_picker != null:
+		choices.add_child(tank_picker)
+	if tank_note.text != "":
+		_content.add_child(tank_note)
+	else:
+		tank_note.free()
+	_footer(_page_missions, Loc.t("▶ COMENZAR"), _play)
 
 
 func _play() -> void:
