@@ -99,6 +99,8 @@ class Runner extends Node:
 			await _weather_shots()
 		if only.contains("vista_contraste"):
 			await _contrast_shots()
+		if only.contains("vista_mira"):
+			await _reticle_shots()
 		if _wants(only, "vista_loma"):
 			await _mound_shots()
 		if _wants(only, "vista_halo"):
@@ -1587,6 +1589,50 @@ class Runner extends Node:
 		GameSession.debug_weather = -1
 		GameSettings.camera_view = 1
 		GameSettings.highlight_enemies = was_enemies
+
+	## La mira del cañón sobre cada cielo con el cañón alzado (18º, el máximo normal), fijando un
+	## enemigo, y con el cañón a 60º en una vista exterior (fuera de la pantalla: debe quedarse en
+	## el borde con una flecha). Imprime dónde cae la mira. Solo se lanza a mano (SHOTS_ONLY=vista_mira).
+	func _reticle_shots() -> void:
+		var skies: Array = [
+			[Weather.Kind.SUNNY, "soleado"],
+			[Weather.Kind.CLOUDS, "nubes"],
+			[Weather.Kind.CLEAR, "atardecer"],
+			[Weather.Kind.RAIN, "lluvia"],
+		]
+		var bad: int = 0
+		for sky: Array in skies:
+			var sky_hud: Hud = await _start_game(GameSession.Mode.CTF, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, sky[0], 1)
+			var sky_player: Tank = _player_tank()
+			await get_tree().create_timer(1.5).timeout
+			sky_player.turret_controller.pitch = deg_to_rad(18.0)
+			sky_player.turret_controller._target_pitch = deg_to_rad(18.0)
+			await _frames(6)
+			var aim: Vector2 = sky_hud._aim_screen_point(sky_hud.size * 0.5)
+			print("MIRA %s cañón a 18º: mira en %d,%d de %dx%d" % [sky[1], roundi(aim.x), roundi(aim.y), roundi(sky_hud.size.x), roundi(sky_hud.size.y)])
+			await _snap("mira_%s_arriba" % sky[1])
+		var hud: Hud = await _start_game(GameSession.Mode.CTF, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+		var player: Tank = _player_tank()
+		await get_tree().create_timer(1.5).timeout
+		# Sin la ayuda de apuntado el jugador suelta el objetivo solo: se enciende para la captura.
+		var was_assist: bool = GameSettings.aim_assist
+		GameSettings.aim_assist = true
+		var enemy: Tank = _pose_tank(player, true, 60.0, 0.0)
+		player.aim_lock = enemy
+		await _frames(8)
+		print("MIRA objetivo fijado: %s" % (player.aim_lock == enemy))
+		await _snap("mira_fijada")
+		GameSettings.aim_assist = was_assist
+		player.aim_lock = null
+		player.turret_controller.max_pitch = deg_to_rad(60.0)
+		player.turret_controller.pitch = deg_to_rad(60.0)
+		player.turret_controller._target_pitch = deg_to_rad(60.0)
+		await _frames(6)
+		var far: Vector2 = hud._aim_screen_point(hud.size * 0.5)
+		var outside: bool = not Rect2(Vector2.ZERO, hud.size).has_point(far)
+		print("MIRA cañón a 60º en vista exterior: mira en %d,%d (fuera de pantalla: %s)" % [roundi(far.x), roundi(far.y), outside])
+		await _snap("mira_fuera_de_pantalla")
+		print("MIRA RESULT problemas: %d" % bad)
 
 	## Tabla de contraste (solo para comparar, no va en la comprobación): en un campo sin
 	## decorado, tanques de los dos bandos a 35, 70 y 120 m vistos desde la cabina. De izquierda

@@ -5,6 +5,15 @@ extends Control
 
 @export var tank: Tank
 @export var director: GameMode
+## Retícula del cañón: rojo vivo con borde oscuro, brazos de 8 a 22 px y 4 px de grosor.
+const RETICLE_COLOR := Color(1.0, 0.1, 0.08)
+const RETICLE_EDGE := Color(0.0, 0.0, 0.0, 0.85)
+const RETICLE_WIDTH: float = 4.0
+const RETICLE_EDGE_EXTRA: float = 3.0
+const RETICLE_INNER: float = 8.0
+const RETICLE_OUTER: float = 22.0
+const RETICLE_FRAME: float = 30.0
+
 var touch: TouchControls
 var input_source: PlayerInputSource
 var weather: Weather
@@ -621,13 +630,8 @@ func _apply_focus() -> void:
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var green: Color = VectorMaterials.GREEN
-	var reticle: Color = VectorMaterials.ORANGE if (tank != null and tank.aim_lock != null) else green
-	var aim: Vector2 = _aim_screen_point(center)
-	# Retícula
-	draw_line(aim + Vector2(-18.0, 0.0), aim + Vector2(-6.0, 0.0), reticle, 2.0)
-	draw_line(aim + Vector2(6.0, 0.0), aim + Vector2(18.0, 0.0), reticle, 2.0)
-	draw_line(aim + Vector2(0.0, -18.0), aim + Vector2(0.0, -6.0), reticle, 2.0)
-	draw_line(aim + Vector2(0.0, 6.0), aim + Vector2(0.0, 18.0), reticle, 2.0)
+	var locked: bool = tank != null and tank.aim_lock != null
+	_draw_reticle(_aim_screen_point(center), locked)
 	if tank == null:
 		return
 	if tank.aim_lock != null and is_instance_valid(tank.aim_lock):
@@ -658,6 +662,53 @@ func _draw() -> void:
 	_draw_raid_warning(center)
 	# Icono del tanque visto desde arriba (norte arriba): casco y cañón con su orientación real.
 	_draw_tank_icon(Vector2(center.x, 74.0), green)
+
+
+## Retícula del cañón: roja y gruesa, con un borde oscuro para que se vea igual sobre el cielo
+## claro, el atardecer o el campo. Con un objetivo fijado se vuelve naranja y se rodea de un
+## marco (la forma distingue el estado aunque el color se confunda). Si apunta fuera de la
+## pantalla (cañón muy alzado en una vista exterior) se queda en el borde con una flecha.
+func _draw_reticle(aim: Vector2, locked: bool) -> void:
+	var color: Color = VectorMaterials.ORANGE if locked else RETICLE_COLOR
+	# Arriba deja libre el icono del tanque (y su N), que ocupa hasta unos 100 px (y la flecha sale por encima de la mira).
+	var margin: float = 46.0
+	var top: float = 150.0
+	var inside := Rect2(Vector2(margin, top), Vector2(size.x - margin * 2.0, size.y - top - margin))
+	var pointer := Vector2.ZERO
+	if not inside.has_point(aim):
+		var edge := Vector2(clampf(aim.x, inside.position.x, inside.end.x), clampf(aim.y, inside.position.y, inside.end.y))
+		pointer = (aim - edge).normalized()
+		aim = edge
+	var arms: Array = [
+		[Vector2(-RETICLE_OUTER, 0.0), Vector2(-RETICLE_INNER, 0.0)],
+		[Vector2(RETICLE_INNER, 0.0), Vector2(RETICLE_OUTER, 0.0)],
+		[Vector2(0.0, -RETICLE_OUTER), Vector2(0.0, -RETICLE_INNER)],
+		[Vector2(0.0, RETICLE_INNER), Vector2(0.0, RETICLE_OUTER)],
+	]
+	# Primero el borde oscuro (algo más ancho y largo) y encima el color.
+	for pass_index in 2:
+		var dark: bool = pass_index == 0
+		var line_color: Color = RETICLE_EDGE if dark else color
+		var width: float = RETICLE_WIDTH + (RETICLE_EDGE_EXTRA if dark else 0.0)
+		var grow: float = RETICLE_EDGE_EXTRA * 0.5 if dark else 0.0
+		for arm: Array in arms:
+			var from: Vector2 = arm[0]
+			var to: Vector2 = arm[1]
+			var along: Vector2 = (to - from).normalized()
+			draw_line(aim + from - along * grow, aim + to + along * grow, line_color, width, true)
+		if locked:
+			var half: float = RETICLE_FRAME
+			var corner: float = RETICLE_FRAME * 0.4
+			for sx in [-1.0, 1.0]:
+				for sy in [-1.0, 1.0]:
+					var c := aim + Vector2(sx * (half + grow), sy * (half + grow))
+					draw_line(c, c - Vector2(sx * (corner + grow * 2.0), 0.0), line_color, width, true)
+					draw_line(c, c - Vector2(0.0, sy * (corner + grow * 2.0)), line_color, width, true)
+		if pointer != Vector2.ZERO:
+			var tip: Vector2 = aim + pointer * (RETICLE_OUTER + 14.0 + grow)
+			var side := Vector2(-pointer.y, pointer.x)
+			var base: Vector2 = tip - pointer * (18.0 + grow)
+			draw_colored_polygon(PackedVector2Array([tip, base + side * (11.0 + grow), base - side * (11.0 + grow)]), line_color)
 
 
 func _draw_tank_icon(origin: Vector2, green: Color) -> void:
