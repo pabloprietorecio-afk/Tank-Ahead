@@ -486,7 +486,9 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 				GameSession.menu_page = "premium"
 				_to_menu()
 			else:
-				_with_ad(_restart, ad_after))
+				# Pasa por el parte de la misión (clima, tanque, COMENZAR), no directo a jugar.
+				GameSession.menu_page = "briefing"
+				_with_ad(_to_menu, ad_after))
 		box.add_child(next)
 	var replay_locked: bool = story_win and GameSession.mission_locked(GameSession.mission_index)
 	var retry_text: String = Loc.t("REINTENTAR")
