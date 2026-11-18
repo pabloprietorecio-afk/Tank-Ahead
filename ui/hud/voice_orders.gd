@@ -3,28 +3,44 @@ extends Node
 ## Órdenes por voz a los aliados (botón del micrófono, debajo de los dos iconos de órdenes).
 ## Entiende cinco órdenes en los diez idiomas del juego (y, en todos ellos, también en inglés):
 ## «todos conmigo», «atacar a mi objetivo», «localizar objetivo» (la torreta apunta al enemigo a la
-## vista más cercano), «lanzar misil» y «solicito bombardeo». Usa el reconocimiento de voz del propio Android (plugin
-## SpeechCommands): si el móvil no tiene servicio de voz, o fuera de Android, no hay micrófono.
+## vista más cercano), «lanzar misil» y «solicito bombardeo». Usa el reconocimiento de voz del
+## propio Android (plugin SpeechCommands): si el móvil no tiene servicio de voz, o fuera de
+## Android, no hay micrófono.
 ##
-## Micrófono abierto: una pulsación lo abre y se queda escuchando toda la partida (y las
-## siguientes) hasta que se vuelve a pulsar. Android no escucha sin fin: cada sesión de
-## reconocimiento acaba tras un silencio, así que se encadena una tras otra.
-## Mientras habla la radio del juego no se escucha, para no tomar por órdenes sus propias voces
+## Pulsar para hablar (siempre): una pulsación abre una ventana de unos segundos para dar una
+## orden. Mientras dura, el sonido del juego baja con un fundido (AudioSetup.mic_duck), porque
+## el micrófono tiene al lado el altavoz y el motor y los cañonazos tapan la voz. Al oír la
+## orden, o al agotarse la ventana, el sonido vuelve solo.
+##
+## Micrófono siempre abierto (ajuste, apagado de serie): además escucha sin que se pulse,
+## encadenando una sesión de reconocimiento tras otra (Android corta cada una tras un silencio).
+## En este modo NO se toca el sonido: el reconocedor toma el propio ruido del juego por voz, y
+## bajarlo cada vez que «oye» algo hacía subir y bajar el volumen sin parar. Va bien con
+## auriculares (o con el volumen bajo); con el altavoz alto, para eso está la pulsación.
+## Mientras habla la radio del juego no escucha, para no tomar por órdenes sus propias voces
 ## («¡Todos conmigo! Recibido…», «¡Fuego!»).
 
 ## Orden reconocida: "follow", "attack", "locate", "missile" o "strike".
 signal order_heard(order: String)
+## Ha cambiado lo que enseña el botón o el ajuste (ventana abierta o cerrada, siempre abierto).
 signal state_changed
 ## Aviso para el jugador (se muestra en la línea de mensajes del HUD).
 signal notice(text: String, urgent: bool)
 
 const PERMISSION := "android.permission.RECORD_AUDIO"
-## Silencio de la radio antes de volver a escuchar (s).
+## Siempre abierto: silencio de la radio antes de volver a escuchar (s).
 const RADIO_GAP: float = 0.6
 ## Pausa tras una orden reconocida (la misma frase no se cuenta dos veces).
 const AFTER_ORDER: float = 1.5
-## Mientras hablas, el sonido del juego baja (dB): el motor y los cañonazos por el altavoz tapan la voz.
-const DUCK_DB: float = -14.0
+## Pulsar para hablar: segundos que se escucha tras una pulsación si no se oye nada. Si el
+## reconocedor se rinde antes, se le vuelve a poner a escuchar mientras quede al menos TALK_RETRY;
+## y si el jugador está hablando cuando se acaba, se le dejan TALK_FINISH segundos para terminar.
+const TALK_WINDOW: float = 6.0
+const TALK_RETRY: float = 1.5
+const TALK_FINISH: float = 2.0
+## Fundidos del sonido del juego al abrir y al cerrar esa ventana (s).
+const DUCK_IN: float = 0.12
+const DUCK_OUT: float = 0.3
 
 ## Idioma del juego → idioma del reconocedor.
 const LOCALES: Dictionary = {"es": "es-ES", "en": "en-US", "fr": "fr-FR", "it": "it-IT", "ja": "ja-JP",
@@ -114,8 +130,11 @@ const ERROR_INSUFFICIENT_PERMISSIONS := 9
 const ERROR_LANGUAGE_NOT_SUPPORTED := 12
 const ERROR_LANGUAGE_UNAVAILABLE := 13
 
-## El jugador ha abierto el micrófono (se guarda en los ajustes).
-var enabled: bool = false
+## Qué hacer cuando Android conteste a la petición del permiso de micrófono.
+enum Pending { NONE, TALK, ALWAYS_OPEN }
+
+## Micrófono siempre abierto (ajuste del jugador, GameSettings.voice_always_open).
+var always_open: bool = false
 ## Lo pone el HUD: el botón se ve y se puede usar (hay aliados, no está en pausa…).
 var allowed: bool = false
 ## Hay una sesión de reconocimiento en marcha.
@@ -124,7 +143,11 @@ var listening: bool = false
 var _plugin: Object = null
 var _available: bool = false
 var _handled: bool = false
-var _waiting_permission: bool = false
+var _pending: int = Pending.NONE
+## Pulsar para hablar: segundos que quedan de ventana (0 = cerrada).
+var _talk_left: float = 0.0
+## Ya se ha avisado, en esta ventana, de que el micrófono escucha.
+var _talk_announced: bool = false
 ## Segundos hasta poder abrir la siguiente sesión.
 var _cooldown: float = 0.0
 ## Errores seguidos: alargan la espera entre intentos.
@@ -132,7 +155,9 @@ var _failures: int = 0
 var _radio_quiet: float = 0.0
 var _network_warned: bool = false
 var _voice: VoiceManager = null
-var _ducked: bool = false
+## Bajada del sonido del juego: la de ahora y a la que va (0 = normal, 1 = bajado del todo).
+var _duck: float = 0.0
+var _duck_target: float = 0.0
 
 
 func _ready() -> void:
@@ -141,15 +166,15 @@ func _ready() -> void:
 		_plugin = Engine.get_singleton("SpeechCommands")
 		_available = bool(_plugin.isAvailable())
 		if _available:
+			_plugin.connect("listening_started", _on_ready_to_listen, CONNECT_DEFERRED)
 			_plugin.connect("partial_results", _on_partial, CONNECT_DEFERRED)
 			_plugin.connect("final_results", _on_final, CONNECT_DEFERRED)
 			_plugin.connect("speech_error", _on_error, CONNECT_DEFERRED)
 			_plugin.connect("listening_ended", _on_ended, CONNECT_DEFERRED)
-			_plugin.connect("speech_begun", _on_speech_begun, CONNECT_DEFERRED)
 			get_tree().on_request_permissions_result.connect(_on_permission)
 			GameSettings.ensure_loaded()
-			# Si lo dejó abierto en la partida anterior (y sigue habiendo permiso), sigue abierto.
-			enabled = GameSettings.voice_orders and _has_permission()
+			# Sin permiso de micrófono (retirado en los ajustes de Android), el ajuste no vale.
+			always_open = GameSettings.voice_always_open and _has_permission()
 
 
 ## Hay micrófono: Android con servicio de reconocimiento de voz.
@@ -157,69 +182,128 @@ func available() -> bool:
 	return _available
 
 
-## Pulsación del micro: lo abre (y se queda abierto) o lo cierra.
+## Está abierta la ventana de «pulsar para hablar» (el micrófono espera una orden).
+func talking() -> bool:
+	return _talk_left > 0.0
+
+
+## Pulsación del micro: abre la ventana para dar una orden (otra pulsación la cierra).
 func toggle() -> void:
 	if not _available:
 		return
-	if enabled:
-		_set_enabled(false)
-		notice.emit(Loc.t("MICRÓFONO CERRADO"), false)
+	if _talk_left > 0.0:
+		_close_window()
 		return
-	# La primera vez Android pregunta por el permiso; al concederlo se abre.
+	# La primera vez Android pregunta por el permiso; al concederlo se abre la ventana.
 	if not _has_permission():
-		_waiting_permission = true
+		_pending = Pending.TALK
 		if not OS.request_permission(PERMISSION):
 			return
-		_waiting_permission = false
-	_open()
+		_pending = Pending.NONE
+	_open_window()
+
+
+## Ajuste «micrófono siempre abierto» (menú de opciones). Al activarlo sin permiso de micrófono,
+## Android pregunta y el ajuste se pone al concederlo (`state_changed` avisa de cómo queda).
+func set_always_open(value: bool) -> void:
+	if not _available:
+		return
+	if value and not _has_permission():
+		_pending = Pending.ALWAYS_OPEN
+		if not OS.request_permission(PERMISSION):
+			return
+		_pending = Pending.NONE
+	_apply_always_open(value)
 
 
 func _has_permission() -> bool:
 	return PERMISSION in OS.get_granted_permissions()
 
 
-func _open() -> void:
-	_set_enabled(true)
+func _apply_always_open(value: bool) -> void:
+	always_open = value
 	_failures = 0
-	_cooldown = 0.0
 	_network_warned = false
-	notice.emit(Loc.t("MICRÓFONO ABIERTO: DA TUS ÓRDENES EN VOZ ALTA"), false)
-
-
-func _set_enabled(value: bool) -> void:
-	enabled = value
-	if not value:
+	if not value and _talk_left <= 0.0:
 		_cancel_session()
-	if GameSettings.voice_orders != value:
-		GameSettings.voice_orders = value
+	if GameSettings.voice_always_open != value:
+		GameSettings.voice_always_open = value
 		GameSettings.save()
 	state_changed.emit()
 
 
 func _on_permission(permission: String, granted: bool) -> void:
-	if permission != PERMISSION or not _waiting_permission:
+	if permission != PERMISSION or _pending == Pending.NONE:
 		return
-	_waiting_permission = false
-	if granted:
-		_open()
-	else:
+	var wanted: int = _pending
+	_pending = Pending.NONE
+	if not granted:
 		notice.emit(Loc.t("SIN PERMISO PARA USAR EL MICRÓFONO"), true)
+		state_changed.emit()
+	elif wanted == Pending.ALWAYS_OPEN:
+		_apply_always_open(true)
+	elif allowed and not get_tree().paused:
+		_open_window()
+
+
+func _open_window() -> void:
+	_talk_left = TALK_WINDOW
+	_talk_announced = false
+	_failures = 0
+	_network_warned = false
+	_duck_target = 1.0
+	# Con el micro siempre abierto puede haber una sesión en marcha, que ha oído el juego a todo
+	# volumen: se descarta y se abre otra con el sonido ya bajado.
+	if listening:
+		_cancel_session()
+	_cooldown = minf(_cooldown, 0.3)
+	state_changed.emit()
+
+
+func _close_window() -> void:
+	_talk_left = 0.0
+	_duck_target = 0.0
+	_cancel_session()
+	state_changed.emit()
 
 
 func _process(delta: float) -> void:
+	_fade_duck(delta)
 	if not _available:
 		return
 	_cooldown = maxf(_cooldown - delta, 0.0)
-	var talking: bool = _radio_talking()
-	_radio_quiet = 0.0 if talking else _radio_quiet + delta
-	var wanted: bool = enabled and allowed and not get_tree().paused
+	var usable: bool = allowed and not get_tree().paused
+	if _talk_left > 0.0:
+		# Ventana de «pulsar para hablar»: se escucha hasta oír algo o hasta que se agote.
+		_talk_left -= delta
+		if not usable:
+			_close_window()
+		elif _talk_left <= 0.0 or (not listening and _talk_left < TALK_RETRY):
+			_close_window()
+			notice.emit(Loc.t("NO TE HE OÍDO"), true)
+		elif not listening and _cooldown <= 0.0:
+			_start_session()
+		return
+	# Micrófono siempre abierto: una sesión tras otra, salvo mientras habla la radio.
+	var radio: bool = _radio_talking()
+	_radio_quiet = 0.0 if radio else _radio_quiet + delta
+	var wanted: bool = always_open and usable
 	if listening:
 		# La radio empieza a hablar (o ya no toca escuchar): se descarta lo que se estaba oyendo.
-		if talking or not wanted:
+		if radio or not wanted:
 			_cancel_session()
 		return
 	if wanted and _cooldown <= 0.0 and _radio_quiet >= RADIO_GAP:
 		_start_session()
+
+
+## Lleva el sonido del juego, con un fundido, a como debe estar (bajado solo durante la ventana).
+func _fade_duck(delta: float) -> void:
+	if is_equal_approx(_duck, _duck_target):
+		return
+	_duck = move_toward(_duck, _duck_target, delta / (DUCK_IN if _duck_target > _duck else DUCK_OUT))
+	AudioSetup.mic_duck = _duck
+	AudioSetup.apply_volumes()
 
 
 func _radio_talking() -> bool:
@@ -237,68 +321,82 @@ func _start_session() -> void:
 	_plugin.startListening(LOCALES.get(Loc.language, "es-ES"), hints)
 
 
+## Deja de escuchar. La siguiente sesión espera un momento: así los avisos de la que se cancela
+## (llegan con unos fotogramas de retraso) no se confunden con los de la nueva.
 func _cancel_session() -> void:
 	if listening and _plugin != null:
 		_plugin.cancel()
 	listening = false
 	_cooldown = maxf(_cooldown, 0.3)
-	_duck(false)
 
 
-func _on_speech_begun() -> void:
-	if listening:
-		_duck(true)
-
-
-func _duck(on: bool) -> void:
-	if on == _ducked:
-		return
-	_ducked = on
-	var master: int = AudioServer.get_bus_index(&"Master")
-	if on:
-		AudioServer.set_bus_volume_db(master, AudioServer.get_bus_volume_db(master) + DUCK_DB)
-	else:
-		AudioSetup.apply_volumes()
+## El reconocedor ya escucha: en la ventana de «pulsar para hablar» se avisa al jugador.
+func _on_ready_to_listen() -> void:
+	if listening and _talk_left > 0.0 and not _talk_announced:
+		_talk_announced = true
+		notice.emit(Loc.t("TE ESCUCHO: DA TU ORDEN"), false)
 
 
 func _on_partial(text: String) -> void:
-	if listening and not _handled and _dispatch(text):
+	if not listening or _handled:
+		return
+	if _dispatch(text):
 		# Orden reconocida antes de terminar la frase: no hace falta esperar más.
-		_cancel_session()
-		_cooldown = AFTER_ORDER
+		_after_order()
+	elif _talk_left > 0.0:
+		# Está hablando: la ventana no se cierra a media frase.
+		_talk_left = maxf(_talk_left, TALK_FINISH)
 
 
 func _on_final(text: String) -> void:
-	if listening and not _handled:
-		if _dispatch(text):
-			_cooldown = AFTER_ORDER
-		else:
-			# Se ha entendido algo, pero no es una orden: se enseña, para saber qué ha oído.
-			var heard: String = text.get_slice("\n", 0).strip_edges()
-			if heard != "":
-				notice.emit(Loc.t("HE OÍDO «%s»: NO ES UNA ORDEN") % heard, true)
-	_failures = 0
+	if not listening or _handled:
+		return
+	if _dispatch(text):
+		_after_order()
+		return
 	listening = false
-	_duck(false)
+	_failures = 0
+	_cooldown = maxf(_cooldown, 0.2)
+	# Se ha entendido algo, pero no es una orden: se enseña, para saber qué ha oído, y la ventana
+	# se cierra (sin texto, en cambio, se sigue escuchando hasta que se agote).
+	var heard: String = text.get_slice("\n", 0).strip_edges()
+	if heard != "":
+		notice.emit(Loc.t("HE OÍDO «%s»: NO ES UNA ORDEN") % heard, true)
+		if _talk_left > 0.0:
+			_close_window()
+
+
+## Tras una orden: se cierra la ventana (el sonido vuelve) y no se escucha durante un momento,
+## para que la misma frase no cuente dos veces.
+func _after_order() -> void:
+	_failures = 0
+	if _talk_left > 0.0:
+		_close_window()
+	else:
+		_cancel_session()
+	_cooldown = AFTER_ORDER
 
 
 func _on_error(code: int) -> void:
 	if not listening:
 		return
 	listening = false
-	_duck(false)
 	match code:
 		ERROR_NO_MATCH, ERROR_SPEECH_TIMEOUT:
-			# Silencio o ruido: lo normal con el micro abierto; se vuelve a escuchar enseguida.
+			# Silencio o ruido: se vuelve a escuchar enseguida (en la ventana, hasta que se agote).
 			_failures = 0
-			_cooldown = 0.2
+			_cooldown = maxf(_cooldown, 0.2)
 		ERROR_INSUFFICIENT_PERMISSIONS:
-			_set_enabled(false)
 			notice.emit(Loc.t("SIN PERMISO PARA USAR EL MICRÓFONO"), true)
+			if _talk_left > 0.0:
+				_close_window()
+			_apply_always_open(false)
 		ERROR_NETWORK, ERROR_NETWORK_TIMEOUT, ERROR_SERVER, ERROR_LANGUAGE_NOT_SUPPORTED, ERROR_LANGUAGE_UNAVAILABLE:
 			if not _network_warned:
 				_network_warned = true
 				notice.emit(Loc.t("RECONOCIMIENTO DE VOZ NO DISPONIBLE: COMPRUEBA LA CONEXIÓN"), true)
+			if _talk_left > 0.0:
+				_close_window()
 			_backoff()
 		_:
 			_backoff()
@@ -312,7 +410,6 @@ func _backoff() -> void:
 
 func _on_ended() -> void:
 	listening = false
-	_duck(false)
 
 
 ## Busca una orden en lo oído (todas las alternativas). Devuelve si ha reconocido alguna.
@@ -359,4 +456,9 @@ static func matches(clean: String, language: String, words: Dictionary) -> bool:
 
 func _exit_tree() -> void:
 	_cancel_session()
-	_duck(false)
+	# El sonido no puede quedarse bajado al salir de la partida.
+	_duck = 0.0
+	_duck_target = 0.0
+	if AudioSetup.mic_duck != 0.0:
+		AudioSetup.mic_duck = 0.0
+		AudioSetup.apply_volumes()

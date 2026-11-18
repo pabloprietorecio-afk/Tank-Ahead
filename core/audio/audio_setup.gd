@@ -6,6 +6,14 @@ const MUSIC: StringName = &"Music"
 const SFX: StringName = &"SFX"
 const VOICE: StringName = &"Voice"
 
+## Micrófono de órdenes, de 0 a 1: mientras escucha tras una pulsación, todo el juego baja hasta
+## MIC_DUCK_DB (el micrófono tiene que oír la voz, no el motor y los cañonazos del altavoz) y la
+## radio, además, calla: como en una radio de verdad, mientras hablas no recibes. Lo mueve
+## VoiceOrders con un fundido corto; fuera de esa ventana vale 0 y no cambia nada.
+const MIC_DUCK_DB: float = -18.0
+const MIC_RADIO_DB: float = -40.0
+static var mic_duck: float = 0.0
+
 static var _ready_done: bool = false
 
 
@@ -30,18 +38,19 @@ static func ensure() -> void:
 
 static func apply_volumes() -> void:
 	GameSettings.ensure_loaded()
-	_set_bus(&"Master", GameSettings.master_volume)
+	_set_bus(&"Master", GameSettings.master_volume, MIC_DUCK_DB * mic_duck)
 	_set_bus(MUSIC, GameSettings.music_volume)
 	_set_bus(SFX, GameSettings.sfx_volume)
-	_set_bus(VOICE, GameSettings.voice_volume)
+	_set_bus(VOICE, GameSettings.voice_volume, MIC_RADIO_DB * mic_duck)
 
 
-static func _set_bus(bus_name: StringName, linear: float) -> void:
+## `offset_db` se suma al volumen del ajuste (la bajada del micrófono de órdenes).
+static func _set_bus(bus_name: StringName, linear: float, offset_db: float = 0.0) -> void:
 	var index: int = AudioServer.get_bus_index(bus_name)
 	if index == -1:
 		return
 	AudioServer.set_bus_mute(index, linear <= 0.001)
-	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(linear, 0.001)))
+	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(linear, 0.001)) + offset_db)
 
 
 ## Reproductor de música en bucle.

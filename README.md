@@ -40,24 +40,35 @@ Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
 
 ## Órdenes por voz
 Debajo de los dos iconos de órdenes (todos conmigo y atacar al objetivo) hay un micrófono
-(`ui/hud/voice_orders.gd`). Una pulsación lo abre y se queda escuchando toda la partida, y las
-siguientes, hasta que se vuelve a pulsar (`GameSettings.voice_orders`). Entiende cinco órdenes en
-los diez idiomas, y en todos también en inglés: «todos conmigo», «atacar a mi objetivo»,
-«localizar objetivo» (fija y apunta la torreta al enemigo a la vista más cercano, hasta 300 m,
-aunque la ayuda de apuntado esté apagada), «lanzar misil» (el misil guiado del botón MISIL) y
-«solicito bombardeo» (el bombardeo del botón AVIÓN, sobre el objetivo fijado o donde apunta el
-cañón); misil y bombardeo por voz no necesitan los prismáticos. Se reconocen por palabras clave
-(`LOCATE_WORDS`, `STRIKE_WORDS`, `MISSILE_WORDS`, `FOLLOW_WORDS`, `ATTACK_WORDS`), de la más
-concreta a la más general.
-Mientras habla la radio del juego no escucha, para no tomar por órdenes sus propias voces.
-El tutorial tiene una lección propia («voice», tras «todos al objetivo»); sus locuciones aún no
-están generadas, así que de momento es solo texto.
+(`ui/hud/voice_orders.gd`). Entiende cinco órdenes en los diez idiomas, y en todos también en
+inglés: «todos conmigo», «atacar a mi objetivo», «localizar objetivo» (fija y apunta la torreta al
+enemigo a la vista más cercano, hasta 300 m, aunque la ayuda de apuntado esté apagada), «lanzar
+misil» (el misil guiado del botón MISIL) y «solicito bombardeo» (el bombardeo del botón AVIÓN,
+sobre el objetivo fijado o donde apunta el cañón); misil y bombardeo por voz no necesitan los
+prismáticos. Se reconocen por palabras clave (`LOCATE_WORDS`, `STRIKE_WORDS`, `MISSILE_WORDS`,
+`FOLLOW_WORDS`, `ATTACK_WORDS`), de la más concreta a la más general.
+
+- **Pulsar para hablar** (siempre): una pulsación abre una ventana de 6 s para dar una orden.
+  Mientras dura, el sonido del juego baja 18 dB con un fundido y la radio calla
+  (`AudioSetup.mic_duck`): el micrófono tiene al lado el altavoz, y el motor y los cañonazos
+  tapan la voz. Al oír la orden, o al agotarse la ventana, el sonido vuelve solo.
+- **Micrófono siempre abierto** (OPCIONES → «Micrófono siempre abierto (mejor con auriculares)»,
+  `GameSettings.voice_always_open`, apagado de serie): además escucha sin pulsarlo, y el icono
+  queda en verde. En este modo no se toca el sonido: el reconocedor toma el propio ruido del juego
+  por voz, y bajar el volumen cada vez que «oía» algo lo hacía subir y bajar sin parar. Con el
+  altavoz alto puede no entender; con auriculares no hay ese problema. Mientras habla la radio
+  del juego no escucha, para no tomar por órdenes sus propias voces.
+
+El tutorial tiene una lección propia («voice», tras «todos al objetivo»): se pulsa y se da cada
+orden, con un blanco lejano que se repone si cae. Sus locuciones aún no están generadas, así que
+de momento es solo texto.
 
 Usa el reconocimiento de voz del propio Android (`android.speech.SpeechRecognizer`, sin interfaz)
 con un plugin propio, `android_plugins/speech_commands` (Java), que `build-apk.yml` y `build-aab.yml`
 compilan en cada build con `javac` (sin Gradle) y dejan en `addons/SpeechCommands/bin`. Pide el
 permiso `RECORD_AUDIO` la primera vez que se pulsa el micrófono. Si el móvil no tiene servicio de
-voz (p. ej. sin servicios de Google), el micrófono no aparece y la lección del tutorial se salta.
+voz (p. ej. sin servicios de Google), el micrófono no aparece, su opción sale desactivada y la
+lección del tutorial se salta.
 
 ## Clima
 Seis climas (`levels/weather/weather.gd`): soleado y nubes y claros (los días claros, con el sol alto),

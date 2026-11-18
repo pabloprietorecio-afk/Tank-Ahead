@@ -3,7 +3,8 @@ extends Button
 ## Icono redondo para dar una orden a los aliados, dibujado por código (sin texto):
 ## FOLLOW = «todos conmigo» (el líder y dos tanques en formación detrás);
 ## FOCUS = «todos al mismo objetivo» (una mira con dos tanques apuntando al centro);
-## MIC = órdenes por voz (un micrófono; rojo y latiendo mientras escucha).
+## MIC = órdenes por voz (un micrófono; rojo y latiendo mientras escucha una orden y, con
+## `standby`, en verde: micrófono siempre abierto).
 ## `active` lo ilumina: la orden está en vigor.
 
 enum Kind { FOLLOW, FOCUS, MIC }
@@ -20,6 +21,13 @@ var active: bool = false:
 			active = value
 			queue_redraw()
 			set_process(kind == Kind.MIC and active)
+
+## Solo MIC: el micrófono está siempre abierto (escucha sin pulsarlo).
+var standby: bool = false:
+	set(value):
+		if value != standby:
+			standby = value
+			queue_redraw()
 
 var _pulse: float = 0.0
 
@@ -48,10 +56,10 @@ func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var radius: float = minf(size.x, size.y) * 0.5 - 3.0
 	var on_color: Color = FOCUS_ON if kind == Kind.FOCUS else (MIC_ON if kind == Kind.MIC else ON)
-	var color: Color = on_color if active else IDLE
+	var color: Color = on_color if active else (ON if standby else IDLE)
 	var held: bool = get_draw_mode() == DRAW_PRESSED
 	draw_circle(center, radius, Color(0.05, 0.07, 0.05, 0.8 if held else 0.55))
-	draw_arc(center, radius, 0.0, TAU, 48, color, 4.0 if active else 2.5, true)
+	draw_arc(center, radius, 0.0, TAU, 48, color, 4.0 if active or standby else 2.5, true)
 	if kind == Kind.MIC:
 		if active:
 			# Escuchando: un anillo que late alrededor.

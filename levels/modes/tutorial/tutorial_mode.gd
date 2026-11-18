@@ -140,25 +140,22 @@ const STEPS: Dictionary = {
 	],
 	"voice": [
 		{"id": "voice_a", "show": ["mic"],
-			"text": "ÓRDENES POR VOZ: PULSA EL MICRÓFONO, DEBAJO DE LA DIANA.\nSE QUEDA ABIERTO HASTA QUE LO VUELVAS A PULSAR",
+			"text": "ÓRDENES POR VOZ: PULSA EL MICRÓFONO, DEBAJO DE LA DIANA,\nY DI EN VOZ ALTA «TODOS CONMIGO»",
 			"hint": "ES EL TERCER ICONO DE LA IZQUIERDA. LA PRIMERA VEZ,\nANDROID TE PIDE PERMISO PARA USAR EL MICRÓFONO"},
-		{"id": "voice_b", "show": ["mic"],
-			"text": "DI EN VOZ ALTA «TODOS CONMIGO»:\nTUS ALIADOS TE SEGUIRÁN",
-			"hint": "HABLA CLARO Y CERCA DEL MÓVIL. MIENTRAS HABLA\nLA RADIO NO TE ESCUCHA: ESPERA A QUE CALLE"},
 		{"id": "voice_c", "show": ["mic"],
-			"text": "DI «LOCALIZAR OBJETIVO»: LA TORRETA APUNTA SOLA\nAL ENEMIGO MÁS CERCANO QUE ESTÉ A LA VISTA",
-			"hint": "DILO EN VOZ ALTA. EL ENEMIGO ESTÁ DELANTE;\nSI NO LO VES, ACÉRCATE UN POCO"},
-		{"id": "voice_d", "show": ["mic"],
-			"text": "DI «ATACAR A MI OBJETIVO»:\nTODOS TUS ALIADOS ATACAN EL OBJETIVO FIJADO",
-			"hint": "PON LA MIRA SOBRE EL ENEMIGO Y DILO.\nSI NO TE ENTIENDE, BAJA EL VOLUMEN DEL JUEGO"},
+			"text": "PULSA EL MICRÓFONO Y DI «LOCALIZAR OBJETIVO»:\nLA TORRETA APUNTA SOLA AL ENEMIGO MÁS CERCANO A LA VISTA",
+			"hint": "AL PULSAR, EL SONIDO BAJA: ES LA SEÑAL PARA HABLAR.\nHABLA CLARO Y CERCA DEL MÓVIL"},
 		{"id": "voice_m", "show": ["mic"],
-			"text": "DI «LANZAR MISIL»: SALE UN MISIL GUIADO\nHACIA TU OBJETIVO FIJADO",
+			"text": "PULSA EL MICRÓFONO Y DI «LANZAR MISIL»:\nSALE UN MISIL GUIADO HACIA TU OBJETIVO FIJADO",
 			"hint": "SIN OBJETIVO FIJADO EL MISIL VA RECTO:\nANTES DI «LOCALIZAR OBJETIVO»"},
 		{"id": "voice_e", "show": ["mic"],
-			"text": "DI «SOLICITO BOMBARDEO»: LA AVIACIÓN ALIADA\nBOMBARDEA TU OBJETIVO FIJADO (A MÁS DE 30 M DE TI)",
+			"text": "PULSA EL MICRÓFONO Y DI «SOLICITO BOMBARDEO»:\nLA AVIACIÓN BOMBARDEA TU OBJETIVO FIJADO (A MÁS DE 30 M DE TI)",
 			"hint": "CON UN OBJETIVO FIJADO, LAS BOMBAS CAEN SOBRE ÉL;\nSI NO, DONDE APUNTA EL CAÑÓN"},
+		{"id": "voice_d", "show": ["mic"],
+			"text": "PULSA EL MICRÓFONO Y DI «ATACAR A MI OBJETIVO»:\nTODOS TUS ALIADOS ATACAN EL OBJETIVO FIJADO",
+			"hint": "CADA ORDEN LLEVA SU PULSACIÓN. SIN OBJETIVO FIJADO,\nDI ANTES «LOCALIZAR OBJETIVO»"},
 		{"id": "voice_f", "show": ["mic"],
-			"text": "TUS ALIADOS ATACAN A TU ORDEN. EL MICRÓFONO SIGUE\nABIERTO EN LAS PARTIDAS: PÚLSALO PARA CERRARLO",
+			"text": "TUS ALIADOS ATACAN A TU ORDEN. EN OPCIONES (⚙) PUEDES DEJAR\nEL MICRÓFONO SIEMPRE ABIERTO: MEJOR CON AURICULARES",
 			"hint": "ESPERA A QUE DESTRUYAN EL OBJETIVO"},
 	],
 	"final": [
@@ -169,8 +166,9 @@ const STEPS: Dictionary = {
 }
 
 var hud: Hud
-## Lección de voz: segundos desde el bombardeo.
+## Lección de voz: segundos desde la orden de atacar y blancos que han salido.
 var _voice_wait: float = 0.0
+var _voice_spawns: int = 0
 var touch: TouchControls
 var radar: Radar
 var input_source: PlayerInputSource
@@ -1001,49 +999,60 @@ func _check_focus(_delta: float) -> bool:
 
 func _setup_voice() -> void:
 	player.health.heal(1000.0)
-	missiles = 1
-	strikes = 1
 	_voice_wait = 0.0
+	_voice_spawns = 0
 	_spawn_allies(-6.0)
-	var dir: Vector2 = _base_dir()
-	var point: Vector2 = _spot(75.0, 0.0, dir)
-	enemy = _dummy("panzer3", ENEMY_TEAM, point, yaw_towards(point, _player_xz()), 90.0)
-	enemy.health.invulnerable = false
 
 
-## Órdenes por voz: abrir el micro y las cinco órdenes, una por paso. Si el móvil no tiene
+## Blanco de la lección de voz. Sale lejos, a unos 90 m, hacia la esquina del campo más alejada
+## del jugador: los aliados, que con «todos conmigo» solo pelean con lo que tienen cerca, lo dejan
+## en paz hasta que se les ordena atacar. Cada blanco nuevo sale algo a un lado del anterior,
+## para no aparecer sobre sus restos.
+func _spawn_voice_enemy() -> void:
+	var origin: Vector2 = _player_xz()
+	var corner := Vector2(-80.0 if origin.x > 0.0 else 80.0, -80.0 if origin.y > 0.0 else 80.0)
+	var dir: Vector2 = (corner - origin).normalized()
+	var side: float = 14.0 if _voice_spawns % 2 == 1 else 0.0
+	var point: Vector2 = (origin + dir * 90.0 + Vector2(-dir.y, dir.x) * side).clampf(-FIELD + 12.0, FIELD - 12.0)
+	_voice_spawns += 1
+	enemy = _dummy("panzer3", ENEMY_TEAM, point, yaw_towards(point, origin), 90.0)
+
+
+## Órdenes por voz: se pulsa el micrófono y se da la orden, una por paso (todos conmigo, localizar
+## objetivo, lanzar misil, solicito bombardeo y atacar a mi objetivo). Si el móvil no tiene
 ## reconocimiento de voz no hay micrófono y la lección se salta.
 func _check_voice(delta: float) -> bool:
 	if hud == null or hud.voice_orders == null or not hud.voice_orders.available():
 		return true
+	# Del paso 1 al 4 hay siempre un blanco vivo: si cae (el misil, el bombardeo…), sale otro.
+	if step >= 1 and step <= 4 and _dead(enemy):
+		_spawn_voice_enemy()
 	match step:
 		0:
-			if hud.voice_orders.enabled:
+			if follow_me:
 				_enter_step(1)
 		1:
-			if follow_me:
+			if player.aim_lock == enemy:
+				# El misil y el bombardeo se dan al llegar a su paso, para que no se gasten antes.
+				missiles = maxi(missiles, 1)
 				_enter_step(2)
 		2:
-			if is_instance_valid(enemy) and player.aim_lock == enemy:
+			if missiles <= 0:
+				strikes = maxi(strikes, 1)
 				_enter_step(3)
-			elif _dead(enemy):
-				_enter_step(4)
 		3:
-			if focus_target != null and focus_target == enemy:
-				_enter_step(4)
-			elif _dead(enemy):
+			if strikes <= 0:
+				# La orden de atacar tiene que darse ahora, aunque ya se hubiera dado antes.
+				focus_target = null
 				_enter_step(4)
 		4:
-			if missiles <= 0:
+			if focus_target != null and focus_target == enemy:
+				_voice_wait = 0.0
 				_enter_step(5)
 		5:
-			if strikes <= 0:
-				_voice_wait = 0.0
-				_enter_step(6)
-		6:
-			# Tras el bombardeo: hasta que caiga el objetivo (o unos segundos si ya cayó).
+			# Los aliados destruyen el blanco (con un tope de tiempo, por si no llegaran a darle).
 			_voice_wait += delta
-			return _dead(enemy) and _voice_wait > 3.0
+			return _voice_wait > 4.0 and (_dead(enemy) or _voice_wait > 30.0)
 	return false
 
 

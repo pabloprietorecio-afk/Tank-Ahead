@@ -50,9 +50,9 @@ static var highlight_enemies: bool = false
 ## Dibuja un borde azul alrededor de los objetivos de la misión (edificios, comandante, bandera).
 static var highlight_objectives: bool = false
 
-## Micrófono de órdenes abierto: se queda escuchando toda la partida (y en las siguientes)
-## hasta que el jugador lo vuelve a pulsar.
-static var voice_orders: bool = false
+## Micrófono de órdenes siempre abierto: escucha toda la partida sin pulsarlo y sin tocar el
+## sonido (pensado para jugar con auriculares). Apagado, se pulsa antes de cada orden.
+static var voice_always_open: bool = false
 
 ## Clima elegido por el jugador (Weather.Kind) o -1 para sortearlo en cada partida.
 static var weather: int = -1
@@ -84,7 +84,7 @@ static func ensure_loaded() -> void:
 		easy_drive = cfg.get_value("controls", "easy_drive", easy_drive)
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 		language = str(cfg.get_value("game", "language", language))
-		voice_orders = bool(cfg.get_value("controls", "voice_orders", voice_orders))
+		voice_always_open = bool(cfg.get_value("controls", "voice_always_open", voice_always_open))
 	Loc.apply(language)
 	Fx.quality = effects
 
@@ -106,7 +106,7 @@ static func save() -> void:
 	cfg.set_value("controls", "easy_drive", easy_drive)
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.set_value("game", "language", language)
-	cfg.set_value("controls", "voice_orders", voice_orders)
+	cfg.set_value("controls", "voice_always_open", voice_always_open)
 	cfg.save(PATH)
 
 

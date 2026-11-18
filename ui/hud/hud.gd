@@ -185,6 +185,9 @@ func _menu_button(text: String, font_size: int, minimum: Vector2) -> Button:
 ## Menú de opciones (pausa): a la izquierda las acciones, a la derecha sonido, ayudas y gráficos.
 ## La letra y los interruptores van al mayor tamaño que quepa en la pantalla (_fit_pause_menu).
 func _build_pause_and_history() -> void:
+	# Las órdenes por voz se crean ya: el menú de opciones lleva su interruptor.
+	voice_orders = VoiceOrders.new()
+	add_child(voice_orders)
 	_pause_panel = _centered_panel()
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 8)
@@ -267,6 +270,15 @@ func _build_pause_and_history() -> void:
 		GameSettings.aim_assist = on
 		GameSettings.save())
 	options.add_child(toggles["aim_assist"])
+	# Micrófono de órdenes siempre abierto (apagado, se pulsa antes de cada orden). En un móvil
+	# sin reconocimiento de voz no hay micrófono y el interruptor sale apagado y sin uso.
+	toggles["voice_open"] = _make_toggle(Loc.t("Micrófono siempre abierto (mejor con auriculares)"), voice_orders.always_open, func(on: bool) -> void:
+		voice_orders.set_always_open(on))
+	(toggles["voice_open"] as CheckButton).disabled = not voice_orders.available()
+	options.add_child(toggles["voice_open"])
+	# Si Android niega el permiso de micrófono, el interruptor vuelve a como está el ajuste.
+	voice_orders.state_changed.connect(func() -> void:
+		(toggles["voice_open"] as CheckButton).set_pressed_no_signal(voice_orders.always_open))
 	options.add_child(_make_toggle(Loc.t("Sombras (desactivar si va lento)"), GameSettings.shadows, func(on: bool) -> void:
 		GameSettings.shadows = on
 		GameSettings.save()
@@ -390,10 +402,8 @@ func _build_arsenal() -> void:
 	controls["focus"] = _focus_button
 	_follow_button.pressed.connect(func() -> void: director.toggle_follow())
 	_focus_button.pressed.connect(func() -> void: director.focus_fire())
-	# Debajo, el micrófono: las mismas dos órdenes, dichas en voz alta (solo si el móvil tiene
-	# reconocimiento de voz). Una pulsación lo deja abierto hasta que se vuelve a pulsar.
-	voice_orders = VoiceOrders.new()
-	add_child(voice_orders)
+	# Debajo, el micrófono: órdenes dichas en voz alta (solo si el móvil tiene reconocimiento de
+	# voz). Se pulsa y se da la orden; en el menú de opciones se puede dejar siempre abierto.
 	_mic_button = CommandButton.create(CommandButton.Kind.MIC)
 	_mic_button.set_anchors_preset(Control.PRESET_CENTER_LEFT)
 	_mic_button.offset_left = 22.0
@@ -407,8 +417,6 @@ func _build_arsenal() -> void:
 	_mic_button.pressed.connect(voice_orders.toggle)
 	voice_orders.order_heard.connect(_on_voice_order)
 	voice_orders.notice.connect(_show_message)
-	voice_orders.state_changed.connect(func() -> void: _mic_button.active = voice_orders.enabled)
-	_mic_button.active = voice_orders.enabled
 	if touch != null:
 		touch.exclusions.append_array(buttons)
 
@@ -656,7 +664,9 @@ func _process(delta: float) -> void:
 	_focus_button.visible = commands
 	_follow_button.active = director.follow_me
 	_mic_button.visible = commands and voice_orders.available() and not get_tree().paused
-	_mic_button.active = voice_orders.enabled
+	# Rojo y latiendo mientras espera una orden; en verde si está siempre abierto.
+	_mic_button.active = voice_orders.talking()
+	_mic_button.standby = voice_orders.always_open
 	_focus_button.active = director.focus_target != null
 	if focus_active:
 		_apply_focus()

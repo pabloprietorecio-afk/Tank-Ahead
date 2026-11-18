@@ -18,9 +18,9 @@ Estos datos no salen de tu dispositivo ni se incluyen en las copias de seguridad
 
 ## Micrófono (órdenes por voz)
 
-El micrófono del juego está apagado hasta que lo pulsas. Si lo abres (Android te pedirá antes el permiso de micrófono), el juego usa el servicio de reconocimiento de voz de tu dispositivo Android —normalmente el de Google— para entender las órdenes a tus aliados. El juego no graba ni guarda el audio ni lo envía a ningún servidor nuestro: solo recibe el texto reconocido, lo compara con las órdenes y lo descarta. Según el dispositivo, ese servicio procesa la voz en el propio móvil o en los servidores de Google, que la tratan conforme a su política de privacidad: https://policies.google.com/privacy
+El micrófono del juego está apagado hasta que lo pulsas: cada pulsación escucha unos segundos, una orden. En las opciones puedes dejarlo siempre abierto, y entonces escucha durante toda la partida hasta que lo apagues. En los dos casos (Android te pedirá antes el permiso de micrófono), el juego usa el servicio de reconocimiento de voz de tu dispositivo Android —normalmente el de Google— para entender las órdenes a tus aliados. El juego no graba ni guarda el audio ni lo envía a ningún servidor nuestro: solo recibe el texto reconocido, lo compara con las órdenes y lo descarta. Según el dispositivo, ese servicio procesa la voz en el propio móvil o en los servidores de Google, que la tratan conforme a su política de privacidad: https://policies.google.com/privacy
 
-Mientras el micrófono está abierto, Android lo indica en la pantalla. Puedes cerrarlo pulsándolo de nuevo o retirar el permiso en los ajustes de Android.
+Mientras el micrófono escucha, Android lo indica en la pantalla. Puedes apagar «Micrófono siempre abierto» en las opciones del juego o retirar el permiso en los ajustes de Android.
 
 ## Publicidad (Google AdMob)
 
@@ -65,9 +65,9 @@ The game has no user accounts or servers of its own and does not collect persona
 
 ## Microphone (voice orders)
 
-The in-game microphone is off until you tap it. If you open it (Android will first ask for microphone permission), the game uses your Android device's speech recognition service — usually Google's — to understand orders to your allies. The game does not record or store the audio, and does not send it to any server of ours: it only receives the recognised text, compares it with the orders and discards it. Depending on the device, that service processes your voice on the phone itself or on Google's servers, under Google's privacy policy: https://policies.google.com/privacy
+The in-game microphone is off until you tap it: each tap listens for a few seconds, for one order. In the options you can leave it always open, and then it listens for the whole game until you turn it off. In both cases (Android will first ask for microphone permission), the game uses your Android device's speech recognition service — usually Google's — to understand orders to your allies. The game does not record or store the audio, and does not send it to any server of ours: it only receives the recognised text, compares it with the orders and discards it. Depending on the device, that service processes your voice on the phone itself or on Google's servers, under Google's privacy policy: https://policies.google.com/privacy
 
-While the microphone is open, Android shows an indicator on screen. You can close it by tapping it again, or revoke the permission in Android settings.
+While the microphone is listening, Android shows an indicator on screen. You can turn off "Microphone always open" in the game options, or revoke the permission in Android settings.
 
 ## Advertising (Google AdMob)
 
