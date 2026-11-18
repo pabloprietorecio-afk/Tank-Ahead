@@ -14,7 +14,7 @@ const HINT_TIME: float = 20.0
 
 const LESSONS: Array[String] = [
 	"move", "turn", "turret", "fire", "easy", "camera", "radar", "enemy",
-	"assist", "zoom", "missile", "strike", "raid", "damage", "follow", "focus", "final",
+	"assist", "zoom", "missile", "strike", "raid", "damage", "follow", "focus", "voice", "final",
 ]
 
 ## Pasos de cada lección: locución (id), instrucción, pista detallada y qué se resalta.
@@ -138,6 +138,26 @@ const STEPS: Dictionary = {
 			"text": "TODOS TUS ALIADOS ATACAN LO QUE HAS SEÑALADO.\nESPERA A QUE LO DESTRUYAN",
 			"hint": "NO HACE FALTA QUE DISPARES TÚ:\nTUS ALIADOS SE ENCARGAN DEL OBJETIVO"},
 	],
+	"voice": [
+		{"id": "voice_a", "show": ["mic"],
+			"text": "ÓRDENES POR VOZ: PULSA EL MICRÓFONO, DEBAJO DE LA DIANA.\nSE QUEDA ABIERTO HASTA QUE LO VUELVAS A PULSAR",
+			"hint": "ES EL TERCER ICONO DE LA IZQUIERDA. LA PRIMERA VEZ,\nANDROID TE PIDE PERMISO PARA USAR EL MICRÓFONO"},
+		{"id": "voice_b", "show": ["mic"],
+			"text": "DI EN VOZ ALTA «TODOS CONMIGO»:\nTUS ALIADOS TE SEGUIRÁN",
+			"hint": "HABLA CLARO Y CERCA DEL MÓVIL. MIENTRAS HABLA\nLA RADIO NO TE ESCUCHA: ESPERA A QUE CALLE"},
+		{"id": "voice_c", "show": ["mic"],
+			"text": "DI «LOCALIZAR OBJETIVO»: LA TORRETA APUNTA SOLA\nAL ENEMIGO MÁS CERCANO QUE ESTÉ A LA VISTA",
+			"hint": "DILO EN VOZ ALTA. EL ENEMIGO ESTÁ DELANTE;\nSI NO LO VES, ACÉRCATE UN POCO"},
+		{"id": "voice_d", "show": ["mic"],
+			"text": "DI «ATACAR A MI OBJETIVO»:\nTODOS TUS ALIADOS ATACAN EL OBJETIVO FIJADO",
+			"hint": "PON LA MIRA SOBRE EL ENEMIGO Y DILO.\nSI NO TE ENTIENDE, BAJA EL VOLUMEN DEL JUEGO"},
+		{"id": "voice_e", "show": ["mic"],
+			"text": "DI «SOLICITO BOMBARDEO»: LA AVIACIÓN ALIADA\nBOMBARDEA TU OBJETIVO FIJADO (A MÁS DE 30 M DE TI)",
+			"hint": "CON UN OBJETIVO FIJADO, LAS BOMBAS CAEN SOBRE ÉL;\nSI NO, DONDE APUNTA EL CAÑÓN"},
+		{"id": "voice_f", "show": ["mic"],
+			"text": "TUS ALIADOS ATACAN A TU ORDEN. EL MICRÓFONO SIGUE\nABIERTO EN LAS PARTIDAS: PÚLSALO PARA CERRARLO",
+			"hint": "ESPERA A QUE DESTRUYAN EL OBJETIVO"},
+	],
 	"final": [
 		{"id": "final", "show": ["radar"],
 			"text": "COMBATE FINAL: CON TUS DOS ALIADOS, DESTRUYE LOS TRES\nTANQUES ENEMIGOS Y EL DEPÓSITO (ROMBO DEL RADAR)",
@@ -146,6 +166,8 @@ const STEPS: Dictionary = {
 }
 
 var hud: Hud
+## Lección de voz: segundos desde el bombardeo.
+var _voice_wait: float = 0.0
 var touch: TouchControls
 var radar: Radar
 var input_source: PlayerInputSource
@@ -205,7 +227,7 @@ func _init() -> void:
 
 
 func wants_commands() -> bool:
-	return lesson_id() in ["follow", "focus", "final"]
+	return lesson_id() in ["follow", "focus", "voice", "final"]
 
 
 func wants_scenery() -> bool:
@@ -435,7 +457,7 @@ func _prepare(index: int) -> void:
 	follow_me = false
 	focus_target = null
 	allies_alive = 0
-	if LESSONS[index] in ["raid", "damage", "follow", "focus", "final"]:
+	if LESSONS[index] in ["raid", "damage", "follow", "focus", "voice", "final"]:
 		player.set_binoculars(false)
 	if touch != null:
 		touch.fire_enabled = index >= LESSONS.find("fire")
@@ -443,7 +465,7 @@ func _prepare(index: int) -> void:
 		var allowed: Array[String] = []
 		var unlock: Dictionary = {
 			"cam": "camera", "release": "assist", "zoom": "zoom", "missile": "missile", "strike": "strike",
-			"follow": "follow", "focus": "focus",
+			"follow": "follow", "focus": "focus", "mic": "voice",
 		}
 		for key in unlock:
 			if index >= LESSONS.find(unlock[key]):
@@ -971,6 +993,50 @@ func _check_focus(_delta: float) -> bool:
 				_enter_step(1)
 		1:
 			return _dead(enemy)
+	return false
+
+
+func _setup_voice() -> void:
+	player.health.heal(1000.0)
+	strikes = 1
+	_voice_wait = 0.0
+	_spawn_allies(-6.0)
+	var dir: Vector2 = _base_dir()
+	var point: Vector2 = _spot(75.0, 0.0, dir)
+	enemy = _dummy("panzer3", ENEMY_TEAM, point, yaw_towards(point, _player_xz()), 90.0)
+	enemy.health.invulnerable = false
+
+
+## Órdenes por voz: abrir el micro y las cuatro órdenes, una por paso. Si el móvil no tiene
+## reconocimiento de voz no hay micrófono y la lección se salta.
+func _check_voice(delta: float) -> bool:
+	if hud == null or hud.voice_orders == null or not hud.voice_orders.available():
+		return true
+	match step:
+		0:
+			if hud.voice_orders.enabled:
+				_enter_step(1)
+		1:
+			if follow_me:
+				_enter_step(2)
+		2:
+			if is_instance_valid(enemy) and player.aim_lock == enemy:
+				_enter_step(3)
+			elif _dead(enemy):
+				_enter_step(4)
+		3:
+			if focus_target != null and focus_target == enemy:
+				_enter_step(4)
+			elif _dead(enemy):
+				_enter_step(4)
+		4:
+			if strikes <= 0:
+				_voice_wait = 0.0
+				_enter_step(5)
+		5:
+			# Tras el bombardeo: hasta que caiga el objetivo (o unos segundos si ya cayó).
+			_voice_wait += delta
+			return _dead(enemy) and _voice_wait > 3.0
 	return false
 
 

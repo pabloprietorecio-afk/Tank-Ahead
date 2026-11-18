@@ -25,6 +25,11 @@ var _fine_yaw: float = 0.0
 var _idle_time: float = 0.0
 var _turn: float = 0.0
 var _relock_cooldown: float = 0.0
+## El objetivo lo ha fijado una orden de voz («localizar objetivo»): se mantiene aunque la ayuda
+## de apuntado esté apagada, hasta que muere o se libera.
+var _voice_lock: bool = false
+## Alcance de «localizar objetivo» (más que el de la ayuda de apuntado).
+const LOCATE_RANGE: float = 300.0
 ## Movimiento fácil: rumbo del cañón en el mundo que elige el jugador.
 var _aim_world: float = NAN
 ## Fuerza con la que el casco se alinea con el cañón al avanzar.
@@ -47,7 +52,10 @@ func _process(delta: float) -> void:
 	if GameSettings.aim_assist:
 		_update_lock()
 	elif tank.aim_lock != null:
-		release_lock()
+		if not _voice_lock or not is_instance_valid(tank.aim_lock) or tank.aim_lock.is_destroyed:
+			release_lock()
+	if tank.aim_lock == null:
+		_voice_lock = false
 	# Un cazacarros de casamata apenas gira el cañón: se apunta siempre como en el movimiento
 	# fácil (la mira manda) y es el casco el que gira para seguirla, también parado.
 	var casemate: bool = tank.turret_controller.traverse_limit > 0.0
@@ -71,8 +79,37 @@ func _process(delta: float) -> void:
 		tank.turret_controller.hold_relative()
 
 
+## Orden de voz «localizar objetivo»: fija el enemigo a la vista más cercano (la torreta gira
+## sola hacia él). Devuelve el tanque fijado, o null si no hay ninguno a la vista.
+func lock_nearest() -> Tank:
+	if tank == null or tank.is_destroyed:
+		return null
+	var best: Tank = null
+	var best_distance: float = LOCATE_RANGE
+	for node in get_tree().get_nodes_in_group(&"tanks"):
+		var enemy: Tank = node as Tank
+		if enemy == null or enemy.is_destroyed or not tank.is_hostile_to(enemy):
+			continue
+		var distance: float = tank.global_position.distance_to(enemy.global_position)
+		if distance < best_distance and _in_sight(enemy):
+			best_distance = distance
+			best = enemy
+	if best != null:
+		tank.aim_lock = best
+		_voice_lock = true
+		_relock_cooldown = 0.0
+	return best
+
+
+func _in_sight(enemy: Tank) -> bool:
+	var origin: Vector3 = tank.muzzle.global_position
+	var query := PhysicsRayQueryParameters3D.create(origin, _lock_point(enemy), WORLD_MASK | Terrain.LAYER)
+	return tank.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
+
+
 ## Libera el objetivo fijado (botón LIBERAR del HUD).
 func release_lock() -> void:
+	_voice_lock = false
 	if tank.aim_lock == null:
 		return
 	tank.aim_lock = null

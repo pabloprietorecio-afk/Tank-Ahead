@@ -321,6 +321,9 @@ var _missile_button: Button
 var _strike_button: Button
 var _follow_button: CommandButton
 var _focus_button: CommandButton
+var _mic_button: CommandButton
+## Órdenes por voz (micrófono); el tutorial lo consulta.
+var voice_orders: VoiceOrders
 var _binocular_mask: ColorRect
 var _history_gallery: VehicleGallery
 ## La ficha se abrió desde el menú de opciones: al cerrarla se vuelve a él.
@@ -387,8 +390,48 @@ func _build_arsenal() -> void:
 	controls["focus"] = _focus_button
 	_follow_button.pressed.connect(func() -> void: director.toggle_follow())
 	_focus_button.pressed.connect(func() -> void: director.focus_fire())
+	# Debajo, el micrófono: las mismas dos órdenes, dichas en voz alta (solo si el móvil tiene
+	# reconocimiento de voz). Una pulsación lo deja abierto hasta que se vuelve a pulsar.
+	voice_orders = VoiceOrders.new()
+	add_child(voice_orders)
+	_mic_button = CommandButton.create(CommandButton.Kind.MIC)
+	_mic_button.set_anchors_preset(Control.PRESET_CENTER_LEFT)
+	_mic_button.offset_left = 22.0
+	_mic_button.offset_right = 110.0
+	_mic_button.offset_top = 136.0
+	_mic_button.offset_bottom = 224.0
+	_mic_button.visible = false
+	add_child(_mic_button)
+	buttons.append(_mic_button)
+	controls["mic"] = _mic_button
+	_mic_button.pressed.connect(voice_orders.toggle)
+	voice_orders.order_heard.connect(_on_voice_order)
+	voice_orders.notice.connect(_show_message)
+	voice_orders.state_changed.connect(func() -> void: _mic_button.active = voice_orders.enabled)
+	_mic_button.active = voice_orders.enabled
 	if touch != null:
 		touch.exclusions.append_array(buttons)
+
+
+## Órdenes de voz: las dos de los iconos, más «localizar objetivo» y «solicito bombardeo».
+func _on_voice_order(order: String) -> void:
+	match order:
+		"follow":
+			director.follow_on()
+		"attack":
+			director.focus_fire()
+		"locate":
+			var target: Tank = input_source.lock_nearest() if input_source != null else null
+			if target == null:
+				_show_message(Loc.t("NINGÚN ENEMIGO A LA VISTA"), true)
+			else:
+				get_tree().call_group(&"voice", &"say", "locked", VoiceManager.Priority.HIGH)
+				_show_message(Loc.t("OBJETIVO LOCALIZADO: %s") % target.stats.display_name, false)
+		"strike":
+			if director.strikes <= 0:
+				_show_message(Loc.t("SIN BOMBARDEOS DISPONIBLES"), true)
+			else:
+				director.call_air_strike()
 
 
 func _place_mask() -> void:
@@ -606,9 +649,12 @@ func _process(delta: float) -> void:
 	_follow_button.visible = commands
 	_focus_button.visible = commands
 	_follow_button.active = director.follow_me
+	_mic_button.visible = commands and voice_orders.available() and not get_tree().paused
+	_mic_button.active = voice_orders.enabled
 	_focus_button.active = director.focus_target != null
 	if focus_active:
 		_apply_focus()
+	voice_orders.allowed = _mic_button.visible and not _mic_button.disabled
 	_binocular_mask.visible = tank.binoculars
 	if _binocular_mask.visible:
 		(_binocular_mask.material as ShaderMaterial).set_shader_parameter("screen_size", size)

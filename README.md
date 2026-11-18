@@ -38,6 +38,25 @@ Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
 - Los textos de las voces de los idiomas nuevos están en `tools/voice_gen/lines/<idioma>.txt` y son
   traducciones propias, sin revisar por un nativo.
 
+## Órdenes por voz
+Debajo de los dos iconos de órdenes (todos conmigo y atacar al objetivo) hay un micrófono
+(`ui/hud/voice_orders.gd`). Una pulsación lo abre y se queda escuchando toda la partida, y las
+siguientes, hasta que se vuelve a pulsar (`GameSettings.voice_orders`). Entiende cuatro órdenes en
+los diez idiomas, y en todos también en inglés: «todos conmigo», «atacar a mi objetivo»,
+«localizar objetivo» (fija y apunta la torreta al enemigo a la vista más cercano, hasta 300 m,
+aunque la ayuda de apuntado esté apagada) y «solicito bombardeo» (el mismo bombardeo del botón
+AVIÓN, sobre el objetivo fijado o donde apunta el cañón). Se reconocen por palabras clave
+(`LOCATE_WORDS`, `STRIKE_WORDS`, `FOLLOW_WORDS`, `ATTACK_WORDS`), de la más concreta a la más general.
+Mientras habla la radio del juego no escucha, para no tomar por órdenes sus propias voces.
+El tutorial tiene una lección propia («voice», tras «todos al objetivo»); sus locuciones aún no
+están generadas, así que de momento es solo texto.
+
+Usa el reconocimiento de voz del propio Android (`android.speech.SpeechRecognizer`, sin interfaz)
+con un plugin propio, `android_plugins/speech_commands` (Java), que `build-apk.yml` y `build-aab.yml`
+compilan en cada build con `javac` (sin Gradle) y dejan en `addons/SpeechCommands/bin`. Pide el
+permiso `RECORD_AUDIO` la primera vez que se pulsa el micrófono. Si el móvil no tiene servicio de
+voz (p. ej. sin servicios de Google), el micrófono no aparece y la lección del tutorial se salta.
+
 ## Clima
 Seis climas (`levels/weather/weather.gd`): soleado y nubes y claros (los días claros, con el sol alto),
 atardecer, niebla (tormenta de arena en África), lluvia y nieve. Cada frente admite los suyos

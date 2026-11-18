@@ -161,6 +161,17 @@ func toggle_follow() -> void:
 	message.emit(Loc.t("TODOS CONMIGO: TUS ALIADOS TE SIGUEN") if follow_me else Loc.t("TODOS LIBRES: TUS ALIADOS ACTÚAN POR SU CUENTA"), false)
 
 
+## Orden de voz «todos conmigo»: siempre los pone a seguir al jugador (si ya lo seguían, lo confirma).
+func follow_on() -> void:
+	if follow_me:
+		if is_over or player == null or player.is_destroyed:
+			return
+		get_tree().call_group(&"voice", &"say", "follow_on", VoiceManager.Priority.HIGH)
+		message.emit(Loc.t("TODOS CONMIGO: TUS ALIADOS TE SIGUEN"), false)
+	else:
+		toggle_follow()
+
+
 ## Todo el bando ataca al objetivo fijado del jugador o, si no hay, al enemigo que tiene bajo la mira.
 func focus_fire() -> void:
 	if is_over or player == null or player.is_destroyed:

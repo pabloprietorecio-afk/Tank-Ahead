@@ -188,6 +188,11 @@ func _do_focus() -> void:
 			_press("focus")
 
 
+## En el ordenador no hay reconocimiento de voz: la lección se completa sola.
+func _do_voice() -> void:
+	pass
+
+
 func _do_final() -> void:
 	# Tras la primera baja espera a que el tanque destruido desaparezca del campo (los restos
 	# se retiran a los 8 s): la lección tiene que seguir contando bien con tanques ya retirados.

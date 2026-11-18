@@ -102,6 +102,12 @@ func say(event: String, priority: int = Priority.NORMAL) -> void:
 
 ## Locución que no es un evento fijo (instrucciones del tutorial). Corta lo que suene de
 ## menor prioridad y descarta lo que hubiera en cola.
+## Está sonando una locución de radio (el micrófono de órdenes no escucha mientras tanto, para
+## no tomar por órdenes las propias voces del juego, como «¡Todos conmigo!»).
+func is_talking() -> bool:
+	return _player != null and _player.playing
+
+
 func say_stream(stream: AudioStream, priority: int = Priority.HIGH) -> void:
 	if stream == null:
 		return

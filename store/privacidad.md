@@ -2,7 +2,7 @@
 
 # Política de privacidad de A Tank Story
 
-Última actualización: 11 de noviembre de 2026
+Última actualización: 18 de noviembre de 2026
 
 A Tank Story («el juego») es un juego para Android desarrollado por Pablo Prieto («nosotros»). Esta política explica qué datos se tratan cuando juegas y con qué fin.
 
@@ -11,10 +11,16 @@ A Tank Story («el juego») es un juego para Android desarrollado por Pablo Prie
 El juego no tiene cuentas de usuario ni servidores propios, y no recoge datos personales. Solo guarda en tu dispositivo:
 
 - tu progreso (misiones superadas y récords),
-- tus ajustes (idioma, sonido, controles y dificultad),
+- tus ajustes (idioma, sonido, controles, dificultad y si dejaste abierto el micrófono de órdenes),
 - si has comprado Premium.
 
 Estos datos no salen de tu dispositivo ni se incluyen en las copias de seguridad, y se borran al desinstalar el juego.
+
+## Micrófono (órdenes por voz)
+
+El micrófono del juego está apagado hasta que lo pulsas. Si lo abres (Android te pedirá antes el permiso de micrófono), el juego usa el servicio de reconocimiento de voz de tu dispositivo Android —normalmente el de Google— para entender las órdenes a tus aliados. El juego no graba ni guarda el audio ni lo envía a ningún servidor nuestro: solo recibe el texto reconocido, lo compara con las órdenes y lo descarta. Según el dispositivo, ese servicio procesa la voz en el propio móvil o en los servidores de Google, que la tratan conforme a su política de privacidad: https://policies.google.com/privacy
+
+Mientras el micrófono está abierto, Android lo indica en la pantalla. Puedes cerrarlo pulsándolo de nuevo o retirar el permiso en los ajustes de Android.
 
 ## Publicidad (Google AdMob)
 
@@ -49,13 +55,19 @@ Para cualquier duda sobre privacidad: pablo.prieto.recio@gmail.com
 
 # A Tank Story privacy policy
 
-Last updated: 11 November 2026
+Last updated: 18 November 2026
 
 A Tank Story ("the game") is an Android game developed by Pablo Prieto ("we"). This policy explains what data is processed when you play and why.
 
 ## Data stored by the game
 
-The game has no user accounts or servers of its own and does not collect personal data. It only stores on your device your progress (completed missions and records), your settings (language, sound, controls and difficulty), and whether you bought Premium. This data never leaves your device, is excluded from backups, and is deleted when you uninstall the game.
+The game has no user accounts or servers of its own and does not collect personal data. It only stores on your device your progress (completed missions and records), your settings (language, sound, controls, difficulty and whether you left the voice-order microphone open), and whether you bought Premium. This data never leaves your device, is excluded from backups, and is deleted when you uninstall the game.
+
+## Microphone (voice orders)
+
+The in-game microphone is off until you tap it. If you open it (Android will first ask for microphone permission), the game uses your Android device's speech recognition service — usually Google's — to understand orders to your allies. The game does not record or store the audio, and does not send it to any server of ours: it only receives the recognised text, compares it with the orders and discards it. Depending on the device, that service processes your voice on the phone itself or on Google's servers, under Google's privacy policy: https://policies.google.com/privacy
+
+While the microphone is open, Android shows an indicator on screen. You can close it by tapping it again, or revoke the permission in Android settings.
 
 ## Advertising (Google AdMob)
 

@@ -106,6 +106,13 @@ jobs:
             "platform-tools" "build-tools;${BTOOLS}" "platforms;android-${COMPILE}" "ndk;${NDK}" \
             "cmake;3.10.2.4988404"
 
+      # Plugin propio de reconocimiento de voz (micrófono de órdenes): se compila aquí con javac,
+      # contra el android.jar del SDK y la godot-lib de la plantilla (android_plugins/speech_commands).
+      - name: Compilar plugin de voz (SpeechCommands)
+        run: |
+          COMPILE=$(grep -E "^\s*compileSdk\s*:" android/build/config.gradle | grep -o '[0-9]\+' | head -1)
+          bash android_plugins/speech_commands/build.sh "$COMPILE"
+
       - name: Configurar Godot para Android
         run: |
           godot --headless --editor --quit || true

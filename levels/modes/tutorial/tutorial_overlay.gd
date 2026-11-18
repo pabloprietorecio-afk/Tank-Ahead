@@ -168,6 +168,8 @@ func show_summary() -> void:
 		[Loc.t("AVIÓN"), Loc.t("BOMBARDEO ALIADO A MÁS DE 30 M DE TI")],
 		[Loc.t("TRES FLECHAS"), Loc.t("TODOS CONMIGO: LOS ALIADOS TE SIGUEN (OTRA VEZ: LIBRES)")],
 		[Loc.t("DIANA Y FLECHAS"), Loc.t("TODOS ATACAN EL OBJETIVO QUE APUNTAS")],
+		[Loc.t("MICRÓFONO"), Loc.t("DI «%s» O «%s»") % [Loc.t("TODOS CONMIGO"), Loc.t("ATACAR A MI OBJETIVO")]],
+		["", Loc.t("DI «%s» O «%s»") % [Loc.t("LOCALIZAR OBJETIVO"), Loc.t("SOLICITO BOMBARDEO")]],
 		[Loc.t("ZONA ROJA"), Loc.t("BOMBARDEO ENEMIGO: SAL ANTES DE QUE LLEGUE A CERO")],
 		["⚙", Loc.t("MOVIMIENTO FÁCIL, APUNTADO AUTOMÁTICO, SONIDO Y ABANDONAR")],
 	]
