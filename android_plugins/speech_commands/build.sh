@@ -14,8 +14,8 @@ test -n "$GODOT_AAR" || { echo "No está la godot-lib de la plantilla en android
 WORK=$(mktemp -d)
 unzip -q -o "$GODOT_AAR" classes.jar -d "$WORK/godot"
 mkdir -p "$WORK/classes" "$WORK/aar"
-javac -nowarn -encoding UTF-8 -source 11 -target 11 -bootclasspath "$ANDROID_JAR" \
-  -classpath "$WORK/godot/classes.jar" -d "$WORK/classes" \
+javac -nowarn -encoding UTF-8 --release 11 \
+  -classpath "$ANDROID_JAR:$WORK/godot/classes.jar" -d "$WORK/classes" \
   $(find "$HERE/src" -name "*.java")
 (cd "$WORK/classes" && jar cf "$WORK/aar/classes.jar" .)
 cp "$HERE/AndroidManifest.xml" "$WORK/aar/AndroidManifest.xml"
