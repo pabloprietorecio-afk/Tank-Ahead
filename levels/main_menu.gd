@@ -10,6 +10,8 @@ const TINT_PLAY := Color(0.45, 0.72, 0.38)
 const TINT_TUTORIAL := Color(0.36, 0.64, 0.95)
 const TINT_OPTIONS := Color(0.72, 0.6, 0.9)
 const TINT_HISTORY := Color(0.92, 0.55, 0.32)
+## «◀ VOLVER»: color arena, distinto de todas las categorías, para que se vea a la primera.
+const TINT_BACK := Color(0.86, 0.78, 0.56)
 
 ## Alto de fila normal y mínimo al que se encoge una página que no cabe en la pantalla.
 const ROW_HEIGHT: float = 68.0
@@ -286,7 +288,7 @@ func _button(text: String, action: Callable, enabled: bool = true, tint: Color =
 
 
 func _back(action: Callable) -> void:
-	var button := _button(Loc.t("◀ VOLVER"), action)
+	var button := _button(Loc.t("◀ VOLVER"), action, true, TINT_BACK)
 	button.add_theme_font_size_override("font_size", 22)
 	button.custom_minimum_size.y = 56.0
 
@@ -302,7 +304,7 @@ func _row() -> HBoxContainer:
 ## Pie de página: «volver» estrecho a la izquierda y la acción principal ocupando el resto.
 func _footer(back_action: Callable, text: String, action: Callable) -> void:
 	var footer := _row()
-	var back: Button = _button(Loc.t("◀ VOLVER"), back_action)
+	var back: Button = _button(Loc.t("◀ VOLVER"), back_action, true, TINT_BACK)
 	back.reparent(footer)
 	back.add_theme_font_size_override("font_size", 22)
 	back.custom_minimum_size = Vector2(210.0, ROW_HEIGHT)
@@ -535,7 +537,7 @@ func _page_audio() -> void:
 	language.reparent(footer)
 	language.add_theme_font_size_override("font_size", 22)
 	language.custom_minimum_size = Vector2(400.0, 56.0)
-	var back: Button = _button(Loc.t("◀ VOLVER"), _page_mode)
+	var back: Button = _button(Loc.t("◀ VOLVER"), _page_mode, true, TINT_BACK)
 	back.reparent(footer)
 	back.add_theme_font_size_override("font_size", 22)
 	back.custom_minimum_size = Vector2(210.0, 56.0)
