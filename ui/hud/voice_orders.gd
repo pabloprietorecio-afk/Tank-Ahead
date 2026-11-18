@@ -1,9 +1,9 @@
 class_name VoiceOrders
 extends Node
 ## Órdenes por voz a los aliados (botón del micrófono, debajo de los dos iconos de órdenes).
-## Entiende cuatro órdenes en los diez idiomas del juego (y, en todos ellos, también en inglés):
+## Entiende cinco órdenes en los diez idiomas del juego (y, en todos ellos, también en inglés):
 ## «todos conmigo», «atacar a mi objetivo», «localizar objetivo» (la torreta apunta al enemigo a la
-## vista más cercano) y «solicito bombardeo». Usa el reconocimiento de voz del propio Android (plugin
+## vista más cercano), «lanzar misil» y «solicito bombardeo». Usa el reconocimiento de voz del propio Android (plugin
 ## SpeechCommands): si el móvil no tiene servicio de voz, o fuera de Android, no hay micrófono.
 ##
 ## Micrófono abierto: una pulsación lo abre y se queda escuchando toda la partida (y las
@@ -12,7 +12,7 @@ extends Node
 ## Mientras habla la radio del juego no se escucha, para no tomar por órdenes sus propias voces
 ## («¡Todos conmigo! Recibido…», «¡Fuego!»).
 
-## Orden reconocida: "follow", "attack", "locate" o "strike".
+## Orden reconocida: "follow", "attack", "locate", "missile" o "strike".
 signal order_heard(order: String)
 signal state_changed
 ## Aviso para el jugador (se muestra en la línea de mensajes del HUD).
@@ -31,9 +31,9 @@ const LOCALES: Dictionary = {"es": "es-ES", "en": "en-US", "fr": "fr-FR", "it": 
 ## Frase de cada orden tal como se enseña (clave de traducción), en el orden en que se comprueban:
 ## las más concretas primero, porque «localizar objetivo» y «solicito bombardeo» contienen palabras
 ## de «atacar a mi objetivo» («objetivo», «ataque aéreo»…). Una frase da una sola orden.
-const ORDERS: Array[String] = ["locate", "strike", "follow", "attack"]
+const ORDERS: Array[String] = ["locate", "strike", "missile", "follow", "attack"]
 const PHRASES: Dictionary = {"follow": "TODOS CONMIGO", "attack": "ATACAR A MI OBJETIVO",
-		"locate": "LOCALIZAR OBJETIVO", "strike": "SOLICITO BOMBARDEO"}
+		"locate": "LOCALIZAR OBJETIVO", "missile": "LANZAR MISIL", "strike": "SOLICITO BOMBARDEO"}
 
 ## Palabras que disparan cada orden, ya normalizadas (minúsculas, sin tildes). Salvo en japonés,
 ## cuentan si empiezan una palabra: «ataca» vale para «atacad», «atacar» y «ataca».
@@ -60,6 +60,18 @@ const STRIKE_WORDS: Dictionary = {
 	"hi": ["बमबारी", "हवाई हमला", "हवाई सहायता", "तोपखान"],
 	"de": ["bombard", "luftangriff", "luftschlag", "luftunterstutzung", "artillerie"],
 	"ru": ["бомб", "авиаудар", "авиаподдерж", "артиллер", "удар с воздуха"],
+}
+const MISSILE_WORDS: Dictionary = {
+	"es": ["misil"],
+	"en": ["missile"],
+	"fr": ["missile"],
+	"it": ["missile"],
+	"ja": ["ミサイル"],
+	"pt": ["missil", "misseis"],
+	"id": ["rudal", "misil"],
+	"hi": ["मिसाइल"],
+	"de": ["rakete", "flugkorper"],
+	"ru": ["ракет"],
 }
 const FOLLOW_WORDS: Dictionary = {
 	"es": ["conmigo", "seguidme", "sigueme", "siganme", "venid", "en formacion"],
@@ -285,7 +297,8 @@ func _dispatch(text: String) -> bool:
 
 ## Orden que contiene el texto (alternativas separadas por saltos de línea), o "" si ninguna.
 static func recognize(text: String, language: String) -> String:
-	var tables: Dictionary = {"locate": LOCATE_WORDS, "strike": STRIKE_WORDS, "follow": FOLLOW_WORDS, "attack": ATTACK_WORDS}
+	var tables: Dictionary = {"locate": LOCATE_WORDS, "strike": STRIKE_WORDS, "missile": MISSILE_WORDS,
+			"follow": FOLLOW_WORDS, "attack": ATTACK_WORDS}
 	for alternative in text.split("\n", false):
 		var clean: String = normalize(alternative)
 		for order in ORDERS:

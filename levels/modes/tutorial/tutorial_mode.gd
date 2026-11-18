@@ -151,6 +151,9 @@ const STEPS: Dictionary = {
 		{"id": "voice_d", "show": ["mic"],
 			"text": "DI «ATACAR A MI OBJETIVO»:\nTODOS TUS ALIADOS ATACAN EL OBJETIVO FIJADO",
 			"hint": "PON LA MIRA SOBRE EL ENEMIGO Y DILO.\nSI NO TE ENTIENDE, BAJA EL VOLUMEN DEL JUEGO"},
+		{"id": "voice_m", "show": ["mic"],
+			"text": "DI «LANZAR MISIL»: SALE UN MISIL GUIADO\nHACIA TU OBJETIVO FIJADO",
+			"hint": "SIN OBJETIVO FIJADO EL MISIL VA RECTO:\nANTES DI «LOCALIZAR OBJETIVO»"},
 		{"id": "voice_e", "show": ["mic"],
 			"text": "DI «SOLICITO BOMBARDEO»: LA AVIACIÓN ALIADA\nBOMBARDEA TU OBJETIVO FIJADO (A MÁS DE 30 M DE TI)",
 			"hint": "CON UN OBJETIVO FIJADO, LAS BOMBAS CAEN SOBRE ÉL;\nSI NO, DONDE APUNTA EL CAÑÓN"},
@@ -998,6 +1001,7 @@ func _check_focus(_delta: float) -> bool:
 
 func _setup_voice() -> void:
 	player.health.heal(1000.0)
+	missiles = 1
 	strikes = 1
 	_voice_wait = 0.0
 	_spawn_allies(-6.0)
@@ -1007,7 +1011,7 @@ func _setup_voice() -> void:
 	enemy.health.invulnerable = false
 
 
-## Órdenes por voz: abrir el micro y las cuatro órdenes, una por paso. Si el móvil no tiene
+## Órdenes por voz: abrir el micro y las cinco órdenes, una por paso. Si el móvil no tiene
 ## reconocimiento de voz no hay micrófono y la lección se salta.
 func _check_voice(delta: float) -> bool:
 	if hud == null or hud.voice_orders == null or not hud.voice_orders.available():
@@ -1030,10 +1034,13 @@ func _check_voice(delta: float) -> bool:
 			elif _dead(enemy):
 				_enter_step(4)
 		4:
-			if strikes <= 0:
-				_voice_wait = 0.0
+			if missiles <= 0:
 				_enter_step(5)
 		5:
+			if strikes <= 0:
+				_voice_wait = 0.0
+				_enter_step(6)
+		6:
 			# Tras el bombardeo: hasta que caiga el objetivo (o unos segundos si ya cayó).
 			_voice_wait += delta
 			return _dead(enemy) and _voice_wait > 3.0

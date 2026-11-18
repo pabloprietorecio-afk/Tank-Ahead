@@ -41,12 +41,14 @@ Voces (`assets/voice_<idioma>`; si falta un clip se usa el español):
 ## Órdenes por voz
 Debajo de los dos iconos de órdenes (todos conmigo y atacar al objetivo) hay un micrófono
 (`ui/hud/voice_orders.gd`). Una pulsación lo abre y se queda escuchando toda la partida, y las
-siguientes, hasta que se vuelve a pulsar (`GameSettings.voice_orders`). Entiende cuatro órdenes en
+siguientes, hasta que se vuelve a pulsar (`GameSettings.voice_orders`). Entiende cinco órdenes en
 los diez idiomas, y en todos también en inglés: «todos conmigo», «atacar a mi objetivo»,
 «localizar objetivo» (fija y apunta la torreta al enemigo a la vista más cercano, hasta 300 m,
-aunque la ayuda de apuntado esté apagada) y «solicito bombardeo» (el mismo bombardeo del botón
-AVIÓN, sobre el objetivo fijado o donde apunta el cañón). Se reconocen por palabras clave
-(`LOCATE_WORDS`, `STRIKE_WORDS`, `FOLLOW_WORDS`, `ATTACK_WORDS`), de la más concreta a la más general.
+aunque la ayuda de apuntado esté apagada), «lanzar misil» (el misil guiado del botón MISIL) y
+«solicito bombardeo» (el bombardeo del botón AVIÓN, sobre el objetivo fijado o donde apunta el
+cañón); misil y bombardeo por voz no necesitan los prismáticos. Se reconocen por palabras clave
+(`LOCATE_WORDS`, `STRIKE_WORDS`, `MISSILE_WORDS`, `FOLLOW_WORDS`, `ATTACK_WORDS`), de la más
+concreta a la más general.
 Mientras habla la radio del juego no escucha, para no tomar por órdenes sus propias voces.
 El tutorial tiene una lección propia («voice», tras «todos al objetivo»); sus locuciones aún no
 están generadas, así que de momento es solo texto.

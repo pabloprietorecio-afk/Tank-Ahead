@@ -413,7 +413,8 @@ func _build_arsenal() -> void:
 		touch.exclusions.append_array(buttons)
 
 
-## Órdenes de voz: las dos de los iconos, más «localizar objetivo» y «solicito bombardeo».
+## Órdenes de voz: las dos de los iconos, más «localizar objetivo», «lanzar misil» y
+## «solicito bombardeo» (misil y bombardeo, sin necesidad de prismáticos).
 func _on_voice_order(order: String) -> void:
 	match order:
 		"follow":
@@ -427,6 +428,11 @@ func _on_voice_order(order: String) -> void:
 			else:
 				get_tree().call_group(&"voice", &"say", "locked", VoiceManager.Priority.HIGH)
 				_show_message(Loc.t("OBJETIVO LOCALIZADO: %s") % target.stats.display_name, false)
+		"missile":
+			if director.missiles <= 0:
+				_show_message(Loc.t("SIN MISILES"), true)
+			else:
+				director.fire_missile()
 		"strike":
 			if director.strikes <= 0:
 				_show_message(Loc.t("SIN BOMBARDEOS DISPONIBLES"), true)
