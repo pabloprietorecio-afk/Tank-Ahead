@@ -329,6 +329,7 @@ const TABLE: Dictionary = {
 	"RECONOCIMIENTO DE VOZ NO DISPONIBLE: COMPRUEBA LA CONEXIÓN": "आवाज़ पहचान उपलब्ध नहीं: कनेक्शन जाँचो",
 	"MICRÓFONO": "माइक्रोफ़ोन",
 	"DI «%s» O «%s»": "\"%s\" या \"%s\" बोलो",
+	"HE OÍDO «%s»: NO ES UNA ORDEN": "सुना: \"%s\" — यह कोई आदेश नहीं है",
 	"LANZAR MISIL": "मिसाइल दागो",
 	"SIN MISILES": "कोई मिसाइल बाकी नहीं",
 	"DI «%s»": "\"%s\" बोलो",

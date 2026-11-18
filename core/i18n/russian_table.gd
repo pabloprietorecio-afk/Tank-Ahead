@@ -329,6 +329,7 @@ const TABLE: Dictionary = {
 	"RECONOCIMIENTO DE VOZ NO DISPONIBLE: COMPRUEBA LA CONEXIÓN": "РАСПОЗНАВАНИЕ РЕЧИ НЕДОСТУПНО: ПРОВЕРЬ ПОДКЛЮЧЕНИЕ",
 	"MICRÓFONO": "МИКРОФОН",
 	"DI «%s» O «%s»": "СКАЖИ «%s» ИЛИ «%s»",
+	"HE OÍDO «%s»: NO ES UNA ORDEN": "УСЛЫШАЛ «%s»: ЭТО НЕ ПРИКАЗ",
 	"LANZAR MISIL": "ПУСК РАКЕТЫ",
 	"SIN MISILES": "РАКЕТ НЕ ОСТАЛОСЬ",
 	"DI «%s»": "СКАЖИ «%s»",

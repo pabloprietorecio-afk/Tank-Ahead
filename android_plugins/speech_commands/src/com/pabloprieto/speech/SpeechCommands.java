@@ -24,6 +24,8 @@ import java.util.Set;
  */
 public class SpeechCommands extends GodotPlugin {
     private SpeechRecognizer recognizer;
+    /** Último texto parcial de la sesión: si el servicio acaba con «no te he entendido», se usa este. */
+    private String lastPartial = "";
 
     public SpeechCommands(Godot godot) {
         super(godot);
@@ -42,6 +44,7 @@ public class SpeechCommands extends GodotPlugin {
         signals.add(new SignalInfo("final_results", String.class));
         signals.add(new SignalInfo("speech_error", Integer.class));
         signals.add(new SignalInfo("listening_ended"));
+        signals.add(new SignalInfo("speech_begun"));
         return signals;
     }
 
@@ -74,22 +77,15 @@ public class SpeechCommands extends GodotPlugin {
                     return;
                 }
                 recognizer.setRecognitionListener(new Listener());
+                // Mismos extras que el dictado de WakeAgenda, que funciona bien: sin forzar la preferencia de
+                // idioma ni pistas de vocabulario (con ellas el servicio de Google acababa en «no te he entendido»).
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, language);
-                intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
                 intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+                intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
                 intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, activity.getPackageName());
-                // Pistas de vocabulario (Android 13+; los servicios que no las admiten las ignoran).
-                if (hints != null && hints.length > 0) {
-                    ArrayList<String> list = new ArrayList<>();
-                    for (String hint : hints) {
-                        list.add(hint);
-                    }
-                    intent.putStringArrayListExtra("android.speech.extra.BIASING_STRINGS", list);
-                }
+                lastPartial = "";
                 try {
                     recognizer.startListening(intent);
                 } catch (Exception e) {
@@ -158,6 +154,7 @@ public class SpeechCommands extends GodotPlugin {
     }
 
     private static String join(Bundle bundle) {
+        // Las alternativas, separadas por saltos de línea (la primera es la más probable).
         if (bundle == null) {
             return "";
         }
@@ -186,6 +183,7 @@ public class SpeechCommands extends GodotPlugin {
 
         @Override
         public void onBeginningOfSpeech() {
+            emit("speech_begun");
         }
 
         @Override
@@ -202,8 +200,14 @@ public class SpeechCommands extends GodotPlugin {
 
         @Override
         public void onError(int error) {
+            String heard = lastPartial;
             destroyRecognizer();
-            emit("speech_error", Integer.valueOf(error));
+            // Como WakeAgenda: si el servicio no da resultado final pero ya había entendido algo, vale eso.
+            if ((error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) && !heard.isEmpty()) {
+                emit("final_results", heard);
+            } else {
+                emit("speech_error", Integer.valueOf(error));
+            }
             emit("listening_ended");
         }
 
@@ -219,6 +223,7 @@ public class SpeechCommands extends GodotPlugin {
         public void onPartialResults(Bundle partialResults) {
             String text = join(partialResults);
             if (!text.isEmpty()) {
+                lastPartial = text;
                 emit("partial_results", text);
             }
         }

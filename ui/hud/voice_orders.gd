@@ -23,6 +23,8 @@ const PERMISSION := "android.permission.RECORD_AUDIO"
 const RADIO_GAP: float = 0.6
 ## Pausa tras una orden reconocida (la misma frase no se cuenta dos veces).
 const AFTER_ORDER: float = 1.5
+## Mientras hablas, el sonido del juego baja (dB): el motor y los cañonazos por el altavoz tapan la voz.
+const DUCK_DB: float = -14.0
 
 ## Idioma del juego → idioma del reconocedor.
 const LOCALES: Dictionary = {"es": "es-ES", "en": "en-US", "fr": "fr-FR", "it": "it-IT", "ja": "ja-JP",
@@ -130,6 +132,7 @@ var _failures: int = 0
 var _radio_quiet: float = 0.0
 var _network_warned: bool = false
 var _voice: VoiceManager = null
+var _ducked: bool = false
 
 
 func _ready() -> void:
@@ -142,6 +145,7 @@ func _ready() -> void:
 			_plugin.connect("final_results", _on_final, CONNECT_DEFERRED)
 			_plugin.connect("speech_error", _on_error, CONNECT_DEFERRED)
 			_plugin.connect("listening_ended", _on_ended, CONNECT_DEFERRED)
+			_plugin.connect("speech_begun", _on_speech_begun, CONNECT_DEFERRED)
 			get_tree().on_request_permissions_result.connect(_on_permission)
 			GameSettings.ensure_loaded()
 			# Si lo dejó abierto en la partida anterior (y sigue habiendo permiso), sigue abierto.
@@ -238,6 +242,23 @@ func _cancel_session() -> void:
 		_plugin.cancel()
 	listening = false
 	_cooldown = maxf(_cooldown, 0.3)
+	_duck(false)
+
+
+func _on_speech_begun() -> void:
+	if listening:
+		_duck(true)
+
+
+func _duck(on: bool) -> void:
+	if on == _ducked:
+		return
+	_ducked = on
+	var master: int = AudioServer.get_bus_index(&"Master")
+	if on:
+		AudioServer.set_bus_volume_db(master, AudioServer.get_bus_volume_db(master) + DUCK_DB)
+	else:
+		AudioSetup.apply_volumes()
 
 
 func _on_partial(text: String) -> void:
@@ -248,16 +269,24 @@ func _on_partial(text: String) -> void:
 
 
 func _on_final(text: String) -> void:
-	if listening and not _handled and _dispatch(text):
-		_cooldown = AFTER_ORDER
+	if listening and not _handled:
+		if _dispatch(text):
+			_cooldown = AFTER_ORDER
+		else:
+			# Se ha entendido algo, pero no es una orden: se enseña, para saber qué ha oído.
+			var heard: String = text.get_slice("\n", 0).strip_edges()
+			if heard != "":
+				notice.emit(Loc.t("HE OÍDO «%s»: NO ES UNA ORDEN") % heard, true)
 	_failures = 0
 	listening = false
+	_duck(false)
 
 
 func _on_error(code: int) -> void:
 	if not listening:
 		return
 	listening = false
+	_duck(false)
 	match code:
 		ERROR_NO_MATCH, ERROR_SPEECH_TIMEOUT:
 			# Silencio o ruido: lo normal con el micro abierto; se vuelve a escuchar enseguida.
@@ -283,6 +312,7 @@ func _backoff() -> void:
 
 func _on_ended() -> void:
 	listening = false
+	_duck(false)
 
 
 ## Busca una orden en lo oído (todas las alternativas). Devuelve si ha reconocido alguna.
@@ -329,3 +359,4 @@ static func matches(clean: String, language: String, words: Dictionary) -> bool:
 
 func _exit_tree() -> void:
 	_cancel_session()
+	_duck(false)

@@ -329,6 +329,7 @@ const TABLE: Dictionary = {
 	"RECONOCIMIENTO DE VOZ NO DISPONIBLE: COMPRUEBA LA CONEXIÓN": "聞き取り機能を使えません：接続を確認してください",
 	"MICRÓFONO": "マイク",
 	"DI «%s» O «%s»": "「%s」か「%s」と呼びかける",
+	"HE OÍDO «%s»: NO ES UNA ORDEN": "「%s」と聞こえた：命令ではない",
 	"LANZAR MISIL": "ミサイル発射",
 	"SIN MISILES": "ミサイルが残っていない",
 	"DI «%s»": "「%s」と呼びかける",
