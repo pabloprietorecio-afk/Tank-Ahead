@@ -93,6 +93,7 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 			_make_drops(2400, Vector2(0.018, 0.8), Color(0.75, 0.82, 0.95), 0.42, Fx.on(self).wind * 1.6 + Vector3.DOWN * 26.0, 0.7, Vector3(15.0, 0.5, 15.0), false)
 			_make_splashes(240)
 			ground_material.set_shader_parameter("wet", 1.0)
+			_dress_strips(1.0, 0.0)
 			_rain_loop = AudioStreamPlayer.new()
 			_rain_loop.stream = load("res://assets/audio/rain.wav")
 			_rain_loop.volume_db = -12.0
@@ -102,8 +103,24 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 		Kind.SNOW:
 			_apply(Color(0.45, 0.5, 0.58), Color(0.75, 0.78, 0.82), Color(0.9, 0.93, 1.0), 0.7, 0.014, Color(0.72, 0.75, 0.8))
 			ground_material.set_shader_parameter("tint", 0.8)
+			_dress_strips(0.0, 0.8)
 			# Contra el cielo y la nieve, los copos se ven grises; contra lo oscuro, blancos.
 			_make_drops(1800, Vector2(0.1, 0.1), Color(0.6, 0.62, 0.66), 0.9, Fx.on(self).wind + Vector3.DOWN * 1.9, 5.0, Vector3(14.0, 4.5, 14.0), true)
+
+
+## Caminos, orillas y agua (cintas a ras de suelo) con el mismo tiempo que el terreno: mojados
+## con la lluvia; nevados, y el agua helada, con la nieve.
+func _dress_strips(wet: float, snow: float) -> void:
+	for node in get_tree().get_nodes_in_group(&"ground_strips"):
+		var strip := node as MeshInstance3D
+		if strip == null or not strip.material_override is ShaderMaterial:
+			continue
+		var material: ShaderMaterial = strip.material_override
+		if strip.is_in_group(&"water_surfaces"):
+			material.set_shader_parameter("frozen", snow)
+		else:
+			material.set_shader_parameter("wet", wet)
+			material.set_shader_parameter("tint", snow)
 
 
 ## Dice a los efectos cómo es la luz de esta partida (para que el humo y el polvo se iluminen

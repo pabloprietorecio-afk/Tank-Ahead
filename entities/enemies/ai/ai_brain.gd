@@ -5,7 +5,8 @@ extends Node
 ## sigue su orden (`objective`) o, si `hunt` está activo, va a por el hostil más cercano.
 ## Da órdenes al Tank (drive_input, torreta, gatillo) igual que lo haría el jugador.
 
-const WORLD_MASK: int = 1
+## Lo que estorba el paso: el mundo y la capa del límite del mapa y de los ríos.
+const WORLD_MASK: int = 1 | 8
 const ARENA_LIMIT: float = 180.0
 const RETARGET_INTERVAL: float = 0.6
 
@@ -17,6 +18,8 @@ var machine: StateMachine
 var objective: Vector3 = Vector3.INF
 ## Si no ve a nadie, persigue al hostil más cercano aunque esté lejos (supervivencia).
 var hunt: bool = true
+## Atrincherado: no se mueve de su sitio (apunta, dispara y, si es de casamata, gira el casco).
+var hold_position: bool = false
 ## Distancia a la que se queda del objetivo al llegar (defensores: patrullan alrededor).
 var objective_radius: float = 6.0
 ## La orden es lo primero: va a su objetivo sin desviarse a perseguir a nadie, disparando sobre
@@ -292,6 +295,9 @@ func drive_to(point: Vector3, speed: float = 1.0, arrive: float = 4.0) -> bool:
 	if dist <= arrive:
 		tank.drive_input = Vector2.ZERO
 		return true
+	if hold_position:
+		tank.drive_input = Vector2.ZERO
+		return false
 	if smart_nav:
 		_drive_smart(point, speed)
 		return false

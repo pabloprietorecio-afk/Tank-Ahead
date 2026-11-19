@@ -4,8 +4,10 @@ extends Node3D
 ## encima del campo con su ruido de motores, la antiaérea del bando contrario que les dispara
 ## (trazadoras que suben, fogonazo, nubecilla negra y el estampido que llega con retraso),
 ## duelos de artillería más allá del horizonte que encienden las nubes y, de vez en cuando, un
-## avión tocado que cae envuelto en humo y se estrella fuera del campo. No afecta a la partida:
-## nada de esto hace daño ni da puntos.
+## avión tocado que cae envuelto en humo y se estrella: unas veces fuera del campo y otras
+## dentro, a la vista, en un sitio despejado y lejos de los tanques (y si alguno se le acerca
+## mientras cae, se desvía). También cazas y aviones de asalto en vuelo rasante, salvas de
+## cohetes y bengalas. No afecta a la partida: nada de esto hace daño ni da puntos.
 
 ## Tipos de aparato: envergadura y largo (m), motores, velocidad de paso (m/s) y altura (m).
 const TYPES: Dictionary = {
@@ -40,9 +42,22 @@ const PAINT: Dictionary = {
 }
 
 const FIELD: float = 215.0
-const PASS_INTERVAL: Vector2 = Vector2(14.0, 32.0)
-const DISTANT_INTERVAL: Vector2 = Vector2(4.0, 11.0)
-const DOWN_CHANCE: float = 0.55
+const PASS_INTERVAL: Vector2 = Vector2(8.0, 18.0)
+const DISTANT_INTERVAL: Vector2 = Vector2(2.5, 6.5)
+const DOWN_CHANCE: float = 0.45
+## Parte de las pasadas de cazas y aviones de asalto que van en vuelo rasante, y a qué altura (m).
+const LOW_SHARE: float = 0.55
+const LOW_HEIGHT: Vector2 = Vector2(48.0, 68.0)
+## Parte de los derribos que caen dentro del campo, a la vista del jugador.
+const INSIDE_SHARE: float = 0.55
+## Un avión solo cae dentro si su punto de caída queda a esta distancia (m) de todo tanque; y
+## mientras cae se aparta de los que se le acerquen a menos de AVOID_RADIUS.
+const CRASH_CLEARANCE: float = 30.0
+const AVOID_RADIUS: float = 20.0
+## A menos de esto de un tanque, el derribo cuenta como caído encima (debe ser siempre 0).
+const HIT_RADIUS: float = 8.0
+## Restos de avión que se dejan en el campo a la vez (los más viejos se retiran).
+const MAX_WRECKS: int = 3
 ## Velocidad de las trazadoras antiaéreas (m/s) y color según quién dispara (lineal).
 const TRACER_SPEED: float = 240.0
 const TRACER_AXIS := Color(1.0, 0.62, 0.2)
@@ -53,6 +68,11 @@ var front: int = Fronts.Id.NORMANDY
 ## Aviones derribados que han caído dentro del campo (debe ser siempre 0; lo miran las pruebas).
 var crashes_inside: int = 0
 var crashes: int = 0
+## Derribos caídos encima de un tanque (debe ser siempre 0; lo miran las pruebas).
+var crashes_on_tanks: int = 0
+## Callable(Vector2) -> bool: punto del campo libre de edificios y zonas reservadas.
+var is_free_point: Callable = Callable()
+var _wrecks: Array[Node3D] = []
 ## Última formación lanzada (para pruebas y capturas).
 var last_model: String = ""
 
@@ -72,16 +92,22 @@ func _process(delta: float) -> void:
 	_distant_timer -= delta
 	if _distant_timer <= 0.0:
 		_distant_timer = randf_range(DISTANT_INTERVAL.x, DISTANT_INTERVAL.y)
-		if randf() < 0.6:
+		var roll: float = randf()
+		if roll < 0.45:
 			distant_guns()
-		else:
+		elif roll < 0.7:
 			_distant_barrage()
+		elif roll < 0.88:
+			rocket_salvo()
+		else:
+			flare()
 	for formation in _formations.duplicate():
 		_update_formation(formation, delta)
 
 
 ## Lanza una formación. Sin argumentos se sortean bando y modelo según el frente.
-func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int = -1) -> Dictionary:
+## `low`: 1 fuerza el vuelo rasante, 0 lo impide y -1 lo sortea (solo cazas y aviones de asalto).
+func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int = -1, low: int = -1) -> Dictionary:
 	if faction < 0:
 		faction = Fronts.Faction.ALLIES if randf() < ALLIED_SHARE[front] else Fronts.Faction.AXIS
 	var options: Array = AIRCRAFT[front][faction]
@@ -102,7 +128,12 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 	var dir := Vector3(sin(heading), 0.0, cos(heading))
 	var right := Vector3(dir.z, 0.0, -dir.x)
 	var height: float = randf_range(spec["height"].x, spec["height"].y)
-	var lead_pos: Vector3 = -dir * 540.0 + right * randf_range(-140.0, 140.0) + Vector3.UP * height
+	var rasant: bool = spec["engines"] == 1 and (low == 1 or (low < 0 and randf() < LOW_SHARE))
+	if rasant:
+		height = randf_range(LOW_HEIGHT.x, LOW_HEIGHT.y)
+	# Los rasantes cruzan por encima mismo del campo; los altos pueden pasar más de lado.
+	var aside: float = randf_range(-70.0, 70.0) if rasant else randf_range(-140.0, 140.0)
+	var lead_pos: Vector3 = -dir * 540.0 + right * aside + Vector3.UP * height
 	var count: int = randi_range(spec["group"].x, spec["group"].y)
 	var planes: Array[SkyPlane] = []
 	var paint: Array = PAINT[faction][front]
@@ -119,7 +150,7 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 		plane.look_at(plane.global_position + dir, Vector3.UP)
 		planes.append(plane)
 	var sound_stream: AudioStream = Sfx.PLANE_FIGHTER if spec["engines"] == 1 else Sfx.PLANE_BOMBER
-	var sound := FlybySound.attach(planes[0], sound_stream, 7.0 + count, 60.0, 900.0, 1.0 if spec["engines"] < 4 else 0.85)
+	var sound := FlybySound.attach(planes[0], sound_stream, 7.0 + count + (5.0 if rasant else 0.0), 60.0, 900.0, 1.0 if spec["engines"] < 4 else 0.85)
 	sound.source_velocity = planes[0].velocity
 	if doomed < 0:
 		doomed = randi() % count if flak and randf() < DOWN_CHANCE else -1
@@ -134,7 +165,8 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 	var formation: Dictionary = {
 		"planes": Array(planes), "dir": dir, "flak": flak, "flak_timer": randf_range(0.5, 1.5), "sound": sound,
 		"guns": guns, "burst_timer": randf_range(0.2, 1.0), "burst_left": 0, "burst_gun": 0, "burst_due": 0.0,
-		"doomed": planes[doomed] if doomed >= 0 and doomed < count else null, "doom_at": randf_range(-120.0, 60.0), "faction": faction,
+		"doomed": planes[doomed] if doomed >= 0 and doomed < count else null, "doom_at": randf_range(-230.0, 40.0), "faction": faction,
+		"inside": randf() < INSIDE_SHARE, "low": rasant,
 	}
 	_formations.append(formation)
 	return formation
@@ -180,12 +212,36 @@ func _update_formation(formation: Dictionary, delta: float) -> void:
 	var doomed: Variant = formation["doomed"]
 	if doomed != null and is_instance_valid(doomed) and along >= formation["doom_at"] and not doomed.falling:
 		var plane: SkyPlane = doomed
-		# Solo se le derriba cuando ya va a caer fuera del campo: nunca sobre los tanques.
+		# Se le derriba cuando va a caer fuera del campo o, si le toca caer dentro, en un sitio
+		# despejado y lejos de todos los tanques: nunca encima de ellos.
 		var impact: Vector3 = plane.impact_point()
-		if absf(impact.x) > FIELD + 25.0 or absf(impact.z) > FIELD + 25.0:
+		var outside: bool = absf(impact.x) > FIELD + 25.0 or absf(impact.z) > FIELD + 25.0
+		if (outside and not (formation["inside"] and along < -60.0)) or (formation["inside"] and crash_site_ok(impact)):
 			FlakBurst.spawn(self, plane.global_position, 1.6)
 			plane.shoot_down(self)
 			formation["doomed"] = null
+
+
+## ¿Puede caer un avión en ese punto del campo? Dentro del muro, en suelo libre (ni edificios
+## ni zonas de misión ni agua) y con todos los tanques lejos.
+func crash_site_ok(point: Vector3) -> bool:
+	if absf(point.x) > FIELD - 35.0 or absf(point.z) > FIELD - 35.0:
+		return false
+	if is_free_point.is_valid() and not is_free_point.call(Vector2(point.x, point.z)):
+		return false
+	if Water.deep_at(point.x, point.z, 4.0):
+		return false
+	return nearest_tank(point) >= CRASH_CLEARANCE
+
+
+## Distancia (en planta) del punto al tanque más cercano; INF si no hay ninguno.
+func nearest_tank(point: Vector3) -> float:
+	var best: float = INF
+	for node in get_tree().get_nodes_in_group(&"tanks"):
+		var tank := node as Node3D
+		if tank != null:
+			best = minf(best, Vector2(tank.global_position.x - point.x, tank.global_position.z - point.z).length())
+	return best
 
 
 ## Modelo [nombre, tipo] de un bando para los tipos pedidos, por orden de preferencia. Si en
@@ -264,6 +320,43 @@ func distant_guns() -> void:
 			Sfx.play_at(self, Sfx.EXPLOSION, ear + away * 260.0, 8.0, randf_range(0.42, 0.55)))
 
 
+## Salva de cohetes desde detrás del horizonte (Katiusha, Nebelwerfer): una ristra de estelas
+## que suben en abanico y se pierden a lo lejos, con el cielo encendido donde caen.
+func rocket_salvo() -> void:
+	var heading: float = randf() * TAU
+	var away := Vector3(sin(heading), 0.0, cos(heading))
+	var side := Vector3(away.z, 0.0, -away.x)
+	var base: Vector3 = away * randf_range(300.0, 380.0)
+	# Vuelan de lado, siguiendo el horizonte, para que se vea toda la parábola.
+	var flight: Vector3 = (side * (1.0 if randf() < 0.5 else -1.0) + away * 0.35).normalized()
+	var color := Color(1.0, 0.72, 0.4)
+	var count: int = randi_range(8, 16)
+	for i in count:
+		var from: Vector3 = base + side * randf_range(-30.0, 30.0) + Vector3.UP * 3.0
+		var velocity: Vector3 = (flight * randf_range(0.9, 1.1) + Vector3.UP * randf_range(0.55, 0.75)).normalized() * randf_range(150.0, 190.0)
+		get_tree().create_timer(0.18 * i + randf_range(0.0, 0.08)).timeout.connect(func() -> void:
+			if is_inside_tree():
+				Fx.on(self).tracer(from, velocity, color)
+				Fx.on(self).sky_flash(from, color, 0.5, 160.0, 0.25))
+	# Donde caen, segundos después, el horizonte arde.
+	var target: Vector3 = base + flight * randf_range(1400.0, 2200.0)
+	for i in count / 2:
+		get_tree().create_timer(5.0 + 0.3 * i + randf_range(0.0, 0.5)).timeout.connect(func() -> void:
+			if is_inside_tree():
+				Fx.on(self).sky_flash(target + Vector3(randf_range(-300.0, 300.0), 0.0, randf_range(-300.0, 300.0)), Color(1.0, 0.55, 0.25), randf_range(1.4, 2.2), randf_range(320.0, 440.0), randf_range(0.3, 0.5)))
+
+
+## Bengala de iluminación sobre el frente: sube, estalla y alumbra un rato esa parte del cielo.
+func flare() -> void:
+	var heading: float = randf() * TAU
+	var point: Vector3 = Vector3(sin(heading), 0.0, cos(heading)) * randf_range(330.0, 520.0) + Vector3.UP * randf_range(120.0, 190.0)
+	var tint: Color = [Color(1.0, 0.95, 0.8), Color(0.75, 1.0, 0.7), Color(1.0, 0.5, 0.4)].pick_random()
+	for i in 14:
+		get_tree().create_timer(0.35 * i).timeout.connect(func() -> void:
+			if is_inside_tree():
+				Fx.on(self).sky_flash(point - Vector3.UP * 5.0 * i, tint, 0.9 - 0.04 * i, 260.0, 0.5))
+
+
 ## Fogonazos de baterías antiaéreas lejanas, cerca del horizonte.
 func _distant_barrage() -> void:
 	var heading: float = randf() * TAU
@@ -275,10 +368,24 @@ func _distant_barrage() -> void:
 				FlakBurst.spawn(self, point, 5.0))
 
 
-func _on_crash(point: Vector3) -> void:
+func _on_crash(point: Vector3, plane: SkyPlane = null) -> void:
 	crashes += 1
-	if absf(point.x) < FIELD and absf(point.z) < FIELD:
-		crashes_inside += 1
+	if absf(point.x) >= FIELD or absf(point.z) >= FIELD:
+		return
+	crashes_inside += 1
+	if nearest_tank(point) < HIT_RADIUS:
+		crashes_on_tanks += 1
+	if plane == null:
+		return
+	# Los restos se quedan ardiendo donde ha caído (solo se ven: no estorban ni hacen daño).
+	var wreck := PlaneWreck.new()
+	add_child(wreck)
+	wreck.build(plane, point)
+	_wrecks.append(wreck)
+	while _wrecks.size() > MAX_WRECKS:
+		var old: Node3D = _wrecks.pop_front()
+		if is_instance_valid(old):
+			old.queue_free()
 
 
 ## Avión de ambiente. La silueta sale del tipo (caza, ataque, bimotor, cuatrimotor).
@@ -294,12 +401,17 @@ class SkyPlane extends Node3D:
 	var _span: float = 11.0
 	var _owner_sky: Node
 	var _roll_rate: float = 0.0
+	## Colores y medidas, para los restos que deja si cae dentro del campo.
+	var top_color: Color
+	var span: float = 11.0
+	var length: float = 9.5
 
 	func build(model_name: String, spec: Dictionary, top: Color, belly: Color, faction: int) -> void:
 		model = model_name
-		var span: float = spec["span"]
+		span = spec["span"]
 		_span = span
-		var length: float = spec["length"]
+		length = spec["length"]
+		top_color = top
 		var top_mat: ShaderMaterial = VectorMaterials.textured(top, top.darkened(0.35), 4, 0.5)
 		var fuselage := MeshInstance3D.new()
 		var body := CylinderMesh.new()
@@ -384,6 +496,7 @@ class SkyPlane extends Node3D:
 			prop.rotation.z += delta * 45.0
 		if falling:
 			velocity.y -= FALL_ACCEL * delta
+			_steer_clear(delta)
 			rotation.z += _roll_rate * delta
 			if velocity.length() > 1.0:
 				var heading: Vector3 = velocity.normalized()
@@ -405,8 +518,83 @@ class SkyPlane extends Node3D:
 			Explosion.spawn(self, point, 3.0, VectorMaterials.ORANGE, true)
 			Sfx.play_at(self, Sfx.EXPLOSION, point, 22.0, 0.7)
 			if is_instance_valid(_owner_sky):
-				_owner_sky._on_crash(point)
+				_owner_sky._on_crash(point, self)
 				SmokeColumn.spawn(_owner_sky, point)
+			queue_free()
+
+	## Mientras cae, si algún tanque queda cerca de donde va a estrellarse, se desvía de él.
+	func _steer_clear(delta: float) -> void:
+		if global_position.y < 2.0:
+			return
+		var time_left: float = (velocity.y + sqrt(maxf(velocity.y * velocity.y + 2.0 * FALL_ACCEL * global_position.y, 0.0))) / FALL_ACCEL
+		var impact: Vector3 = global_position + Vector3(velocity.x, 0.0, velocity.z) * time_left
+		if absf(impact.x) > SkyWar.FIELD + 20.0 or absf(impact.z) > SkyWar.FIELD + 20.0:
+			return
+		var push := Vector3.ZERO
+		for node in get_tree().get_nodes_in_group(&"tanks"):
+			var tank := node as Node3D
+			if tank == null:
+				continue
+			var off := Vector3(impact.x - tank.global_position.x, 0.0, impact.z - tank.global_position.z)
+			var distance: float = off.length()
+			if distance < SkyWar.AVOID_RADIUS:
+				push += (off / distance if distance > 0.5 else Vector3(velocity.z, 0.0, -velocity.x).normalized()) * (1.0 - distance / SkyWar.AVOID_RADIUS)
+		if push != Vector3.ZERO:
+			# Cuanto menos tiempo queda, más fuerte el viraje: tiene que apartar el punto de caída.
+			velocity += push.normalized() * minf(60.0 / maxf(time_left, 0.4), 90.0) * delta
+
+
+## Restos de un avión estrellado dentro del campo: fuselaje partido, un ala clavada y la cola,
+## calcinados. Solo dibujo: los tanques pasan por encima. Se hunden y desaparecen al rato.
+class PlaneWreck extends Node3D:
+	const TIME: float = 150.0
+
+	var _life: float = TIME
+
+	func build(plane: SkyPlane, point: Vector3) -> void:
+		global_position = Terrain.on_ground(point)
+		rotation.y = atan2(-plane.velocity.x, -plane.velocity.z)
+		var burnt: Color = plane.top_color.darkened(0.6)
+		var soot := Color(0.06, 0.055, 0.05)
+		var length: float = plane.length
+		var span: float = plane.span
+		var body := CylinderMesh.new()
+		body.top_radius = length * 0.05
+		body.bottom_radius = length * 0.075
+		body.height = length * 0.55
+		body.radial_segments = 8
+		var fuselage := MeshInstance3D.new()
+		fuselage.mesh = body
+		fuselage.material_override = VectorMaterials.textured(burnt, soot, 4, 0.5)
+		fuselage.rotation = Vector3(PI * 0.5 - 0.22, 0.0, 0.3)
+		fuselage.position = Vector3(0.0, length * 0.09, length * 0.2)
+		add_child(fuselage)
+		var wing := VectorMaterials.make_box(Vector3(span * 0.42, length * 0.02, span * 0.18), burnt, 4, 1.2)
+		wing.position = Vector3(span * 0.16, span * 0.1, -length * 0.1)
+		wing.rotation = Vector3(0.2, 0.5, 0.75)
+		add_child(wing)
+		var stub := VectorMaterials.make_box(Vector3(span * 0.3, length * 0.02, span * 0.17), soot.lightened(0.08), 4, 1.2)
+		stub.position = Vector3(-span * 0.3, 0.15, -length * 0.3)
+		stub.rotation.y = -0.6
+		add_child(stub)
+		var fin := VectorMaterials.make_box(Vector3(length * 0.02, length * 0.2, span * 0.12), burnt, 4, 1.0)
+		fin.position = Vector3(0.0, length * 0.2, length * 0.46)
+		fin.rotation.z = 0.25
+		add_child(fin)
+		for i in 5:
+			var scrap := VectorMaterials.make_box(Vector3(randf_range(0.5, 1.6), 0.08, randf_range(0.4, 1.2)), soot.lightened(randf_range(0.0, 0.12)), 4, 0.6)
+			scrap.position = Vector3(randf_range(-span * 0.5, span * 0.5), 0.06, randf_range(-length * 0.7, length * 0.5))
+			scrap.rotation = Vector3(randf_range(-0.2, 0.2), randf() * TAU, randf_range(-0.2, 0.2))
+			scrap.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			add_child(scrap)
+		# Tierra quemada alrededor.
+		add_child(Ribbon.node(PackedVector2Array([Vector2(0.0, -length * 0.9), Vector2(0.0, length * 0.9)]), span * 0.45, Ribbon.Y_BANK + 0.02, Ribbon.strip(Color(0.1, 0.09, 0.08), Color(0.03, 0.03, 0.03), 4, span * 0.9, 1.0)))
+
+	func _process(delta: float) -> void:
+		_life -= delta
+		if _life < 6.0:
+			position.y -= delta * 0.5
+		if _life <= 0.0:
 			queue_free()
 
 

@@ -9,6 +9,9 @@ const ROCK_COLOR := Color(0.42, 0.4, 0.37)
 const WOOD := Color(0.32, 0.22, 0.13)
 const CONCRETE := Color(0.5, 0.5, 0.48)
 
+## Distancia (m) a partir de la cual dejan de dibujarse las piezas de adorno (ventanas, puertas...).
+const DECOR_RANGE: float = 170.0
+
 static var _trunk: CylinderMesh
 static var _roof: PrismMesh
 static var _meshes: Dictionary = {}
@@ -607,6 +610,10 @@ static func _decor(prop: Node3D, size: Vector3, pos: Vector3, color: Color, patt
 	var mesh := VectorMaterials.make_box(size, color, pattern, pattern_scale)
 	mesh.position = pos
 	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# De lejos no se distinguen: fuera de DECOR_RANGE no se dibujan (un pueblo entero tiene
+	# cientos de estas piezas).
+	mesh.visibility_range_end = DECOR_RANGE
+	mesh.visibility_range_end_margin = 12.0
 	prop.add_child(mesh)
 	return mesh
 
@@ -760,3 +767,347 @@ static func _add_box_shape(prop: Node3D, size: Vector3, offset: Vector3) -> void
 	shape.shape = box
 	shape.position = offset
 	prop.add_child(shape)
+
+
+# ---------------------------------------------------------------- obras de tierra y cultivos
+
+## Malla de un talud de tierra: sección en trapecio, extremos en rampa.
+static func _bank_mesh(length: float, height: float, width: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var half: float = length * 0.5
+	var top: float = width * 0.22
+	var base: float = width * 0.5
+	var slope: float = minf(height * 1.2, half * 0.5)
+	# Ocho esquinas: cuatro de la base y cuatro de la coronación (más corta por las rampas).
+	var corners: Array[Vector3] = [
+		Vector3(-half, 0.0, -base), Vector3(half, 0.0, -base), Vector3(half, 0.0, base), Vector3(-half, 0.0, base),
+		Vector3(-half + slope, height, -top), Vector3(half - slope, height, -top), Vector3(half - slope, height, top), Vector3(-half + slope, height, top),
+	]
+	for quad: Array in [[4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [3, 0, 4, 7]]:
+		for index: int in [0, 1, 2, 0, 2, 3]:
+			st.add_vertex(corners[quad[index]])
+	st.generate_normals()
+	return st.commit()
+
+
+## Talud de tierra (parapeto de trinchera, terraplén): cubre el casco de un tanque y para los
+## disparos; hay que rodearlo. Muy duro, pero la artillería acaba abriéndolo.
+static func earth_bank(length: float, height: float = 1.6, width: float = 3.4, soil: Color = Color(0.3, 0.24, 0.15)) -> Destructible:
+	var prop := _base(320.0, soil, height)
+	var key: String = "bank|%.1f|%.1f|%.1f" % [length, height, width]
+	if not _meshes.has(key):
+		_meshes[key] = _bank_mesh(length, height, width)
+	var visual := MeshInstance3D.new()
+	visual.mesh = _meshes[key]
+	# Hierba arriba y tierra en los taludes (patrón de ladera).
+	visual.material_override = VectorMaterials.textured(mountain_color.lerp(soil, 0.35), soil.darkened(0.45), 7, 1.2)
+	prop.add_child(visual)
+	_add_box_shape(prop, Vector3(length - height, height, width * 0.6), Vector3(0.0, height * 0.5, 0.0))
+	return prop
+
+
+## Pozo de tirador para un carro: tres taludes bajos en U, abiertos por detrás (hacia -Z mira
+## el frente). El carro asoma la torreta por encima; el casco queda cubierto.
+static func revetment(soil: Color = Color(0.3, 0.24, 0.15)) -> Node3D:
+	var root := Node3D.new()
+	root.name = "PozoDeCarro"
+	var front := earth_bank(10.0, 1.05, 3.0, soil)
+	front.position = Vector3(0.0, 0.0, -5.2)
+	root.add_child(front)
+	for side in [-1.0, 1.0]:
+		var flank := earth_bank(7.0, 1.05, 3.0, soil)
+		flank.position = Vector3(side * 4.6, 0.0, -0.8)
+		flank.rotation.y = PI * 0.5
+		root.add_child(flank)
+	return root
+
+
+## Trigal alto: no frena a los tanques ni para los disparos, pero tapa el casco y la vista a
+## ras de suelo. Una sola malla de surcos mecidos por el viento.
+static func wheat_field(size: Vector2, ripe: Color = Color(0.74, 0.6, 0.26)) -> MeshInstance3D:
+	var key: String = "wheat|%d|%d" % [roundi(size.x), roundi(size.y)]
+	if not _meshes.has(key):
+		var row := BoxMesh.new()
+		row.size = Vector3(size.x, 1.25, 1.3)
+		var parts: Array = []
+		var rows: int = maxi(int(size.y / 2.1), 1)
+		for i in rows:
+			parts.append([row, Transform3D(Basis(), Vector3(0.0, 0.62, -size.y * 0.5 + (i + 0.5) * size.y / rows))])
+		_meshes[key] = _merge(parts)
+	var field := MeshInstance3D.new()
+	field.name = "Trigal"
+	field.mesh = _meshes[key]
+	field.material_override = VectorMaterials.organic(ripe, ripe.darkened(0.35), 6, 0.35, 0.0, 0.012)
+	field.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return field
+
+
+# ---------------------------------------------------------------- pueblos
+
+## Casa de pueblo de dos plantas, entre medianeras: fachada con hileras de ventanas (las pinta
+## el propio material), tejado, chimenea y portal. `style`: 0 normanda, 1 del desierto (azotea),
+## 2 rusa de ladrillo encalado.
+static func townhouse(size: Vector3, style: int = 0) -> Destructible:
+	if _roof == null:
+		_roof = PrismMesh.new()
+		_roof.size = Vector3.ONE
+	var plaster: Color = [
+		[Color(0.78, 0.72, 0.6), Color(0.7, 0.66, 0.6), Color(0.74, 0.62, 0.5), Color(0.62, 0.56, 0.5)],
+		[Color(0.86, 0.82, 0.72), Color(0.8, 0.72, 0.58), Color(0.88, 0.86, 0.8)],
+		[Color(0.8, 0.8, 0.76), Color(0.7, 0.62, 0.5), Color(0.62, 0.36, 0.28)],
+	][style].pick_random()
+	var prop := _base(200.0, plaster.darkened(0.2), size.y)
+	prop.burns = 55.0 if style != 1 else 26.0
+	_add_box_shape(prop, size, Vector3(0.0, size.y * 0.5, 0.0))
+	var walls := VectorMaterials.make_box(size, plaster, 1, 3.0)
+	walls.position.y = size.y * 0.5
+	prop.add_child(walls)
+	if style == 1:
+		for side in [-1.0, 1.0]:
+			_decor(prop, Vector3(size.x, 0.5, 0.25), Vector3(0.0, size.y + 0.25, side * (size.z * 0.5 - 0.125)), plaster.darkened(0.06), 9, 1.5)
+			_decor(prop, Vector3(0.25, 0.5, size.z), Vector3(side * (size.x * 0.5 - 0.125), size.y + 0.25, 0.0), plaster.darkened(0.06), 9, 1.5)
+	else:
+		var roof_color: Color = [ROOF, Color(0.27, 0.28, 0.31), Color(0.42, 0.2, 0.14)].pick_random() if style == 0 else [Color(0.3, 0.36, 0.3), Color(0.4, 0.2, 0.16), Color(0.33, 0.33, 0.35)].pick_random()
+		var roof := VectorMaterials.make_outlined(_roof, roof_color, roof_color.darkened(0.5), 5, 0.6)
+		roof.scale = Vector3(size.x * 1.06, size.y * 0.42, size.z * 1.1)
+		roof.position.y = size.y + size.y * 0.21
+		prop.add_child(roof)
+		var chimney := VectorMaterials.make_box(Vector3(0.9, 2.6, 0.9), BRICK.darkened(0.2), 2, 0.8)
+		chimney.position = Vector3(size.x * randf_range(-0.3, 0.3), size.y + 1.3, -size.z * 0.22)
+		prop.add_child(chimney)
+	# Portal y escaparate o portón en la fachada (+Z).
+	var door: Color = [Color(0.2, 0.32, 0.24), Color(0.25, 0.3, 0.42), Color(0.45, 0.2, 0.16), Color(0.3, 0.22, 0.14)].pick_random()
+	_decor(prop, Vector3(1.3, 2.3, 0.14), Vector3(-size.x * 0.25, 1.15, size.z * 0.5 + 0.04), door, 8, 0.8)
+	if randf() < 0.5 and style != 1:
+		_decor(prop, Vector3(size.x * 0.34, 1.7, 0.14), Vector3(size.x * 0.2, 1.35, size.z * 0.5 + 0.04), Color(0.22, 0.27, 0.32), 7, 1.4)
+		var awning := _decor(prop, Vector3(size.x * 0.4, 0.06, 1.1), Vector3(size.x * 0.2, 2.5, size.z * 0.5 + 0.5), door.lightened(0.15), 6, 0.3)
+		awning.rotation.x = 0.3
+	return prop
+
+
+## Pozo o fuente de la plaza.
+static func well() -> Destructible:
+	var prop := _base(80.0, Color(0.55, 0.53, 0.48), 1.2)
+	var ring := CylinderMesh.new()
+	ring.top_radius = 1.5
+	ring.bottom_radius = 1.6
+	ring.height = 1.0
+	ring.radial_segments = 10
+	var curb := VectorMaterials.make_outlined(ring, Color(0.55, 0.53, 0.48), Color(0.3, 0.29, 0.27), 3, 0.5)
+	curb.position.y = 0.5
+	prop.add_child(curb)
+	for side in [-1.0, 1.0]:
+		_decor(prop, Vector3(0.2, 2.4, 0.2), Vector3(side * 1.3, 1.2, 0.0), WOOD, 5, 0.3)
+	_decor(prop, Vector3(3.2, 0.14, 1.4), Vector3(0.0, 2.5, 0.0), ROOF.darkened(0.2), 5, 0.4)
+	_add_box_shape(prop, Vector3(3.0, 1.2, 3.0), Vector3(0.0, 0.6, 0.0))
+	return prop
+
+
+## Iglesia ortodoxa rusa de pueblo: nave encalada, tejado verde y torre con cúpula de cebolla
+## (con premio, como el campanario normando).
+static func orthodox_church() -> Destructible:
+	if _roof == null:
+		_roof = PrismMesh.new()
+		_roof.size = Vector3.ONE
+	var white := Color(0.84, 0.84, 0.8)
+	var prop := _base(260.0, Color(0.7, 0.7, 0.66), 6.0)
+	prop.burns = 60.0
+	prop.prize_points = 400
+	prop.prize_name = Loc.t("CAMPANARIO")
+	prop.destroy_sound = Sfx.BELL
+	var nave := VectorMaterials.make_box(Vector3(8.0, 6.0, 13.0), white, 9, 2.0)
+	nave.position.y = 3.0
+	prop.add_child(nave)
+	var roof := VectorMaterials.make_outlined(_roof, Color(0.22, 0.4, 0.3), Color(0.12, 0.22, 0.17), 5, 0.6)
+	roof.scale = Vector3(8.6, 3.0, 13.4)
+	roof.position.y = 7.5
+	prop.add_child(roof)
+	var tower := VectorMaterials.make_box(Vector3(4.2, 11.0, 4.2), white, 9, 2.0)
+	tower.position = Vector3(0.0, 5.5, 8.0)
+	prop.add_child(tower)
+	var blue := Color(0.2, 0.36, 0.55)
+	for spot: Array in [[Vector3(0.0, 11.0, 8.0), 1.0], [Vector3(0.0, 9.0, -3.0), 0.62]]:
+		var k: float = spot[1]
+		var drum := CylinderMesh.new()
+		drum.top_radius = 1.3 * k
+		drum.bottom_radius = 1.3 * k
+		drum.height = 1.8 * k
+		drum.radial_segments = 10
+		var neck := VectorMaterials.make_outlined(drum, white, white.darkened(0.3), 0, 1.0)
+		neck.position = (spot[0] as Vector3) + Vector3.UP * 0.9 * k
+		prop.add_child(neck)
+		var bulb := SphereMesh.new()
+		bulb.radius = 2.1 * k
+		bulb.height = 3.6 * k
+		bulb.radial_segments = 12
+		bulb.rings = 6
+		var onion := VectorMaterials.make_outlined(bulb, blue, blue.darkened(0.4), 4, 0.5)
+		onion.position = (spot[0] as Vector3) + Vector3.UP * 3.3 * k
+		prop.add_child(onion)
+		var tip := CylinderMesh.new()
+		tip.top_radius = 0.0
+		tip.bottom_radius = 1.0 * k
+		tip.height = 2.4 * k
+		tip.radial_segments = 10
+		var point := VectorMaterials.make_outlined(tip, blue, blue.darkened(0.4), 4, 0.5)
+		point.position = (spot[0] as Vector3) + Vector3.UP * 5.6 * k
+		prop.add_child(point)
+		_decor(prop, Vector3(0.12, 1.6 * k, 0.12), (spot[0] as Vector3) + Vector3.UP * 7.4 * k, Color(0.8, 0.68, 0.25), 0, 1.0)
+		_decor(prop, Vector3(0.8 * k, 0.12, 0.12), (spot[0] as Vector3) + Vector3.UP * 7.6 * k, Color(0.8, 0.68, 0.25), 0, 1.0)
+	_decor(prop, Vector3(1.8, 2.8, 0.16), Vector3(0.0, 1.4, 10.15), Color(0.3, 0.2, 0.12), 8, 0.8)
+	for side in [-1.0, 1.0]:
+		for i in 3:
+			_decor(prop, Vector3(0.16, 2.2, 0.9), Vector3(side * 4.05, 3.4, -4.0 + i * 3.6), Color(0.25, 0.3, 0.45), 7, 0.9)
+	_add_box_shape(prop, Vector3(8.0, 7.5, 13.0), Vector3(0.0, 3.75, 0.0))
+	_add_box_shape(prop, Vector3(4.2, 13.0, 4.2), Vector3(0.0, 6.5, 8.0))
+	_mark_prize(prop)
+	return prop
+
+
+## Morabito: santuario encalado del desierto, un cubo blanco con su cúpula.
+static func koubba() -> Destructible:
+	var white := Color(0.9, 0.88, 0.82)
+	var prop := _base(180.0, Color(0.85, 0.8, 0.7), 4.0)
+	var walls := VectorMaterials.make_box(Vector3(7.0, 4.5, 7.0), white, 9, 2.2)
+	walls.position.y = 2.25
+	prop.add_child(walls)
+	var cap := SphereMesh.new()
+	cap.radius = 3.0
+	cap.height = 3.0
+	cap.is_hemisphere = true
+	cap.radial_segments = 14
+	cap.rings = 6
+	var dome := VectorMaterials.make_outlined(cap, white, white.darkened(0.25), 0, 1.0)
+	dome.position.y = 4.5
+	prop.add_child(dome)
+	for x in [-3.2, 3.2]:
+		for z in [-3.2, 3.2]:
+			_decor(prop, Vector3(0.6, 0.9, 0.6), Vector3(x, 4.95, z), white, 9, 1.0)
+	_decor(prop, Vector3(1.4, 2.4, 0.14), Vector3(0.0, 1.2, 3.54), Color(0.2, 0.35, 0.5), 8, 0.8)
+	_add_box_shape(prop, Vector3(7.0, 6.0, 7.0), Vector3(0.0, 3.0, 0.0))
+	return prop
+
+
+## Tapia de adobe (pueblos del desierto) o muro de piedra (Normandía).
+static func wall(length: float, color: Color = Color(0.8, 0.72, 0.58), pattern: int = 9) -> Destructible:
+	var prop := _base(70.0, color.darkened(0.15), 1.2)
+	var mesh := VectorMaterials.make_box(Vector3(length, 1.7, 0.6), color, pattern, 1.5)
+	mesh.position.y = 0.85
+	prop.add_child(mesh)
+	_add_box_shape(prop, Vector3(length, 1.7, 0.6), Vector3(0.0, 0.85, 0.0))
+	return prop
+
+
+# ---------------------------------------------------------------- puentes y ferrocarril
+
+## Puente sobre un río: el tablero va a ras de suelo (el paso es llano) y lo que se ve y cubre
+## son los pretiles. El eje Z cruza el río; `span` es el largo y `width` el ancho libre.
+## `style`: 0 de piedra (Normandía), 1 de madera, de pontoneros (frente del Este).
+static func bridge(span: float, width: float, style: int = 0) -> Node3D:
+	var root := Node3D.new()
+	root.name = "Puente"
+	var stone := Color(0.52, 0.5, 0.45)
+	var timber := Color(0.36, 0.26, 0.16)
+	var deck := Ribbon.node(PackedVector2Array([Vector2(0.0, -span * 0.5), Vector2(0.0, span * 0.5)]), width * 0.5, Ribbon.Y_DECK,
+			Ribbon.strip(stone.darkened(0.1), stone.darkened(0.55), 1, width, 0.0) if style == 0 else Ribbon.strip(timber, timber.darkened(0.6), 6, width, 0.0))
+	root.add_child(deck)
+	for side in [-1.0, 1.0]:
+		var rail := _base(1.0, stone if style == 0 else timber, 1.0)
+		rail.indestructible = true
+		rail.position = Vector3(side * (width * 0.5 + 0.35), 0.0, 0.0)
+		if style == 0:
+			var parapet := VectorMaterials.make_box(Vector3(0.7, 1.15, span), stone, 2, 1.4)
+			parapet.position.y = 0.575
+			rail.add_child(parapet)
+			var coping := VectorMaterials.make_box(Vector3(0.9, 0.16, span + 0.3), stone.lightened(0.08), 0, 1.0)
+			coping.position.y = 1.23
+			coping.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			rail.add_child(coping)
+			for end in [-1.0, 1.0]:
+				var pier := VectorMaterials.make_box(Vector3(1.3, 1.7, 1.3), stone.darkened(0.05), 2, 1.4)
+				pier.position = Vector3(0.0, 0.85, end * span * 0.5)
+				rail.add_child(pier)
+			# Tajamares: asoman al agua a los lados, como los pilares de un puente de arcos.
+			for i in 2:
+				var cutwater := VectorMaterials.make_box(Vector3(1.6, 0.7, 2.2), stone.darkened(0.12), 2, 1.4)
+				cutwater.position = Vector3(side * 0.9, 0.35, (i - 0.5) * span * 0.36)
+				cutwater.rotation.y = PI * 0.25
+				rail.add_child(cutwater)
+		else:
+			var posts: int = maxi(int(span / 3.5), 2)
+			for i in posts + 1:
+				var post := VectorMaterials.make_box(Vector3(0.3, 1.5, 0.3), timber, 5, 0.4)
+				post.position = Vector3(0.0, 0.75, -span * 0.5 + i * span / posts)
+				rail.add_child(post)
+			for y in [0.6, 1.25]:
+				var bar := VectorMaterials.make_box(Vector3(0.14, 0.2, span), timber.lightened(0.06), 5, 0.6)
+				bar.position.y = y
+				rail.add_child(bar)
+			var beam := VectorMaterials.make_box(Vector3(0.5, 0.4, span + 1.0), timber.darkened(0.15), 5, 0.6)
+			beam.position.y = 0.2
+			rail.add_child(beam)
+			# Pilotes clavados en el cauce.
+			for i in 3:
+				var pile := VectorMaterials.make_box(Vector3(0.45, 1.3, 0.45), timber.darkened(0.25), 5, 0.4)
+				pile.position = Vector3(side * 0.9, 0.5, (i - 1.0) * span * 0.3)
+				pile.rotation.z = side * -0.25
+				rail.add_child(pile)
+		_add_box_shape(rail, Vector3(0.7, 1.4, span), Vector3(0.0, 0.7, 0.0))
+		root.add_child(rail)
+	return root
+
+
+## Vagón de mercancías parado en la vía.
+static func wagon() -> Destructible:
+	var planks: Color = [Color(0.4, 0.2, 0.15), Color(0.3, 0.3, 0.26), Color(0.36, 0.27, 0.17)].pick_random()
+	var prop := _base(120.0, planks, 3.0)
+	prop.burns = 40.0
+	var box := VectorMaterials.make_box(Vector3(3.0, 2.6, 8.5), planks, 5, 0.9)
+	box.position.y = 2.2
+	prop.add_child(box)
+	var top := VectorMaterials.make_box(Vector3(3.2, 0.2, 8.8), Color(0.2, 0.2, 0.2), 6, 0.6)
+	top.position.y = 3.6
+	prop.add_child(top)
+	var frame := VectorMaterials.make_box(Vector3(2.6, 0.5, 8.9), Color(0.14, 0.14, 0.14), 4, 0.8)
+	frame.position.y = 0.75
+	prop.add_child(frame)
+	_decor(prop, Vector3(0.1, 2.0, 2.2), Vector3(1.52, 2.1, 0.0), planks.darkened(0.25), 8, 1.0)
+	_decor(prop, Vector3(0.1, 2.0, 2.2), Vector3(-1.52, 2.1, 0.0), planks.darkened(0.25), 8, 1.0)
+	_add_box_shape(prop, Vector3(3.0, 3.6, 8.8), Vector3(0.0, 1.8, 0.0))
+	return prop
+
+
+## Estación de ferrocarril: edificio de viajeros de ladrillo con marquesina sobre el andén.
+## La fachada (+Z) da a la vía.
+static func station() -> Destructible:
+	if _roof == null:
+		_roof = PrismMesh.new()
+		_roof.size = Vector3.ONE
+	var brick := Color(0.58, 0.34, 0.26)
+	var prop := _base(320.0, brick.darkened(0.2), 6.0)
+	prop.burns = 60.0
+	var hall := VectorMaterials.make_box(Vector3(22.0, 6.0, 8.0), brick, 1, 3.0)
+	hall.position.y = 3.0
+	prop.add_child(hall)
+	var roof := VectorMaterials.make_outlined(_roof, Color(0.3, 0.3, 0.32), Color(0.16, 0.16, 0.18), 5, 0.6)
+	roof.scale = Vector3(23.0, 2.6, 9.0)
+	roof.position.y = 7.3
+	prop.add_child(roof)
+	var middle := VectorMaterials.make_box(Vector3(7.0, 8.5, 8.6), brick.lightened(0.05), 1, 3.0)
+	middle.position.y = 4.25
+	prop.add_child(middle)
+	var gable := VectorMaterials.make_outlined(_roof, Color(0.3, 0.3, 0.32), Color(0.16, 0.16, 0.18), 5, 0.6)
+	gable.scale = Vector3(7.6, 2.4, 9.4)
+	gable.position.y = 9.7
+	prop.add_child(gable)
+	_decor(prop, Vector3(1.6, 1.6, 0.14), Vector3(0.0, 7.0, 4.36), Color(0.9, 0.88, 0.8), 0, 1.0)
+	# Marquesina y andén.
+	_decor(prop, Vector3(22.0, 0.16, 3.6), Vector3(0.0, 3.6, 5.8), Color(0.25, 0.25, 0.27), 6, 0.5)
+	for i in 6:
+		_decor(prop, Vector3(0.22, 3.6, 0.22), Vector3(-10.0 + i * 4.0, 1.8, 7.3), Color(0.2, 0.26, 0.22), 4, 0.4)
+	_decor(prop, Vector3(30.0, 0.35, 5.0), Vector3(0.0, 0.17, 6.5), CONCRETE, 0, 2.0)
+	for x in [-7.5, 7.5]:
+		_decor(prop, Vector3(1.5, 2.4, 0.14), Vector3(x, 1.2, 4.04), Color(0.25, 0.2, 0.14), 8, 0.8)
+	_add_box_shape(prop, Vector3(22.0, 8.0, 8.0), Vector3(0.0, 4.0, 0.0))
+	return prop

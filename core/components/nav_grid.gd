@@ -11,7 +11,8 @@ const CELL: float = 4.0
 const SIZE: int = 100
 ## Holgura alrededor de cada celda: un obstáculo a menos de esta distancia la da por ocupada.
 const MARGIN: float = 1.8
-const WORLD_MASK: int = 1
+## El mundo y la capa del límite del mapa, que es también la de los ríos (ver Water).
+const WORLD_MASK: int = 1 | 8
 
 ## Ya se ha recorrido el mapa entero al menos una vez.
 var ready_once: bool = false
@@ -71,6 +72,9 @@ func _scan_row(space: PhysicsDirectSpaceState3D, row: int) -> void:
 				continue
 			solid = true
 			break
+		if solid and Water.on_crossing(_query.transform.origin.x, _query.transform.origin.z):
+			# Puente o vado: el paso está libre aunque la celda roce el río de los lados.
+			solid = false
 		_astar.set_point_solid(Vector2i(column, row), solid)
 
 

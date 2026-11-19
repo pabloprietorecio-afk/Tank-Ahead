@@ -38,6 +38,21 @@ func _draw() -> void:
 		return
 	var yaw: float = player.turret_controller.world_yaw
 	var origin: Vector3 = player.global_position
+	# Ríos y arroyos: una línea azul (más gruesa la de los ríos, que no se vadean).
+	for course in Water.courses():
+		if course.kind == Water.Kind.WADI:
+			continue
+		var river: bool = course.kind == Water.Kind.RIVER
+		var last_ok: bool = false
+		var last := Vector2.ZERO
+		for point in course.points:
+			var offset := Vector3(point.x - origin.x, 0.0, point.y - origin.z)
+			var ok: bool = Vector2(offset.x, offset.z).length() < RANGE
+			var at: Vector2 = _to_radar(c, offset, yaw)
+			if ok and last_ok:
+				draw_line(last, at, Color(0.3, 0.6, 1.0, 0.75 if river else 0.45), 4.0 if river else 2.0)
+			last = at
+			last_ok = ok
 	# Marcas de misión (banderas, objetivos): cuadrados.
 	for node in get_tree().get_nodes_in_group(&"radar_marks"):
 		var mark := node as Node3D
@@ -64,6 +79,10 @@ func _draw() -> void:
 				var r: float = mark.get_meta("radar_radius", 10.0) / RANGE * (RADIUS - 6.0)
 				draw_circle(pos, r, Color(mark_color, 0.35))
 				draw_arc(pos, r, 0.0, TAU, 24, mark_color, 2.0)
+			"crossing":
+				# Puente o vado: dos rayas claras, por donde se cruza el río.
+				for shift: float in [-3.0, 3.0]:
+					draw_line(pos + Vector2(-6.0, shift), pos + Vector2(6.0, shift), mark_color, 2.0)
 			"ring":
 				# Edificio con premio: anillo.
 				draw_arc(pos, 5.0, 0.0, TAU, 12, mark_color, 2.5)

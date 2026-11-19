@@ -70,6 +70,12 @@ func wants_pickups() -> bool:
 	return true
 
 
+## Trazado del campo (ver Layouts): un nombre de los de su frente, "" para el campo de siempre
+## o "*" para sortear uno de los abiertos.
+func map_layout() -> String:
+	return "*"
+
+
 ## Clima obligado (Weather.Kind) o -1 para sortearlo entre los del frente.
 func forced_weather() -> int:
 	return -1
@@ -416,6 +422,9 @@ func _bounds_of(shape: Shape3D) -> AABB:
 
 
 func _fits_among(point: Vector2, solids: Array, margin: float) -> bool:
+	# Nada aparece dentro de un río.
+	if Water.deep_at(point.x, point.y, 3.5):
+		return false
 	# A un metro del suelo: así no cuenta el propio suelo, que queda por debajo.
 	var spot := Vector3(point.x, 1.0, point.y)
 	for solid: Array in solids:

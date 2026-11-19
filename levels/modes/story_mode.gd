@@ -24,10 +24,20 @@ var _objectives: Array[Destructible] = []
 var _objective_names: Array[String] = []
 var _depot_points: Array[Vector2] = []
 var _reinforce_timer: float = 40.0
+## Enemigos que esperan en posición (atrincherados o en apoyo) y siguen vivos.
+var _waiting: int = 0
 var _penalty_cooldown: float = 0.0
 ## Objetivos secundarios repartidos lejos del complejo principal (alargan la misión).
 var _outposts: Array[Vector2] = []
 const MAX_ALIVE: int = 6
+## Asaltos: el enemigo llega en oleadas, cada una junta y por el mismo lado del mapa, en vez
+## de gotear de uno en uno. Carros por oleada y máximo de enemigos vivos, por dificultad.
+const WAVE_SIZE: Array[int] = [2, 3, 4, 4]
+const WAVE_ALIVE: Array[int] = [4, 6, 7, 8]
+## Segundos entre una oleada y la siguiente (si caben).
+const WAVE_GAP: float = 10.0
+## Separación entre los carros de una oleada al entrar (m).
+const WAVE_SPACING: float = 13.0
 ## Aliados: dos más de los que marca cada misión, con algo más de blindaje que el modelo de
 ## serie (son los que aguantan a tu lado) y con refuerzos: por cada uno que cae entra otro por
 ## la retaguardia al cabo de un rato, hasta agotar la reserva (tantos como al empezar).
@@ -45,6 +55,10 @@ func _init() -> void:
 	super._init()
 	mission = GameSession.current_mission()
 	kind = mission["type"]
+
+
+func map_layout() -> String:
+	return mission.get("map", "")
 
 
 func player_spawn() -> Transform3D:
@@ -78,7 +92,6 @@ func reserved_zones() -> Array[Rect2]:
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
-	message.emit("%s — %s" % [Loc.t(mission["title"]), _objective_line()], true)
 	get_tree().call_group(&"voice", &"say", "mission_start", VoiceManager.Priority.HIGH)
 	var allies: int = mission.get("allies", 0) + EXTRA_ALLIES
 	var spawn: Vector3 = player_spawn().origin
@@ -90,8 +103,9 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	allies_reserve = allies
 	match kind:
 		"assault":
-			remaining = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 2)
-			_to_spawn = remaining
+			_to_spawn = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 2)
+			# Carros que esperan en posición (atrincherados o en apoyo) además de las oleadas.
+			remaining = _to_spawn + _dig_in(int(mission.get("dug_in", 0)), true) + _dig_in(int(mission.get("overwatch", 0)), false)
 		"destroy":
 			for n in _depot_points.size():
 				var point: Vector2 = _depot_points[n]
@@ -138,6 +152,49 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 			_commander.set_meta("radar_shape", "diamond")
 			_to_spawn = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 1)
 	remaining = _objectives.size() if not _objectives.is_empty() else remaining
+	# El objetivo se anuncia con las cifras ya echadas (dependen de la dificultad).
+	message.emit("%s — %s" % [Loc.t(mission["title"]), _objective_line()], true)
+
+
+## Carros enemigos que no salen a buscar al jugador: esperan repartidos a lo ancho del campo,
+## entre él y el norte, y disparan a lo que se les pone a tiro. Con `revetted` cada uno está
+## metido en un pozo de tirador (taludes que le cubren el casco). Devuelve cuántos ha puesto.
+func _dig_in(count: int, revetted: bool) -> int:
+	if count <= 0:
+		return 0
+	var spawn: Vector3 = player_spawn().origin
+	var heavies: Array[TankStats] = roster(ENEMY_TEAM).filter(func(s: TankStats) -> bool: return s.tier == 2)
+	if heavies.is_empty():
+		heavies = roster(ENEMY_TEAM)
+	var soil: Color = Fronts.ground_colors(front)[2]
+	for i in count:
+		var wanted := Vector2(lerpf(-115.0, 115.0, (i + 0.5) / count) + randf_range(-18.0, 18.0), randf_range(-80.0, 5.0) if revetted else randf_range(-120.0, -50.0))
+		var point: Vector2 = wanted
+		for attempt in 12:
+			point = free_point_near(wanted, 0.0, 22.0 + attempt * 3.0)
+			if is_free_point.call(point) and fits(point, 9.0):
+				break
+		var yaw: float = yaw_towards(point, Vector2(spawn.x, spawn.z))
+		alive += 1
+		_waiting += 1
+		# Quietos solo valen si alcanzan lejos: ven y tiran a más distancia que el modelo de serie.
+		var stats: TankStats = (heavies.pick_random() as TankStats).duplicate()
+		stats.attack_range = maxf(stats.attack_range, 105.0)
+		stats.detect_range = maxf(stats.detect_range, 150.0)
+		var tank: Tank = spawn_tank(stats, ENEMY_TEAM, point, yaw)
+		tank.set_meta(&"waiting", true)
+		var brain: AIBrain = tank.get_node("AIBrain")
+		brain.hunt = false
+		brain.hold_position = true
+		brain.objective = Vector3(point.x, 0.0, point.y)
+		brain.objective_radius = 2.0
+		if revetted:
+			# El pozo se pone después que el carro, que así no lo toma por un estorbo al aparecer.
+			var pit: Node3D = PropFactory.revetment(soil)
+			pit.position = Vector3(point.x, 0.0, point.y)
+			pit.rotation.y = yaw
+			world.add_child(pit)
+	return count
 
 
 ## Puestos secundarios: antiaéreo, antena de radio y puesto de mando, cada uno con guardia.
@@ -172,7 +229,7 @@ func _guards(point: Vector2, count: int, min_radius: float = 15.0, max_radius: f
 func _objective_line() -> String:
 	match kind:
 		"assault":
-			return Loc.t("DESTRUYE %d BLINDADOS") % mission["count"]
+			return Loc.t("DESTRUYE %d BLINDADOS") % remaining
 		"destroy":
 			return Loc.t("DESTRUYE LOS DEPÓSITOS (ROMBOS EN EL RADAR)")
 		"sabotage":
@@ -232,10 +289,11 @@ func _process(delta: float) -> void:
 	_spawn_timer -= delta
 	match kind:
 		"assault", "boss":
-			if _to_spawn > 0 and alive < 5 + GameSettings.batch_extra() and _spawn_timer <= 0.0:
-				_spawn_timer = 3.0
-				_to_spawn -= 1
-				_spawn_enemy(edge_point())
+			var group: int = mini(_to_spawn, WAVE_SIZE[GameSettings.difficulty])
+			if group > 0 and _spawn_timer <= 0.0 and _roaming() + group <= WAVE_ALIVE[GameSettings.difficulty]:
+				_spawn_timer = WAVE_GAP
+				_to_spawn -= group
+				_spawn_wave(group)
 		"destroy", "sabotage", "liberate":
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 2:
@@ -268,6 +326,23 @@ func _process(delta: float) -> void:
 				brain.hunt = false
 				brain.objective = Vector3.ZERO
 				brain.objective_radius = ZONE_RADIUS
+
+
+## Enemigos vivos que andan sueltos (los que esperan en posición no cuentan para las oleadas).
+func _roaming() -> int:
+	return alive - _waiting
+
+
+## Una oleada: `count` carros que entran juntos, en línea, por el mismo lado del mapa.
+func _spawn_wave(count: int) -> void:
+	var lead: Vector2 = edge_point()
+	# La línea sigue el borde por el que entran.
+	var along: Vector2 = Vector2(1.0, 0.0) if absf(lead.y) > absf(lead.x) else Vector2(0.0, 1.0)
+	for i in count:
+		var point: Vector2 = (lead + along * (i - (count - 1) * 0.5) * WAVE_SPACING).clampf(-EDGE, EDGE)
+		if not is_free_point.call(point) or not fits(point):
+			point = free_point_near(point, 0.0, 14.0)
+		_spawn_enemy(point)
 
 
 func _spawn_enemy(point: Vector2) -> Tank:
@@ -372,6 +447,8 @@ func _on_tank_destroyed(tank: Tank, killer: Node) -> void:
 			_ally_lost()
 		return
 	alive -= 1
+	if tank.has_meta(&"waiting"):
+		_waiting -= 1
 	if tank == _commander:
 		_commander.remove_from_group(&"radar_marks")
 		get_tree().call_group(&"voice", &"say", "commander", VoiceManager.Priority.HIGH)

@@ -56,6 +56,12 @@ class Runner extends Node:
 			await _story(Fronts.Faction.AXIS, Fronts.Id.KURSK, 3)
 			await _story(Fronts.Faction.ALLIES, Fronts.Id.KURSK, 4)
 			print("REACH RESULT inaccesibles: ", _unreachable)
+		if only.contains("mapas"):
+			await _maps()
+		if only.contains("rios"):
+			await _rivers()
+		if only.contains("vista_mapas"):
+			await _map_shots()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -551,8 +557,16 @@ class Runner extends Node:
 		sky.front = Fronts.Id.KURSK
 		_stage.add_child(sky)
 		var models: Dictionary = {}
+		# Tanques de pega repartidos por el campo: ningún derribo puede caerles encima.
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 11
+		for i in 14:
+			var dummy := Node3D.new()
+			dummy.add_to_group(&"tanks")
+			_stage.add_child(dummy)
+			dummy.global_position = Vector3(rng.randf_range(-170.0, 170.0), 0.0, rng.randf_range(-170.0, 170.0))
 		Engine.time_scale = 6.0
-		for i in 36:
+		for i in 48:
 			sky.front = i % 3
 			sky.launch(i % 2, -1, true, 0)
 			models[sky.last_model] = true
@@ -576,9 +590,11 @@ class Runner extends Node:
 		print("SKY blancos de la fase antiaérea: ", targets)
 		print("SKY aviones de bombardeo: ", strikes)
 		print("SKY modelos vistos: ", models.keys())
-		print("SKY RESULT derribos dentro del campo: %d de %d" % [sky.crashes_inside, sky.crashes])
+		print("SKY RESULT derribos sobre tanques: %d de %d (dentro del campo, a la vista: %d)" % [sky.crashes_on_tanks, sky.crashes, sky.crashes_inside])
 		if sky.crashes < 20:
 			print("SKY MAL: demasiado pocos derribos para dar la prueba por buena")
+		if sky.crashes_inside < 5:
+			print("SKY MAL: casi ningún derribo cae dentro del campo, a la vista del jugador")
 
 	## Una formación de bombarderos bajo el fuego antiaéreo y un avión cayendo.
 	func _sky_shots() -> void:
@@ -698,6 +714,156 @@ class Runner extends Node:
 		if calls[0] != 5 or Ads.active() or Ads.rewarded_offered():
 			bad_ads += 1
 		print("ADS RESULT fallos de anuncios y desbloqueo: ", bad_ads)
+
+	## Trazados (sin gráficos): arranca las 48 misiones de la historia, cada una con su mapa, y
+	## comprueba que todo sigue siendo accesible (objetivos, premios, tanques) con ríos, pueblos y
+	## trincheras, y que nada ha quedado metido en un río.
+	func _maps() -> void:
+		var before: int = _unreachable
+		var wet: int = 0
+		var rivers: int = 0
+		var towns: int = 0
+		for faction in 2:
+			for front in 3:
+				for index in Campaign.PER_CAMPAIGN:
+					GameSession.mode = GameSession.Mode.STORY
+					GameSession.faction = faction
+					GameSession.front_choice = front
+					GameSession.mission_index = index
+					GameSettings.ensure_loaded()
+					get_tree().change_scene_to_file("res://levels/arena.tscn")
+					await _frames(3)
+					await get_tree().create_timer(2.0).timeout
+					var arena: Node = get_tree().current_scene
+					var mode: StoryMode = arena.get_node("GameMode") as StoryMode
+					var houses: int = 0
+					var sunk: int = 0
+					for child in arena.get_children():
+						if child is Destructible and not child.indestructible and child.size_hint >= 3.0:
+							houses += 1
+						if (child is Destructible or child is Tank) and Water.deep_at(child.global_position.x, child.global_position.z):
+							sunk += 1
+							print("MAPA MAL en el agua: ", child.name, " ", child.global_position)
+					var crossings: int = 0
+					for course in Water.courses():
+						crossings += course.crossings.size()
+						if course.kind == Water.Kind.RIVER:
+							rivers += 1
+					if houses >= 16:
+						towns += 1
+					wet += sunk
+					print("MAPA %s | trazado «%s» | edificios %d | cauces %d, pasos %d | enemigos %d" % [mode.mission["title"], mode.map_layout(), houses, Water.courses().size(), crossings, mode.alive])
+					_check_reach(mode)
+		print("MAPAS RESULT inaccesibles: %d | en el agua: %d | misiones con río: %d | con pueblo: %d" % [_unreachable - before, wet, rivers, towns])
+		_unreachable = before
+
+	## Ríos (sin gráficos): en una misión con río, los aliados reciben la orden de ir al otro
+	## lado y tienen que llegar todos por los puentes o el vado; y un tanque que empuja de frente
+	## contra el río, lejos de todo paso, no puede cruzarlo.
+	func _rivers() -> void:
+		GameSession.debug_weather = Weather.Kind.SUNNY
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.SUNNY, 1, 6)
+		var arena: Node = get_tree().current_scene
+		var mode: StoryMode = arena.get_node("GameMode") as StoryMode
+		mode.set_process(false)
+		mode.raid_interval = Vector2.ZERO
+		var river: Water.Course = null
+		for course in Water.courses():
+			if course.kind == Water.Kind.RIVER:
+				river = course
+		if river == null:
+			print("RIO RESULT fallos: la misión no tiene río")
+			return
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team != GameMode.PLAYER_TEAM:
+				tank.queue_free()
+		await _frames(3)
+		await get_tree().create_timer(1.5).timeout
+		var river_z: float = Ribbon.point_at(river.points, Ribbon.lengths(river.points)[river.points.size() - 1] * 0.5).y
+		var allies: Array = _allies_alive()
+		for i in allies.size():
+			var brain: AIBrain = (allies[i] as Tank).get_node("AIBrain")
+			brain.hunt = false
+			brain.focus_objective = true
+			brain.objective = Vector3(-90.0 + i * 45.0, 0.0, river_z - 70.0)
+			brain.objective_radius = 2.0
+		# El jugador, sin nadie al mando, empuja hacia el norte hasta dar con el río lejos de los pasos.
+		var pusher: Tank = mode.player
+		var away: float = 0.0
+		for x: float in [150.0, -150.0, 40.0, -40.0, 100.0, -100.0]:
+			var clear: bool = true
+			for crossing in river.crossings:
+				if absf((crossing["at"] as Vector2).x - x) < 30.0:
+					clear = false
+			if clear:
+				away = x
+				break
+		var bank_z: float = INF
+		for point in river.points:
+			if absf(point.x - away) < 40.0:
+				bank_z = minf(bank_z, point.y)
+		pusher.global_position = Vector3(away, 0.2, river_z + 40.0)
+		pusher.rotation.y = 0.0
+		arena.get_node("PlayerInputSource").set_process(false)
+		arena.get_node("PlayerInputSource").set_physics_process(false)
+		Engine.time_scale = 4.0
+		var clock: float = 0.0
+		var crossed: Dictionary = {}
+		var pusher_min: float = INF
+		while clock < 150.0 and crossed.size() < allies.size():
+			await get_tree().physics_frame
+			clock += get_physics_process_delta_time()
+			pusher.drive_input = Vector2(0.0, 1.0)
+			pusher_min = minf(pusher_min, pusher.global_position.z)
+			for ally: Tank in allies:
+				if is_instance_valid(ally) and not crossed.has(ally) and ally.global_position.z < river_z - 45.0:
+					crossed[ally] = clock
+		Engine.time_scale = 1.0
+		for ally: Tank in allies:
+			print("RIO %s: %s" % [ally.stats.display_name, ("cruza en %.0f s" % crossed[ally]) if crossed.has(ally) else ("NO CRUZA, se queda en %s" % _xz(ally.global_position))])
+		var held: bool = pusher_min > bank_z - 2.0
+		print("RIO el jugador empuja contra el río en x=%.0f: llega hasta z=%.1f (el cauce pasa por z=%.1f) %s" % [away, pusher_min, bank_z, "y no pasa" if held else "Y LO CRUZA"])
+		print("RIO RESULT fallos: %d" % ((allies.size() - crossed.size()) + (0 if held else 1) + (1 if allies.is_empty() else 0)))
+		GameSession.debug_weather = -1
+
+	## Vistas de los trazados nuevos: desde lo alto y a ras de suelo.
+	func _map_shots() -> void:
+		var picks: Array = [
+			[Fronts.Faction.AXIS, Fronts.Id.NORMANDY, 5], [Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 2], [Fronts.Faction.AXIS, Fronts.Id.NORMANDY, 7],
+			[Fronts.Faction.AXIS, Fronts.Id.KURSK, 0], [Fronts.Faction.AXIS, Fronts.Id.KURSK, 6], [Fronts.Faction.AXIS, Fronts.Id.KURSK, 5],
+			[Fronts.Faction.ALLIES, Fronts.Id.KURSK, 5], [Fronts.Faction.ALLIES, Fronts.Id.AFRICA, 3], [Fronts.Faction.AXIS, Fronts.Id.AFRICA, 6],
+			[Fronts.Faction.ALLIES, Fronts.Id.AFRICA, 1], [Fronts.Faction.ALLIES, Fronts.Id.NORMANDY, 5],
+		]
+		var only: String = OS.get_environment("MAPA_SOLO")
+		for pick: Array in picks:
+			var tag: String = "%d_%d_%d" % [pick[0], pick[1], pick[2]]
+			if only != "" and only != tag:
+				continue
+			await _start_game(GameSession.Mode.STORY, pick[1], pick[0], Weather.Kind.SUNNY, 1, pick[2])
+			var arena: Node = get_tree().current_scene
+			arena.get_node("GameMode").set_process(false)
+			arena.get_node("GameMode").raid_interval = Vector2.ZERO
+			var hud: CanvasLayer = arena._hud.get_parent()
+			hud.visible = false
+			await get_tree().create_timer(1.0).timeout
+			var camera := Camera3D.new()
+			camera.far = 900.0
+			arena.add_child(camera)
+			_camera = camera
+			_look(Vector3(0.0, 330.0, 150.0), Vector3(0.0, 0.0, 12.0), 62.0)
+			await _snap("mapa_%s_alto" % tag)
+			var focus := Vector3(0.0, 0.0, -10.0)
+			for course in Water.courses():
+				if not course.crossings.is_empty():
+					var at: Vector2 = course.crossings[0]["at"]
+					focus = Vector3(at.x, 0.0, at.y)
+			_look(focus + Vector3(26.0, 9.0, 40.0), focus + Vector3(0.0, 2.0, 0.0), 60.0)
+			await _snap("mapa_%s_cerca" % tag)
+			if OS.get_environment("MAPA_SUELO") != "":
+				_look(Vector3(8.0, 3.2, 96.0), Vector3(0.0, 3.0, 0.0), 65.0)
+				await _snap("mapa_%s_suelo" % tag)
+			hud.visible = true
+		GameSession.debug_weather = -1
 
 	## Arranca una misión de la campaña y la deja correr unos segundos.
 	func _story(faction: int, front: int, index: int) -> void:

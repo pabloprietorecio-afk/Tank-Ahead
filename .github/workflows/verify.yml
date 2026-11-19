@@ -23,7 +23,7 @@ env:
 jobs:
   shots:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -41,10 +41,10 @@ jobs:
 
       - name: Misiones, navegación, tutorial, lomas, menús y tanques del jugador (sin gráficos)
         env:
-          SHOTS_ONLY: "story nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion"
+          SHOTS_ONLY: "story mapas rios nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion"
         run: |
-          timeout 1200 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
+          timeout 1800 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
+          grep -E "^(NAV|STORY|MAPA|RIO|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
 
       - name: Anuncios coherentes (AdsConfig y android_export.cfg)
         run: |
@@ -71,7 +71,9 @@ jobs:
           grep -q "TUTORIAL RESULT lecciones sin completar: 0" logic.log || { echo "Alguna lección del tutorial no se completa"; grep "^TUTORIAL" logic.log; exit 1; }
           grep -q "CTF RESULT la máquina juega a capturar: OK" logic.log || { echo "Los tanques de la máquina no van a por la bandera"; grep "^CTF" logic.log; exit 1; }
           grep -q "AI RESULT tanques que no reaccionan al fuego: 0" logic.log || { echo "Un tanque enemigo no reacciona cuando le disparan"; grep "^AI" logic.log; exit 1; }
-          grep -q "SKY RESULT derribos dentro del campo: 0 de" logic.log || { echo "Un avión derribado cae dentro del campo"; exit 1; }
+          grep -q "SKY RESULT derribos sobre tanques: 0 de" logic.log || { echo "Un avión derribado cae encima de un tanque"; exit 1; }
+          grep -q "MAPAS RESULT inaccesibles: 0 | en el agua: 0 " logic.log || { echo "En algún trazado hay objetivos inaccesibles o cosas metidas en un río"; grep -E "^(MAPA MAL|REACH MAL|MAPAS)" logic.log; exit 1; }
+          grep -q "RIO RESULT fallos: 0" logic.log || { echo "Los tanques no cruzan el río por los pasos, o lo cruzan por donde no hay paso"; grep "^RIO" logic.log; exit 1; }
           if grep -q "SKY MAL" logic.log; then exit 1; fi
           grep -q "CLIMB RESULT.*(OK)" logic.log || { echo "Un tanque puede subirse a una colina"; exit 1; }
           grep -q "LOMA RESULT los tanques suben y bajan las lomas: OK" logic.log || { echo "Los tanques no suben o no bajan bien las lomas"; grep "^LOMA" logic.log; exit 1; }

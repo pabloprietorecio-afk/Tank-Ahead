@@ -79,6 +79,44 @@ en el parte de la misión; en supervivencia y captura la bandera, en una pantall
 La elección se guarda (`GameSettings.weather`) y vale para las partidas siguientes. El tutorial es siempre
 soleado.
 
+## Trazados del campo (versión 2)
+Cada misión de la historia tiene su propio mapa (`map` en `data/missions/campaign.gd`), pensado para el
+sitio real; supervivencia y captura la bandera sortean uno de los abiertos de su frente. Los trazados
+están en `levels/layouts.gd` y los monta `levels/arena.gd` (`_build_layout`) antes que el decorado suelto,
+que se reparte por los huecos:
+
+- **Ríos, arroyos y ramblas** (`levels/water.gd`): el río es hondo y solo se cruza por los puentes (de
+  piedra en Normandía, de madera en el Este) y por los vados, donde se va más despacio; el arroyo y la
+  rambla seca del desierto se vadean por cualquier sitio. El río lleva una barrera invisible en la capa
+  del límite del mapa (solo la tocan los tanques: los disparos y la vista pasan por encima). La máquina
+  lo ve en su mapa de rutas (`NavGrid`) y cruza por los pasos; nada aparece ni se coloca dentro del agua
+  (`Water.deep_at`). El radar pinta el río en azul y los pasos con dos rayas. Con nieve, el agua se hiela.
+- **Pueblos de verdad** (`_build_town`): calle mayor, travesía y callejas con las casas alineadas y dando
+  a la calle, casas de dos plantas, plaza con pozo, iglesia (normanda u ortodoxa) o morabito, huertos y
+  caminos que salen hacia los cuatro lados. En las misiones de resistir «en la aldea» o «en la estación»,
+  el pueblo rodea la posición.
+- **Vía de tren** con estación, depósito de agua y vagones (Ponyri, Goodwood).
+- **Trincheras** (parapetos de tierra en zigzag de lado a lado), **trigales** que tapan el casco y
+  **lomas grandes** en las misiones de cotas y crestas.
+- Caminos, calles, orillas y agua son cintas a ras de suelo (`levels/ribbon.gd`,
+  `shaders/ground_strip.gdshader`, `shaders/water.gdshader`): solo dibujo, se mojan y se nievan con el
+  tiempo como el terreno.
+
+## Asaltos: oleadas y carros en posición
+En las misiones de asalto (y en la escolta del comandante) el enemigo ya no gotea de uno en uno: entra en
+**oleadas** de 2 a 4 carros, juntos y por el mismo lado del mapa (`StoryMode.WAVE_SIZE`, `WAVE_ALIVE`). El
+objetivo anuncia la cifra real de blindados de esa dificultad. Una misión puede llevar además carros que
+no salen a buscar al jugador (`AIBrain.hold_position`): `dug_in` (en pozos de tirador, con el casco
+cubierto por taludes; Operación Ciudadela) u `overwatch` (carros pesados en apoyo desde lejos; La estepa
+arde). Cuentan para el total.
+
+## La guerra en el cielo
+`levels/weather/sky_war.gd`: pasan formaciones más a menudo y la mitad de los cazas y aviones de asalto
+lo hacen en vuelo rasante sobre el campo; más duelos de artillería en el horizonte, salvas de cohetes y
+bengalas. Parte de los aviones derribados caen ahora **dentro** del campo, a la vista: solo en suelo
+despejado y a más de 30 m de todo tanque, y si alguno se acerca mientras caen se desvían. No hacen daño;
+dejan los restos ardiendo un rato (sin colisión).
+
 ## Relieve: lomas
 `levels/terrain.gd`. Además de las colinas y montañas (empinadas: hacen de pared, como siempre), cada
 campo lleva tres o cuatro lomas suaves, de unos 12 grados de pendiente como mucho, por las que suben y
@@ -179,5 +217,8 @@ Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones
 (un jugador automático hace la acción correcta en cada lección) sin gráficos, y guarda capturas y registros en la rama `verify-shots`.
 También comprueba que los tanques suben y bajan las lomas (y siguen sin poder subir a las colinas), que el menú de opciones cabe en
 pantalla en los diez idiomas, las fichas de los tanques que puede llevar el jugador, los refuerzos aliados y los bordes de ayuda.
+Con los trazados: arranca las 48 misiones y comprueba que todo sigue siendo accesible y que nada queda dentro de un río (`mapas`), que los
+aliados cruzan el río por los pasos y que un tanque no lo cruza por donde no hay paso (`rios`), y que ningún avión derribado cae sobre un tanque.
+`SHOTS_ONLY=vista_mapas` (a mano) guarda vistas de los mapas nuevos.
 Y, ya con gráficos, que los bordes de ayuda y el contorno de los tanques no cambian las sombras del campo: son el modelo hinchado y en la
 pasada de sombras se reducen a un punto (`IN_SHADOW_PASS`), porque ahí el grosor «en píxeles» sale de metros.
