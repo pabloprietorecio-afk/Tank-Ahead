@@ -21,7 +21,7 @@ class Runner extends Node:
 			["es", "todo conmigo", "follow"], ["es", "atacara mi objetivo", "attack"],
 			["es", "localiza objetivo", "locate"], ["es", "solicito bombero", "strike"],
 			["es", "solicitó bombarde", "strike"], ["es", "Todos conmigo.", "follow"],
-			["es", "hola qué tal", ""], ["es", "vamos a comer", ""], ["es", "lanzamiento", ""],
+			["es", "hola qué tal", ""], ["es", "vamos a comer", ""], ["es", "lanzamiento", "missile"],
 			["es", "está lloviendo mucho hoy en Madrid", ""], ["es", "lazarillo", ""], ["es", "ya está", ""],
 			["en", "lunch missile", "missile"], ["en", "located target", "locate"],
 			["en", "what's for lunch today", ""], ["en", "let's go home", ""],
