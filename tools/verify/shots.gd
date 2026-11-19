@@ -60,6 +60,8 @@ class Runner extends Node:
 			await _maps()
 		if only.contains("rios"):
 			await _rivers()
+		if only.contains("asaltos"):
+			await _assaults()
 		if only.contains("vista_mapas"):
 			await _map_shots()
 		if only.contains("nav"):
@@ -741,7 +743,7 @@ class Runner extends Node:
 					for child in arena.get_children():
 						if child is Destructible and not child.indestructible and child.size_hint >= 3.0:
 							houses += 1
-						if (child is Destructible or child is Tank) and Water.deep_at(child.global_position.x, child.global_position.z):
+						if (child is Destructible or child is Tank) and absf(child.global_position.x) < 200.0 and absf(child.global_position.z) < 200.0 and Water.deep_at(child.global_position.x, child.global_position.z):
 							sunk += 1
 							print("MAPA MAL en el agua: ", child.name, " ", child.global_position)
 					var crossings: int = 0
@@ -774,9 +776,10 @@ class Runner extends Node:
 		if river == null:
 			print("RIO RESULT fallos: la misión no tiene río")
 			return
+		# Fuera los enemigos (destruidos, no borrados: puede haber disparos suyos en el aire).
 		for tank in get_tree().get_nodes_in_group(&"tanks"):
 			if tank.team != GameMode.PLAYER_TEAM:
-				tank.queue_free()
+				tank.health.apply_damage(99999.0, null)
 		await _frames(3)
 		await get_tree().create_timer(1.5).timeout
 		var river_z: float = Ribbon.point_at(river.points, Ribbon.lengths(river.points)[river.points.size() - 1] * 0.5).y
@@ -824,6 +827,61 @@ class Runner extends Node:
 		var held: bool = pusher_min > bank_z - 2.0
 		print("RIO el jugador empuja contra el río en x=%.0f: llega hasta z=%.1f (el cauce pasa por z=%.1f) %s" % [away, pusher_min, bank_z, "y no pasa" if held else "Y LO CRUZA"])
 		print("RIO RESULT fallos: %d" % ((allies.size() - crossed.size()) + (0 if held else 1) + (1 if allies.is_empty() else 0)))
+		GameSession.debug_weather = -1
+
+	## Asaltos (sin gráficos): en Operación Ciudadela, en INFERNO, el objetivo anuncia la cifra
+	## real de blindados, hay tres carros atrincherados que no se mueven de su pozo y el resto
+	## entra en oleadas: juntos y por el mismo lado.
+	func _assaults() -> void:
+		var bad: int = 0
+		var old_difficulty: int = GameSettings.difficulty
+		GameSettings.ensure_loaded()
+		GameSettings.difficulty = 3
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.SUNNY, 1, 0)
+		var mode: StoryMode = get_tree().current_scene.get_node("GameMode") as StoryMode
+		mode.raid_interval = Vector2.ZERO
+		var expected: int = roundi(6 * 2 * 1.5) + 3
+		if mode.remaining != expected or not mode._objective_line().contains(str(expected)):
+			bad += 1
+		var dug: Array[Tank] = []
+		var start: Dictionary = {}
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team == GameMode.ENEMY_TEAM:
+				dug.append(tank)
+				start[tank] = tank.global_position
+		if dug.size() != 3:
+			bad += 1
+		print("ASALTO objetivo: «%s» (se esperaban %d) | atrincherados al empezar: %d" % [mode._objective_line(), expected, dug.size()])
+		Engine.time_scale = 4.0
+		await get_tree().create_timer(6.0).timeout
+		var wave: Array[Tank] = []
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team == GameMode.ENEMY_TEAM and not tank in dug:
+				wave.append(tank)
+		var spread: float = 0.0
+		for a in wave:
+			for b in wave:
+				spread = maxf(spread, _flat_distance(a, b))
+		if wave.size() != StoryMode.WAVE_SIZE[3] or spread > 90.0:
+			bad += 1
+		print("ASALTO primera oleada: %d carros, a %.0f m como mucho unos de otros" % [wave.size(), spread])
+		await get_tree().create_timer(40.0).timeout
+		Engine.time_scale = 1.0
+		var moved: float = 0.0
+		for tank in dug:
+			if is_instance_valid(tank) and not tank.is_destroyed:
+				moved = maxf(moved, (tank.global_position - (start[tank] as Vector3)).length())
+		if moved > 3.0:
+			bad += 1
+		var alive: int = 0
+		for tank in get_tree().get_nodes_in_group(&"tanks"):
+			if tank.team == GameMode.ENEMY_TEAM and not tank.is_destroyed:
+				alive += 1
+		if alive > StoryMode.WAVE_ALIVE[3] + 3:
+			bad += 1
+		print("ASALTO a los 46 s: los atrincherados se han movido %.1f m como mucho | enemigos vivos %d (tope %d sueltos + 3 en posición)" % [moved, alive, StoryMode.WAVE_ALIVE[3]])
+		print("ASALTO RESULT fallos: ", bad)
+		GameSettings.difficulty = old_difficulty
 		GameSession.debug_weather = -1
 
 	## Vistas de los trazados nuevos: desde lo alto y a ras de suelo.

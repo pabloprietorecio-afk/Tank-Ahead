@@ -16,6 +16,8 @@ var _obstacle_rects: Array[Rect2] = []
 var _keep_clear: Array[Rect2] = []
 ## Rasgos del trazado de esta partida (ver Layouts).
 var _layout: Dictionary = {}
+## Montañas de fuera del muro: [nodo, radio de la falda].
+var _far_mountains: Array = []
 var _rng := RandomNumberGenerator.new()
 var _spawn_point: Vector2
 
@@ -252,6 +254,7 @@ func _build_scenery() -> void:
 		mountain.position = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
 		mountain.rotation.y = _rng.randf() * TAU
 		add_child(mountain)
+		_far_mountains.append([mountain, base_radius])
 	# Lo que da forma al campo (río, vía, pueblo, trincheras) va lo primero: lo demás se
 	# reparte por los huecos que deja.
 	_build_layout()
@@ -546,6 +549,11 @@ func _build_water(kind: String, through: Vector2) -> Vector2:
 		for item: Array in list:
 			course.add_crossing(_course_distance(course.points, clampf(item[0], -172.0, 172.0), ew), item[1])
 	add_child(Water.build(course, front))
+	# El valle del río sigue más allá del muro: las montañas de fuera que le caen encima se quitan.
+	for entry: Array in _far_mountains:
+		var mountain: Node3D = entry[0]
+		if is_instance_valid(mountain) and Ribbon.distance_to(course.points, Vector2(mountain.position.x, mountain.position.z)) < float(entry[1]) + course.half_width + 6.0:
+			mountain.free()
 	_keep_clear.append_array(Water.rects(course, 4.0))
 	if not river:
 		return through
