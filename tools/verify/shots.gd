@@ -12,6 +12,33 @@ func _ready() -> void:
 
 class Runner extends Node:
 
+	## Órdenes por voz: frases tal como las devuelve el reconocedor de Google (con sus errores) y la
+	## orden que deben dar ("" = ninguna). Imprime «VOZ RESULT fallos: N».
+	func _voice_orders() -> void:
+		var saved: String = Loc.language
+		var cases: Array = [
+			["es", "Lanzarme sí", "missile"], ["es", "lanzar mi sí", "missile"], ["es", "lanza misil", "missile"],
+			["es", "todo conmigo", "follow"], ["es", "atacara mi objetivo", "attack"],
+			["es", "localiza objetivo", "locate"], ["es", "solicito bombero", "strike"],
+			["es", "solicitó bombarde", "strike"], ["es", "Todos conmigo.", "follow"],
+			["es", "hola qué tal", ""], ["es", "vamos a comer", ""], ["es", "lanzamiento", ""],
+			["es", "está lloviendo mucho hoy en Madrid", ""], ["es", "lazarillo", ""], ["es", "ya está", ""],
+			["en", "lunch missile", "missile"], ["en", "located target", "locate"],
+			["en", "what's for lunch today", ""], ["en", "let's go home", ""],
+			["de", "rakete abfeuer", "missile"], ["de", "ich gehe nach hause", ""],
+			["fr", "lancer le missile", "missile"], ["pt", "lançar missel", "missile"],
+			["ru", "пуск ракета", "missile"], ["ru", "пойдём домой", ""],
+		]
+		var failures: int = 0
+		for item in cases:
+			Loc.apply(item[0])
+			var got: String = VoiceOrders.recognize(item[1], item[0], true)
+			if got != item[2]:
+				failures += 1
+				print("VOZ FALLO [%s] «%s» → «%s» (esperado «%s»)" % [item[0], item[1], got, item[2]])
+		Loc.apply(saved)
+		print("VOZ RESULT fallos: %d de %d" % [failures, cases.size()])
+
 	var _dir: String
 	var _unreachable: int = 0
 	var _camera: Camera3D
@@ -27,6 +54,7 @@ class Runner extends Node:
 
 	func _run() -> void:
 		await _frames(2)
+		_voice_orders()
 		var only: String = OS.get_environment("SHOTS_ONLY")
 		if only == "" or only.contains("tanks"):
 			await _tanks()

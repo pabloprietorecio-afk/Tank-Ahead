@@ -44,7 +44,7 @@ jobs:
           SHOTS_ONLY: "story nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion"
         run: |
           timeout 1200 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(NAV|STORY|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
+          grep -E "^(VOZ|NAV|STORY|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
 
       - name: Anuncios coherentes (AdsConfig y android_export.cfg)
         run: |
@@ -64,6 +64,7 @@ jobs:
           cat errors.txt
           grep -q "SHOTS DONE" run.log || { echo "Las capturas no terminaron"; tail -60 run.log; exit 1; }
           grep -q "SHOTS DONE" logic.log || { echo "La prueba de misiones y navegación no terminó"; tail -60 logic.log; exit 1; }
+          grep -q "VOZ RESULT fallos: 0 " logic.log || { echo "El reconocimiento de órdenes por voz falla en algún caso"; grep "^VOZ" logic.log; exit 1; }
           grep -q "NAV RESULT fallos de la navegación con rodeo: 0" logic.log || { echo "Algún tanque con rodeo no llegó a su destino"; exit 1; }
           grep -q "PREMIUM RESULT campañas con un reparto de gratuitas incorrecto: 0" logic.log || { echo "El reparto de misiones gratuitas y premium no es el esperado"; grep "^PREMIUM" logic.log; exit 1; }
           grep -q "ADS RESULT fallos de anuncios y desbloqueo: 0" logic.log || { echo "Fallo en los anuncios o en el desbloqueo por recompensa"; grep "^ADS" logic.log; exit 1; }
