@@ -259,22 +259,23 @@ func _build_pause_and_history() -> void:
 		get_tree().call_group(&"objectives", &"refresh_highlight")
 		for node in get_tree().get_nodes_in_group(&"tanks"):
 			(node as Tank).refresh_highlight()))
-	toggles["easy_drive"] = _make_toggle(Loc.t("Movimiento fácil (el tanque se alinea con el cañón)"), GameSettings.easy_drive, func(on: bool) -> void:
+	toggles["easy_drive"] = UiKit.feature(_make_toggle(Loc.t("Movimiento fácil (el tanque se alinea con el cañón)"), GameSettings.easy_drive, func(on: bool) -> void:
 		GameSettings.easy_drive = on
-		GameSettings.save())
+		GameSettings.save()))
 	options.add_child(toggles["easy_drive"])
 	options.add_child(_make_toggle(Loc.t("Recentrar el cañón al frente (sin movimiento fácil)"), GameSettings.auto_recenter, func(on: bool) -> void:
 		GameSettings.auto_recenter = on
 		GameSettings.save()))
-	toggles["aim_assist"] = _make_toggle(Loc.t("Apuntado automático (cerca del enemigo)"), GameSettings.aim_assist, func(on: bool) -> void:
+	toggles["aim_assist"] = UiKit.feature(_make_toggle(Loc.t("Apuntado automático (cerca del enemigo)"), GameSettings.aim_assist, func(on: bool) -> void:
 		GameSettings.aim_assist = on
-		GameSettings.save())
+		GameSettings.save()))
 	options.add_child(toggles["aim_assist"])
 	# Micrófono de órdenes siempre abierto (apagado, se pulsa antes de cada orden). En un móvil
 	# sin reconocimiento de voz no hay micrófono y el interruptor sale apagado y sin uso.
-	toggles["voice_open"] = _make_toggle(Loc.t("Micrófono siempre abierto (mejor con auriculares)"), voice_orders.always_open, func(on: bool) -> void:
-		voice_orders.set_always_open(on))
+	toggles["voice_open"] = UiKit.feature(_make_toggle(Loc.t("Micro siempre abierto"), voice_orders.always_open, func(on: bool) -> void:
+		voice_orders.set_always_open(on)))
 	(toggles["voice_open"] as CheckButton).disabled = not voice_orders.available()
+	UiKit.add_note(toggles["voice_open"], Loc.t("mejor con auriculares"), true)
 	options.add_child(toggles["voice_open"])
 	# Si Android niega el permiso de micrófono, el interruptor vuelve a como está el ajuste.
 	voice_orders.state_changed.connect(func() -> void:

@@ -10,6 +10,8 @@ const SWITCH_ON := Color(0.2, 0.62, 0.3)
 const SWITCH_ON_EDGE := Color(0.5, 0.98, 0.6)
 const SWITCH_OFF := Color(0.17, 0.18, 0.17)
 const SWITCH_OFF_EDGE := Color(0.66, 0.68, 0.63)
+## Letra de las opciones destacadas (las ayudas que más cambian cómo se juega).
+const FEATURED := Color(1.0, 0.84, 0.3)
 
 static var _icons: Dictionary = {}
 
@@ -32,6 +34,124 @@ static func style_toggle(button: CheckButton, font_size: int) -> void:
 		button.add_theme_icon_override(state, _switch(state.begins_with("checked"), state.contains("disabled"), height))
 	button.add_theme_constant_override("h_separation", 16)
 	button.custom_minimum_size.y = height + 10.0
+	var note := button.get_node_or_null("Note") as ToggleNote
+	if note != null:
+		note.refit(font_size)
+
+
+## Destaca un interruptor: su texto va en amarillo.
+static func feature(button: CheckButton) -> CheckButton:
+	for name: String in ["font_color", "font_pressed_color", "font_hover_color", "font_hover_pressed_color", "font_focus_color"]:
+		button.add_theme_color_override(name, FEATURED)
+	button.add_theme_color_override("font_disabled_color", Color(FEATURED, 0.4))
+	return button
+
+
+## Añade a un interruptor una nota en negrita detrás de su texto («mejor con auriculares»), con
+## un icono de auriculares delante si `headphones`. Con `max_width` (px), la nota encoge la
+## letra lo que haga falta para que la fila entera quepa en ese ancho.
+static func add_note(button: CheckButton, text: String, headphones: bool = false, max_width: float = 0.0) -> void:
+	var note := ToggleNote.new()
+	note.name = "Note"
+	note.setup(text, headphones, max_width)
+	button.add_child(note)
+	note.refit(button.get_theme_font_size("font_size"))
+
+
+## Nota de un interruptor: va dentro del CheckButton, a continuación de su texto (un toque en
+## ella cuenta como en el resto de la fila).
+class ToggleNote extends HBoxContainer:
+	var max_width: float = 0.0
+	var _label: Label
+	var _icon: HeadphonesIcon
+
+	func setup(text: String, headphones: bool, limit: float) -> void:
+		max_width = limit
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_theme_constant_override("separation", 7)
+		if headphones:
+			_icon = HeadphonesIcon.new()
+			_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(_icon)
+		_label = Label.new()
+		_label.text = text
+		_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_label.add_theme_color_override("font_color", UiKit.FEATURED)
+		# Negrita: la misma letra, engrosada.
+		var bold := FontVariation.new()
+		bold.base_font = ThemeDB.fallback_font if _label.get_theme_default_font() == null else _label.get_theme_default_font()
+		bold.variation_embolden = 0.9
+		_label.add_theme_font_override("font", bold)
+		add_child(_label)
+
+	func _ready() -> void:
+		var button := get_parent() as CheckButton
+		button.resized.connect(_place)
+		button.toggled.connect(func(_on: bool) -> void: _place())
+		refit(button.get_theme_font_size("font_size"))
+
+	## Ajusta la letra de la nota a la del interruptor y reserva su ancho en la fila.
+	func refit(font_size: int) -> void:
+		var button := get_parent() as CheckButton
+		if button == null:
+			return
+		var font: Font = button.get_theme_font("font")
+		var text_width: float = font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		var switch_width: float = button.get_theme_icon("unchecked").get_width()
+		var share: float = 0.86
+		_label.visible = true
+		while true:
+			var note_size: int = maxi(roundi(font_size * share), 10)
+			_label.add_theme_font_size_override("font_size", note_size)
+			if _icon != null:
+				_icon.custom_minimum_size = Vector2.ONE * roundf(note_size * 1.15)
+			# El ancho de la nota se echa a mano: fuera del árbol las etiquetas aún no se han medido.
+			var note_width: float = 0.0
+			if _label.visible:
+				note_width += _label.get_theme_font("font").get_string_size(_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, note_size).x + 4.0
+			if _icon != null:
+				note_width += _icon.custom_minimum_size.x + (7.0 if _label.visible else 0.0)
+			var needed: float = text_width + 12.0 + note_width + 12.0 + switch_width + 16.0
+			if max_width <= 0.0 or needed <= max_width:
+				button.custom_minimum_size.x = needed
+				break
+			if share <= 0.62:
+				# Ni con la letra pequeña cabe (idiomas de palabras largas): queda solo el icono.
+				if _icon == null or not _label.visible:
+					button.custom_minimum_size.x = minf(needed, max_width)
+					break
+				_label.visible = false
+				continue
+			share -= 0.04
+		set_meta(&"text_width", text_width)
+		_place()
+
+	func _place() -> void:
+		var button := get_parent() as CheckButton
+		if button == null:
+			return
+		size = get_combined_minimum_size()
+		position = Vector2(float(get_meta(&"text_width", 0.0)) + 16.0, roundf((button.size.y - size.y) * 0.5))
+		modulate.a = 0.4 if button.disabled else 1.0
+
+
+## Icono de auriculares, dibujado por código: diadema y dos almohadillas.
+class HeadphonesIcon extends Control:
+	func _draw() -> void:
+		var s: float = minf(size.x, size.y)
+		var centre := Vector2(size.x * 0.5, size.y * 0.56)
+		var radius: float = s * 0.36
+		var thick: float = maxf(s * 0.11, 1.5)
+		draw_arc(centre, radius, PI, TAU, 20, UiKit.FEATURED, thick, true)
+		for side: float in [-1.0, 1.0]:
+			var pad := Rect2(centre.x + side * radius - s * 0.11, centre.y - s * 0.04, s * 0.22, s * 0.42)
+			draw_style_box(_pad_box(s), pad)
+
+	func _pad_box(s: float) -> StyleBoxFlat:
+		var box := StyleBoxFlat.new()
+		box.bg_color = UiKit.FEATURED
+		box.set_corner_radius_all(maxi(roundi(s * 0.08), 1))
+		return box
 
 
 ## Desplegable (OptionButton). `items` son los textos de la lista y `selected` el que sale

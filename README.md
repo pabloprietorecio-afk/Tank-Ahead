@@ -52,7 +52,7 @@ prismáticos. Se reconocen por palabras clave (`LOCATE_WORDS`, `STRIKE_WORDS`, `
   Mientras dura, el sonido del juego baja 18 dB con un fundido y la radio calla
   (`AudioSetup.mic_duck`): el micrófono tiene al lado el altavoz, y el motor y los cañonazos
   tapan la voz. Al oír la orden, o al agotarse la ventana, el sonido vuelve solo.
-- **Micrófono siempre abierto** (OPCIONES → «Micrófono siempre abierto (mejor con auriculares)»,
+- **Micrófono siempre abierto** (OPCIONES del menú principal o de la pausa → «Micro siempre abierto», con la nota «mejor con auriculares»,
   `GameSettings.voice_always_open`, apagado de serie): además escucha sin pulsarlo, y el icono
   queda en verde. En este modo no se toca el sonido: el reconocedor toma el propio ruido del juego
   por voz, y bajar el volumen cada vez que «oía» algo lo hacía subir y bajar sin parar. Con el

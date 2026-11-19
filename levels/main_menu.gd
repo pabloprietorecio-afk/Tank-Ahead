@@ -17,6 +17,11 @@ const TINT_BACK := Color(0.86, 0.78, 0.56)
 const ROW_HEIGHT: float = 68.0
 const ROW_MIN: float = 54.0
 const ROW_GAP: int = 10
+
+## Órdenes por voz: aquí solo para el ajuste «micro siempre abierto» de las opciones (en el menú
+## no escucha: eso es cosa de la partida).
+var _voice: VoiceOrders = null
+var _voice_toggle: CheckButton = null
 ## Hueco que debe quedar bajo la última fila.
 const BOTTOM_MARGIN: float = 12.0
 
@@ -519,6 +524,19 @@ func _page_audio() -> void:
 	_content.add_child(UiKit.toggle(Loc.t("Destacar objetivos (borde azul)"), GameSettings.highlight_objectives, func(on: bool) -> void:
 		GameSettings.highlight_objectives = on
 		GameSettings.save(), 26))
+	# Micro de órdenes siempre abierto, como en el menú de pausa de la partida (sin
+	# reconocimiento de voz en el teléfono, sale apagado y sin uso).
+	if _voice == null:
+		_voice = VoiceOrders.new()
+		add_child(_voice)
+		_voice.state_changed.connect(func() -> void:
+			if is_instance_valid(_voice_toggle):
+				_voice_toggle.set_pressed_no_signal(_voice.always_open))
+	_voice_toggle = UiKit.feature(UiKit.toggle(Loc.t("Micro siempre abierto"), _voice.always_open, func(on: bool) -> void:
+		_voice.set_always_open(on), 26))
+	_voice_toggle.disabled = not _voice.available()
+	UiKit.add_note(_voice_toggle, Loc.t("mejor con auriculares"), true, 620.0)
+	_content.add_child(_voice_toggle)
 	_content.add_child(VolumeSliders.create(2, 24, Vector2(180.0, 46.0)))
 	if Ads.privacy_options_available():
 		_button(Loc.t("PRIVACIDAD DE LOS ANUNCIOS"), Ads.show_privacy_options)
