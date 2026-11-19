@@ -52,6 +52,15 @@ const LOCALES: Dictionary = {"es": "es-ES", "en": "en-US", "fr": "fr-FR", "it": 
 const ORDERS: Array[String] = ["locate", "strike", "missile", "follow", "attack"]
 const PHRASES: Dictionary = {"follow": "TODOS CONMIGO", "attack": "ATACAR A MI OBJETIVO",
 		"locate": "LOCALIZAR OBJETIVO", "missile": "LANZAR MISIL", "strike": "SOLICITO BOMBARDEO"}
+## Las mismas frases en inglés, que se aceptan en todos los idiomas.
+const EN_PHRASES: Dictionary = {"follow": "ALL ON ME", "attack": "ATTACK MY TARGET",
+		"locate": "LOCATE TARGET", "missile": "LAUNCH MISSILE", "strike": "REQUEST AIR STRIKE"}
+## Comparación por parecido (ver fuzzy_order): parecido mínimo, ventaja sobre la siguiente orden
+## y largo mínimo de la frase. Ajustados con pruebas: «lanzarme sí» da 0,82 con «lanzar misil»;
+## la charla normal se queda por debajo de 0,65.
+const FUZZY_MIN: float = 0.75
+const FUZZY_MARGIN: float = 0.1
+const FUZZY_MIN_LEN: int = 7
 
 ## Palabras que disparan cada orden, ya normalizadas (minúsculas, sin tildes). Salvo en japonés,
 ## cuentan si empiezan una palabra: «ataca» vale para «atacad», «atacar» y «ataca».
@@ -80,7 +89,7 @@ const STRIKE_WORDS: Dictionary = {
 	"ru": ["бомб", "авиаудар", "авиаподдерж", "артиллер", "удар с воздуха"],
 }
 const MISSILE_WORDS: Dictionary = {
-	"es": ["misil"],
+	"es": ["misil", "lanza"],
 	"en": ["missile"],
 	"fr": ["missile"],
 	"it": ["missile"],
@@ -158,6 +167,8 @@ var _voice: VoiceManager = null
 ## Bajada del sonido del juego: la de ahora y a la que va (0 = normal, 1 = bajado del todo).
 var _duck: float = 0.0
 var _duck_target: float = 0.0
+## Pitidos de Google silenciados (canales de sistema y notificaciones del móvil).
+var _beeps_muted: bool = false
 
 
 func _ready() -> void:
@@ -274,7 +285,9 @@ func _process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	var usable: bool = allowed and not get_tree().paused
 	if _talk_left > 0.0:
-		# Ventana de «pulsar para hablar»: se escucha hasta oír algo o hasta que se agote.
+		# Ventana de «pulsar para hablar»: se escucha hasta oír algo o hasta que se agote (el
+		# pitido de Google, aquí, sirve de señal; si el micro está siempre abierto sigue callado).
+		_mute_beeps(always_open and usable)
 		_talk_left -= delta
 		if not usable:
 			_close_window()
@@ -284,10 +297,12 @@ func _process(delta: float) -> void:
 		elif not listening and _cooldown <= 0.0:
 			_start_session()
 		return
-	# Micrófono siempre abierto: una sesión tras otra, salvo mientras habla la radio.
+	# Micrófono siempre abierto: una sesión tras otra, salvo mientras habla la radio. Mientras
+	# tanto se silencian los pitidos de Google, que sonarían en cada sesión.
 	var radio: bool = _radio_talking()
 	_radio_quiet = 0.0 if radio else _radio_quiet + delta
 	var wanted: bool = always_open and usable
+	_mute_beeps(wanted)
 	if listening:
 		# La radio empieza a hablar (o ya no toca escuchar): se descarta lo que se estaba oyendo.
 		if radio or not wanted:
@@ -295,6 +310,12 @@ func _process(delta: float) -> void:
 		return
 	if wanted and _cooldown <= 0.0 and _radio_quiet >= RADIO_GAP:
 		_start_session()
+
+
+func _mute_beeps(on: bool) -> void:
+	if on != _beeps_muted:
+		_beeps_muted = on
+		_plugin.setBeepsMuted(on)
 
 
 ## Lleva el sonido del juego, con un fundido, a como debe estar (bajado solo durante la ventana).
@@ -351,7 +372,7 @@ func _on_partial(text: String) -> void:
 func _on_final(text: String) -> void:
 	if not listening or _handled:
 		return
-	if _dispatch(text):
+	if _dispatch(text, true):
 		_after_order()
 		return
 	listening = false
@@ -413,8 +434,10 @@ func _on_ended() -> void:
 
 
 ## Busca una orden en lo oído (todas las alternativas). Devuelve si ha reconocido alguna.
-func _dispatch(text: String) -> bool:
-	var order: String = recognize(text, Loc.language)
+## `finished` = frase terminada: solo entonces se compara también por parecido (a media frase, un
+## trozo aún incompleto podría parecerse a otra orden).
+func _dispatch(text: String, finished: bool = false) -> bool:
+	var order: String = recognize(text, Loc.language, finished)
 	if order == "":
 		return false
 	_handled = true
@@ -423,7 +446,9 @@ func _dispatch(text: String) -> bool:
 
 
 ## Orden que contiene el texto (alternativas separadas por saltos de línea), o "" si ninguna.
-static func recognize(text: String, language: String) -> String:
+## Primero por palabras clave exactas; si no hay y `fuzzy`, por parecido con la frase de cada
+## orden (para errores del reconocedor como «lanzarme sí» por «lanzar misil»).
+static func recognize(text: String, language: String, fuzzy: bool = false) -> String:
 	var tables: Dictionary = {"locate": LOCATE_WORDS, "strike": STRIKE_WORDS, "missile": MISSILE_WORDS,
 			"follow": FOLLOW_WORDS, "attack": ATTACK_WORDS}
 	for alternative in text.split("\n", false):
@@ -431,7 +456,77 @@ static func recognize(text: String, language: String) -> String:
 		for order in ORDERS:
 			if matches(clean, language, tables[order]) or matches(clean, "en", tables[order]):
 				return order
+	return fuzzy_order(text) if fuzzy else ""
+
+
+## Comparación por parecido: la frase de cada orden (en el idioma del juego y en inglés) contra el
+## trozo de lo oído que más se le parece, letra a letra y sin espacios. Gana la orden que se parezca
+## al menos un FUZZY_MIN y saque FUZZY_MARGIN a la siguiente. No se usa con frases de menos de
+## FUZZY_MIN_LEN letras (demasiado fácil que cualquier cosa se les parezca) ni si lo oído es mucho
+## más largo que la orden (charla).
+static func fuzzy_order(text: String) -> String:
+	var best_order: String = ""
+	var best: float = 0.0
+	var second: float = 0.0
+	for alternative in text.split("\n", false):
+		var heard: String = squash(alternative)
+		if heard == "":
+			continue
+		var scores: Array[float] = []
+		var orders: Array[String] = []
+		for order in ORDERS:
+			var score: float = 0.0
+			for phrase in [Loc.t(PHRASES[order]), EN_PHRASES[order]]:
+				var target: String = squash(phrase)
+				if target.length() < FUZZY_MIN_LEN or heard.length() > target.length() * 2 + 4:
+					continue
+				score = maxf(score, 1.0 - float(substring_distance(target, heard)) / float(target.length()))
+			scores.append(score)
+			orders.append(order)
+		var top: int = 0
+		for i in scores.size():
+			if scores[i] > scores[top]:
+				top = i
+		if scores[top] > best:
+			best = scores[top]
+			best_order = orders[top]
+			second = 0.0
+			for i in scores.size():
+				if i != top:
+					second = maxf(second, scores[i])
+	if best >= FUZZY_MIN and best - second >= FUZZY_MARGIN:
+		return best_order
 	return ""
+
+
+## Texto en minúsculas, sin tildes, sin signos y sin espacios («Lanzarme sí» → «lanzarmesi»).
+static func squash(text: String) -> String:
+	return normalize(text).replace(" ", "")
+
+
+## Menor número de cambios de letra (poner, quitar o cambiar) para que `target` aparezca dentro
+## de `heard`, empezando y acabando donde mejor encaje.
+static func substring_distance(target: String, heard: String) -> int:
+	var m: int = target.length()
+	var n: int = heard.length()
+	var previous := PackedInt32Array()
+	previous.resize(n + 1)
+	previous.fill(0)
+	var current := PackedInt32Array()
+	current.resize(n + 1)
+	for i in range(1, m + 1):
+		current[0] = i
+		var letter: int = target.unicode_at(i - 1)
+		for j in range(1, n + 1):
+			var cost: int = 0 if letter == heard.unicode_at(j - 1) else 1
+			current[j] = mini(mini(previous[j] + 1, current[j - 1] + 1), previous[j - 1] + cost)
+		var swap := previous
+		previous = current
+		current = swap
+	var best: int = m
+	for j in n + 1:
+		best = mini(best, previous[j])
+	return best
 
 
 static func normalize(text: String) -> String:
@@ -456,6 +551,8 @@ static func matches(clean: String, language: String, words: Dictionary) -> bool:
 
 func _exit_tree() -> void:
 	_cancel_session()
+	if _beeps_muted:
+		_mute_beeps(false)
 	# El sonido no puede quedarse bajado al salir de la partida.
 	_duck = 0.0
 	_duck_target = 0.0
