@@ -19,6 +19,8 @@ static var menu_page: String = ""
 static var debug_weather: int = -1
 ## Campo sin decorado (solo suelo, muros y clima), para pruebas y capturas de comparación.
 static var debug_bare: bool = false
+## Pruebas: trazado del campo forzado para los modos que lo sortean ("" = sortearlo).
+static var debug_layout: String = ""
 ## Tanque elegido para repetir una misión ya superada (premium); "" = el de serie del frente.
 static var tank_choice: String = ""
 

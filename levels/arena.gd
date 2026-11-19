@@ -37,7 +37,7 @@ func _ready() -> void:
 	_obstacle_rects.append_array(_mode.reserved_zones())
 	var layout_name: String = _mode.map_layout()
 	if layout_name == "*":
-		layout_name = Layouts.random_open(GameSession.front)
+		layout_name = Layouts.random_open(GameSession.front) if GameSession.debug_layout == "" else GameSession.debug_layout
 	_layout = Layouts.get_layout(GameSession.front, layout_name)
 	_build_environment()
 	_build_ground()

@@ -72,7 +72,7 @@ var crashes: int = 0
 var crashes_on_tanks: int = 0
 ## Callable(Vector2) -> bool: punto del campo libre de edificios y zonas reservadas.
 var is_free_point: Callable = Callable()
-var _wrecks: Array[Node3D] = []
+var _wrecks: Array = []
 ## Última formación lanzada (para pruebas y capturas).
 var last_model: String = ""
 
@@ -381,11 +381,13 @@ func _on_crash(point: Vector3, plane: SkyPlane = null) -> void:
 	var wreck := PlaneWreck.new()
 	add_child(wreck)
 	wreck.build(plane, point)
+	# Fuera de la lista los que ya se retiraron solos (se borran al acabar su tiempo).
+	_wrecks = _wrecks.filter(func(item: Variant) -> bool: return is_instance_valid(item))
 	_wrecks.append(wreck)
 	while _wrecks.size() > MAX_WRECKS:
-		var old: Node3D = _wrecks.pop_front()
+		var old: Variant = _wrecks.pop_front()
 		if is_instance_valid(old):
-			old.queue_free()
+			(old as Node).queue_free()
 
 
 ## Avión de ambiente. La silueta sale del tipo (caza, ataque, bimotor, cuatrimotor).

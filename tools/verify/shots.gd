@@ -1225,7 +1225,16 @@ class Runner extends Node:
 	func _ctf() -> void:
 		var pickups: Array[int] = [0, 0]
 		var captures: Array[int] = [0, 0]
-		for front in [Fronts.Id.NORMANDY, Fronts.Id.KURSK]:
+		# Un trazado distinto en cada frente (o los que diga CTF_MAPAS, «frente:trazado» separados
+		# por comas): la máquina tiene que saber capturar con trincheras, lomas y arroyos.
+		var plan: Array = [[Fronts.Id.NORMANDY, "ridge"], [Fronts.Id.KURSK, "defences"], [Fronts.Id.AFRICA, "wadi"]]
+		if OS.get_environment("CTF_MAPAS") != "":
+			plan = []
+			for item in OS.get_environment("CTF_MAPAS").split(","):
+				plan.append([int(item.get_slice(":", 0)), item.get_slice(":", 1)])
+		for entry: Array in plan:
+			var front: int = entry[0]
+			GameSession.debug_layout = entry[1]
 			GameSession.mode = GameSession.Mode.CTF
 			GameSession.front_choice = front
 			GameSession.faction = Fronts.Faction.ALLIES
@@ -1251,7 +1260,8 @@ class Runner extends Node:
 			Engine.time_scale = 1.0
 			for team in 2:
 				captures[team] += mode.captures[team]
-			print("CTF %s en %d s: capturas aliadas %d, enemigas %d" % [Fronts.NAMES[front], roundi(time), mode.captures[0], mode.captures[1]])
+			print("CTF %s («%s») en %d s: capturas aliadas %d, enemigas %d | banderas cogidas hasta ahora %d y %d" % [Fronts.NAMES[front], entry[1], roundi(time), mode.captures[0], mode.captures[1], pickups[0], pickups[1]])
+		GameSession.debug_layout = ""
 		print("CTF banderas cogidas: bando del jugador %d, bando enemigo %d | capturas %d y %d" % [pickups[0], pickups[1], captures[0], captures[1]])
 		# Las capturas dependen de cómo vaya el combate; lo exigible es que los dos bandos lleguen
 		# a coger la bandera contraria.
