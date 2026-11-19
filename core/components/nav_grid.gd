@@ -11,8 +11,8 @@ const CELL: float = 4.0
 const SIZE: int = 100
 ## Holgura alrededor de cada celda: un obstáculo a menos de esta distancia la da por ocupada.
 const MARGIN: float = 1.8
-## El mundo y la capa del límite del mapa, que es también la de los ríos (ver Water).
-const WORLD_MASK: int = 1 | 8
+## El mundo y la barrera de los ríos (Tank.LAYER_WATER).
+const WORLD_MASK: int = 1 | 32
 
 ## Ya se ha recorrido el mapa entero al menos una vez.
 var ready_once: bool = false

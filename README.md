@@ -87,8 +87,8 @@ que se reparte por los huecos:
 
 - **Ríos, arroyos y ramblas** (`levels/water.gd`): el río es hondo y solo se cruza por los puentes (de
   piedra en Normandía, de madera en el Este) y por los vados, donde se va más despacio; el arroyo y la
-  rambla seca del desierto se vadean por cualquier sitio. El río lleva una barrera invisible en la capa
-  del límite del mapa (solo la tocan los tanques: los disparos y la vista pasan por encima). La máquina
+  rambla seca del desierto se vadean por cualquier sitio. El río lleva una barrera invisible en una capa
+  propia, `Tank.LAYER_WATER` (solo la tocan los tanques: los disparos y la vista pasan por encima). La máquina
   lo ve en su mapa de rutas (`NavGrid`) y cruza por los pasos; nada aparece ni se coloca dentro del agua
   (`Water.deep_at`). El radar pinta el río en azul y los pasos con dos rayas. Con nieve, el agua se hiela.
 - **Pueblos de verdad** (`_build_town`): calle mayor, travesía y callejas con las casas alineadas y dando

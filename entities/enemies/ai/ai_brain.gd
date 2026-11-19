@@ -5,8 +5,8 @@ extends Node
 ## sigue su orden (`objective`) o, si `hunt` está activo, va a por el hostil más cercano.
 ## Da órdenes al Tank (drive_input, torreta, gatillo) igual que lo haría el jugador.
 
-## Lo que estorba el paso: el mundo y la capa del límite del mapa y de los ríos.
-const WORLD_MASK: int = 1 | 8
+## Lo que estorba el paso: el mundo y la barrera de los ríos (Tank.LAYER_WATER).
+const WORLD_MASK: int = 1 | 32
 const ARENA_LIMIT: float = 180.0
 const RETARGET_INTERVAL: float = 0.6
 

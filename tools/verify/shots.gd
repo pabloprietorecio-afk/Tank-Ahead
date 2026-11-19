@@ -801,11 +801,14 @@ class Runner extends Node:
 			if clear:
 				away = x
 				break
+		# El cauce junto a ese punto: su línea más al norte y más al sur.
 		var bank_z: float = INF
+		var south_z: float = -INF
 		for point in river.points:
-			if absf(point.x - away) < 40.0:
+			if absf(point.x - away) < 25.0:
 				bank_z = minf(bank_z, point.y)
-		pusher.global_position = Vector3(away, 0.2, river_z + 40.0)
+				south_z = maxf(south_z, point.y)
+		pusher.global_position = Vector3(away, 0.2, south_z + river.half_width + 7.0)
 		pusher.rotation.y = 0.0
 		arena.get_node("PlayerInputSource").set_process(false)
 		arena.get_node("PlayerInputSource").set_physics_process(false)
@@ -825,7 +828,7 @@ class Runner extends Node:
 		for ally: Tank in allies:
 			print("RIO %s: %s" % [ally.stats.display_name, ("cruza en %.0f s" % crossed[ally]) if crossed.has(ally) else ("NO CRUZA, se queda en %s" % _xz(ally.global_position))])
 		var held: bool = pusher_min > bank_z - 2.0
-		print("RIO el jugador empuja contra el río en x=%.0f: llega hasta z=%.1f (el cauce pasa por z=%.1f) %s" % [away, pusher_min, bank_z, "y no pasa" if held else "Y LO CRUZA"])
+		print("RIO el jugador empuja contra el río en x=%.0f desde z=%.1f: llega hasta z=%.1f (el cauce pasa entre z=%.1f y z=%.1f) %s" % [away, south_z + river.half_width + 7.0, pusher_min, bank_z, south_z, "y no pasa" if held else "Y LO CRUZA"])
 		print("RIO RESULT fallos: %d" % ((allies.size() - crossed.size()) + (0 if held else 1) + (1 if allies.is_empty() else 0)))
 		GameSession.debug_weather = -1
 

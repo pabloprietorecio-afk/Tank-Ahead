@@ -6,7 +6,7 @@ extends RefCounted
 ## Como el relieve (Terrain), cada cauce es una línea conocida: no hace falta preguntar a la
 ## física dónde hay agua. `deep_at()` dice si un punto cae en agua honda (ahí no aparece ni se
 ## coloca nada) y `drag_at()` cuánto frena el agua a un tanque. Para que los tanques no entren
-## en el río, cada tramo lleva una barrera invisible en la capa del límite del mapa, la que
+## en el río, cada tramo lleva una barrera invisible en una capa propia (Tank.LAYER_WATER) que
 ## solo tocan ellos: los disparos y la vista pasan por encima del agua. La máquina la ve en su
 ## mapa de rutas (NavGrid) y con sus rayos, y cruza por donde hay paso.
 
@@ -212,7 +212,7 @@ static func build(course: Course, front: int) -> Node3D:
 static func _barrier(from: Vector2, to: Vector2, half_width: float) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = "Rio"
-	body.collision_layer = Tank.LAYER_BOUNDARY
+	body.collision_layer = Tank.LAYER_WATER
 	body.collision_mask = 0
 	var middle: Vector2 = (from + to) * 0.5
 	var dir: Vector2 = to - from
