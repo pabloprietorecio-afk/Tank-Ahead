@@ -1,7 +1,9 @@
 package com.pabloprieto.speech;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -26,6 +28,17 @@ public class SpeechCommands extends GodotPlugin {
     private SpeechRecognizer recognizer;
     /** Último texto parcial de la sesión: si el servicio acaba con «no te he entendido», se usa este. */
     private String lastPartial = "";
+    /** Canales que ha silenciado setBeepsMuted (para devolverlos tal como estaban). */
+    private final Set<Integer> mutedStreams = new HashSet<>();
+    /** El juego quiere los pitidos silenciados (se vuelve a aplicar al volver a la app). */
+    private boolean beepsWanted = false;
+    /**
+     * Canales por los que el servicio de voz de Google saca su pitido de «escucho» / «no te he
+     * entendido». No incluye STREAM_MUSIC, que es el del juego.
+     */
+    private static final int[] BEEP_STREAMS = {
+        AudioManager.STREAM_SYSTEM, AudioManager.STREAM_NOTIFICATION
+    };
 
     public SpeechCommands(Godot godot) {
         super(godot);
@@ -116,9 +129,65 @@ public class SpeechCommands extends GodotPlugin {
         });
     }
 
+    /**
+     * Micrófono siempre abierto: silencia los canales de sistema y notificaciones mientras escucha,
+     * para que no suene el pitido de Google en cada sesión. Al quitarlo, al salir de la app o al
+     * cerrarla, se devuelven tal como estaban (solo los que silenció él).
+     */
+    @UsedByGodot
+    public void setBeepsMuted(final boolean muted) {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                beepsWanted = muted;
+                applyBeeps(activity, muted);
+            }
+        });
+    }
+
+    private void applyBeeps(Activity activity, boolean muted) {
+        AudioManager audio = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+        if (audio == null) {
+            return;
+        }
+        for (int stream : BEEP_STREAMS) {
+            try {
+                if (muted) {
+                    if (!mutedStreams.contains(stream) && !audio.isStreamMute(stream)) {
+                        audio.adjustStreamVolume(stream, AudioManager.ADJUST_MUTE, 0);
+                        mutedStreams.add(stream);
+                    }
+                } else if (mutedStreams.contains(stream)) {
+                    audio.adjustStreamVolume(stream, AudioManager.ADJUST_UNMUTE, 0);
+                    mutedStreams.remove(stream);
+                }
+            } catch (Exception ignored) {
+                // Con «No molestar» Android puede negar el cambio: se deja como está.
+            }
+        }
+    }
+
+    @Override
+    public void onMainResume() {
+        super.onMainResume();
+        Activity activity = getActivity();
+        if (activity != null && beepsWanted) {
+            applyBeeps(activity, true);
+        }
+    }
+
     @Override
     public void onMainPause() {
         super.onMainPause();
+        Activity activity = getActivity();
+        if (activity != null) {
+            // Fuera del juego, las notificaciones del móvil tienen que sonar.
+            applyBeeps(activity, false);
+        }
         boolean was = recognizer != null;
         destroyRecognizer();
         if (was) {
@@ -128,6 +197,10 @@ public class SpeechCommands extends GodotPlugin {
 
     @Override
     public void onMainDestroy() {
+        Activity activity = getActivity();
+        if (activity != null) {
+            applyBeeps(activity, false);
+        }
         destroyRecognizer();
         super.onMainDestroy();
     }

@@ -158,6 +158,8 @@ var _voice: VoiceManager = null
 ## Bajada del sonido del juego: la de ahora y a la que va (0 = normal, 1 = bajado del todo).
 var _duck: float = 0.0
 var _duck_target: float = 0.0
+## Pitidos de Google silenciados (canales de sistema y notificaciones del móvil).
+var _beeps_muted: bool = false
 
 
 func _ready() -> void:
@@ -274,7 +276,9 @@ func _process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	var usable: bool = allowed and not get_tree().paused
 	if _talk_left > 0.0:
-		# Ventana de «pulsar para hablar»: se escucha hasta oír algo o hasta que se agote.
+		# Ventana de «pulsar para hablar»: se escucha hasta oír algo o hasta que se agote (el
+		# pitido de Google, aquí, sirve de señal; si el micro está siempre abierto sigue callado).
+		_mute_beeps(always_open and usable)
 		_talk_left -= delta
 		if not usable:
 			_close_window()
@@ -284,10 +288,12 @@ func _process(delta: float) -> void:
 		elif not listening and _cooldown <= 0.0:
 			_start_session()
 		return
-	# Micrófono siempre abierto: una sesión tras otra, salvo mientras habla la radio.
+	# Micrófono siempre abierto: una sesión tras otra, salvo mientras habla la radio. Mientras
+	# tanto se silencian los pitidos de Google, que sonarían en cada sesión.
 	var radio: bool = _radio_talking()
 	_radio_quiet = 0.0 if radio else _radio_quiet + delta
 	var wanted: bool = always_open and usable
+	_mute_beeps(wanted)
 	if listening:
 		# La radio empieza a hablar (o ya no toca escuchar): se descarta lo que se estaba oyendo.
 		if radio or not wanted:
@@ -295,6 +301,12 @@ func _process(delta: float) -> void:
 		return
 	if wanted and _cooldown <= 0.0 and _radio_quiet >= RADIO_GAP:
 		_start_session()
+
+
+func _mute_beeps(on: bool) -> void:
+	if on != _beeps_muted:
+		_beeps_muted = on
+		_plugin.setBeepsMuted(on)
 
 
 ## Lleva el sonido del juego, con un fundido, a como debe estar (bajado solo durante la ventana).
@@ -456,6 +468,8 @@ static func matches(clean: String, language: String, words: Dictionary) -> bool:
 
 func _exit_tree() -> void:
 	_cancel_session()
+	if _beeps_muted:
+		_mute_beeps(false)
 	# El sonido no puede quedarse bajado al salir de la partida.
 	_duck = 0.0
 	_duck_target = 0.0
