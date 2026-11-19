@@ -172,7 +172,7 @@ func _dig_in(count: int, revetted: bool) -> int:
 		var point: Vector2 = wanted
 		for attempt in 12:
 			point = free_point_near(wanted, 0.0, 22.0 + attempt * 3.0)
-			if is_free_point.call(point) and fits(point, 9.0):
+			if is_free_point.call(point) and fits(point, 9.0) and not _in_crops(point):
 				break
 		var yaw: float = yaw_towards(point, Vector2(spawn.x, spawn.z))
 		alive += 1
@@ -326,6 +326,16 @@ func _process(delta: float) -> void:
 				brain.hunt = false
 				brain.objective = Vector3.ZERO
 				brain.objective_radius = ZONE_RADIUS
+
+
+## ¿Cae el punto en un trigal? (Un pozo de tirador en mitad del trigo no se vería.)
+func _in_crops(point: Vector2) -> bool:
+	for node in get_tree().get_nodes_in_group(&"crop_fields"):
+		var field := node as Node3D
+		var size: Vector2 = field.get_meta(&"size", Vector2.ZERO)
+		if Rect2(Vector2(field.global_position.x, field.global_position.z) - size * 0.5, size).grow(7.0).has_point(point):
+			return true
+	return false
 
 
 ## Enemigos vivos que andan sueltos (los que esperan en posición no cuentan para las oleadas).

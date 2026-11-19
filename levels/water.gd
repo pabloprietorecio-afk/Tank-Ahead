@@ -33,6 +33,14 @@ class Course:
 	## Pasos: {"at": centro, "dir": dirección del río ahí, "half": media anchura del paso,
 	## "bridge": bool, "distance": metros desde el comienzo del cauce}.
 	var crossings: Array[Dictionary] = []
+	## Rectángulo que contiene el cauce entero (con su anchura): fuera de él no hay que mirar más.
+	var bounds := Rect2()
+
+	func measure() -> void:
+		bounds = Rect2(points[0], Vector2.ZERO)
+		for point in points:
+			bounds = bounds.expand(point)
+		bounds = bounds.grow(half_width + 1.0)
 
 	## Añade un paso a `distance` metros del comienzo del cauce.
 	func add_crossing(distance: float, bridge: bool) -> Dictionary:
@@ -62,6 +70,7 @@ static func courses() -> Array[Course]:
 
 
 static func add(course: Course) -> void:
+	course.measure()
 	_courses.append(course)
 
 
@@ -69,7 +78,7 @@ static func add(course: Course) -> void:
 static func deep_at(x: float, z: float, margin: float = 0.0) -> bool:
 	var point := Vector2(x, z)
 	for course in _courses:
-		if course.kind != Kind.RIVER:
+		if course.kind != Kind.RIVER or not course.bounds.grow(margin).has_point(point):
 			continue
 		if Ribbon.distance_to(course.points, point) < course.half_width + margin and course.crossing_at(point, -margin - 1.0).is_empty():
 			return true
@@ -82,7 +91,7 @@ static func drag_at(x: float, z: float) -> float:
 		return 1.0
 	var point := Vector2(x, z)
 	for course in _courses:
-		if Ribbon.distance_to(course.points, point) >= course.half_width:
+		if not course.bounds.has_point(point) or Ribbon.distance_to(course.points, point) >= course.half_width:
 			continue
 		match course.kind:
 			Kind.STREAM:
@@ -126,6 +135,7 @@ static func rects(course: Course, margin: float = 3.0) -> Array[Rect2]:
 ## Monta el cauce en el campo: el agua (o el lecho seco), las orillas, las barreras del río y
 ## sus vados. Los puentes los pone PropFactory.bridge() sobre cada paso (ver Arena).
 static func build(course: Course, front: int) -> Node3D:
+	course.measure()
 	_courses.append(course)
 	var root := Node3D.new()
 	root.name = "Cauce"

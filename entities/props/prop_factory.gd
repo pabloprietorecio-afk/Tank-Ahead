@@ -828,18 +828,23 @@ static func revetment(soil: Color = Color(0.3, 0.24, 0.15)) -> Node3D:
 static func wheat_field(size: Vector2, ripe: Color = Color(0.74, 0.6, 0.26)) -> MeshInstance3D:
 	var key: String = "wheat|%d|%d" % [roundi(size.x), roundi(size.y)]
 	if not _meshes.has(key):
+		# Surcos estrechos con calles oscuras entre ellos, cada uno de una altura.
 		var row := BoxMesh.new()
-		row.size = Vector3(size.x, 1.25, 1.3)
+		row.size = Vector3(size.x, 1.0, 0.5)
 		var parts: Array = []
-		var rows: int = maxi(int(size.y / 2.1), 1)
+		var rows: int = maxi(int(size.y / 1.15), 1)
 		for i in rows:
-			parts.append([row, Transform3D(Basis(), Vector3(0.0, 0.62, -size.y * 0.5 + (i + 0.5) * size.y / rows))])
+			var tall: float = 1.05 + 0.25 * absf(sin(i * 2.4))
+			var wide: float = size.x - 1.5 * absf(sin(i * 1.7))
+			parts.append([row, Transform3D(Basis().scaled(Vector3(wide / size.x, tall, 1.0)), Vector3(0.6 * sin(i * 3.1), tall * 0.5, -size.y * 0.5 + (i + 0.5) * size.y / rows))])
 		_meshes[key] = _merge(parts)
 	var field := MeshInstance3D.new()
 	field.name = "Trigal"
 	field.mesh = _meshes[key]
 	field.material_override = VectorMaterials.organic(ripe, ripe.darkened(0.35), 6, 0.35, 0.0, 0.012)
 	field.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	field.add_to_group(&"crop_fields")
+	field.set_meta(&"size", size)
 	return field
 
 

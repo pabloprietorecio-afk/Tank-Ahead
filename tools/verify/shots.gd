@@ -917,6 +917,20 @@ class Runner extends Node:
 					focus = Vector3(at.x, 0.0, at.y)
 			_look(focus + Vector3(26.0, 9.0, 40.0), focus + Vector3(0.0, 2.0, 0.0), 60.0)
 			await _snap("mapa_%s_cerca" % tag)
+			# Un carro atrincherado en su pozo y, al lado, los restos de un avión derribado.
+			for tank in get_tree().get_nodes_in_group(&"tanks"):
+				if tank.has_meta(&"waiting"):
+					var sky: SkyWar = arena.get_node("SkyWar")
+					var plane: SkyWar.SkyPlane = SkyWar.make_plane(pick[1], Fronts.Faction.ALLIES, SkyWar.pick_model(pick[1], Fronts.Faction.ALLIES, ["attack", "fighter"]))
+					plane.velocity = Vector3(40.0, -30.0, 25.0)
+					var crash: Vector3 = tank.global_position + Vector3(16.0, 0.0, 6.0)
+					sky._on_crash(crash, plane)
+					plane.free()
+					SkyWar.SmokeColumn.spawn(sky, crash)
+					await get_tree().create_timer(2.0).timeout
+					_look(tank.global_position + Vector3(-9.0, 5.0, 22.0), tank.global_position + Vector3(6.0, 1.0, 0.0), 60.0)
+					await _snap("mapa_%s_pozo" % tag)
+					break
 			if OS.get_environment("MAPA_SUELO") != "":
 				_look(Vector3(8.0, 3.2, 96.0), Vector3(0.0, 3.0, 0.0), 65.0)
 				await _snap("mapa_%s_suelo" % tag)

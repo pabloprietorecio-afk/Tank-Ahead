@@ -587,8 +587,10 @@ class PlaneWreck extends Node3D:
 			scrap.rotation = Vector3(randf_range(-0.2, 0.2), randf() * TAU, randf_range(-0.2, 0.2))
 			scrap.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			add_child(scrap)
-		# Tierra quemada alrededor.
-		add_child(Ribbon.node(PackedVector2Array([Vector2(0.0, -length * 0.9), Vector2(0.0, length * 0.9)]), span * 0.45, Ribbon.Y_BANK + 0.02, Ribbon.strip(Color(0.1, 0.09, 0.08), Color(0.03, 0.03, 0.03), 4, span * 0.9, 1.0)))
+		# Tierra quemada alrededor: varias manchas de las de las explosiones, solapadas.
+		var fx: Fx = Fx.on(self)
+		for i in 5:
+			fx.mark(global_position + Vector3(randf_range(-span * 0.4, span * 0.4), 0.0, randf_range(-length * 0.6, length * 0.6)), randf_range(span * 0.3, span * 0.5), i == 0)
 
 	func _process(delta: float) -> void:
 		_life -= delta
