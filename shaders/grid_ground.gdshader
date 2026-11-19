@@ -2,6 +2,7 @@ shader_type spatial;
 render_mode cull_back;
 
 #include "res://shaders/surface_common.gdshaderinc"
+#include "res://shaders/far_common.gdshaderinc"
 
 // Terreno: hierba, pasto seco, tierra y grava mezclados con ruido, con relieve, rodadas de
 // oruga, charcos cuando llueve y nieve. La retícula retro es opcional (grid_strength).
@@ -15,6 +16,13 @@ uniform float cell_size = 20.0;
 // Nieve (0..1) y suelo mojado (0..1).
 uniform float tint = 0.0;
 uniform float wet = 0.0;
+// Medio lado del campo de batalla (m): más allá, el suelo son las parcelas lejanas del frente
+// (ver far_common: `biome` elige también el suelo de dentro: 0 prado, 1 desierto, 2 estepa).
+uniform float arena_half = 200.0;
+// Playa: hacia dónde queda el mar (cero = no hay) y a qué distancia del centro empieza la arena.
+uniform vec2 beach_dir = vec2(0.0);
+uniform float beach_from = 128.0;
+uniform vec3 beach_color : source_color = vec3(0.74, 0.68, 0.52);
 
 varying vec3 world_pos;
 
@@ -40,7 +48,32 @@ void fragment() {
 	float blades = noise4(vec2(p.x * 7.0 + p.y * 2.0, p.y * 3.0)).g;
 	vec3 turf = mix(grass, dry_grass, dry_f);
 	turf *= 0.72 + tuft * 0.4 + (blades - 0.5) * 0.3 * near;
-	turf = mix(turf, turf * vec3(1.15, 1.1, 0.75), smoothstep(0.7, 0.9, fine.b) * 0.5 * near);
+	turf = mix(turf, turf * vec3(1.15, 1.1, 0.75), smoothstep(0.7, 0.9, fine.b) * 0.5 * near * (biome == 1 ? 0.0 : 1.0));
+	float ripple_h = 0.0;
+	if (biome == 1) {
+		// Desierto: nada de hierba. Arena con rizaduras del viento y alguna mata reseca.
+		float wave = sin((p.x * 0.8 + p.y * 0.35) * 3.2 + (mid.r + large) * 9.0) * 0.5 + 0.5;
+		ripple_h = wave * smoothstep(0.3, 0.6, mid.g);
+		turf = mix(grass, dry_grass, dry_f) * (0.9 + ripple_h * 0.14 * near + (mid.b - 0.5) * 0.12);
+		// Costras más claras, endurecidas, entre las rizaduras.
+		turf = mix(turf, turf * vec3(1.1, 1.07, 0.98), smoothstep(0.6, 0.8, noise4(p * 0.07 + 4.0).a) * 0.6);
+		tuft = 0.0;
+		blades = 0.0;
+	} else if (biome == 2) {
+		// Estepa: pasto alto y pajizo a mechones, con flores sueltas (amarillas, lilas, blancas).
+		float sweep = noise4(vec2(p.x * 0.5 + p.y * 1.7, p.y * 0.25)).r;
+		turf *= 0.9 + sweep * 0.22;
+		vec4 bloom = noise4(p * 6.5 + 31.0);
+		float flower = smoothstep(0.9, 0.95, bloom.r) * near * smoothstep(0.35, 0.6, mid.a);
+		vec3 petal = bloom.g < 0.4 ? vec3(0.9, 0.78, 0.2) : (bloom.g < 0.7 ? vec3(0.62, 0.5, 0.78) : vec3(0.92, 0.9, 0.82));
+		turf = mix(turf, petal, flower * 0.85);
+	} else {
+		// Prado normando: verde jugoso, con trébol oscuro y margaritas.
+		float clover = smoothstep(0.55, 0.75, noise4(p * 0.35 + 14.0).g);
+		turf = mix(turf, turf * vec3(0.78, 1.0, 0.8), clover * 0.5);
+		float daisy = smoothstep(0.93, 0.97, noise4(p * 7.0 + 2.0).b) * near;
+		turf = mix(turf, vec3(0.92, 0.92, 0.84), daisy * 0.7);
+	}
 	// Tierra: terrones y piedrecillas.
 	vec3 soil = dirt * (0.7 + mid.a * 0.35 + (micro.r - 0.5) * 0.3 * near);
 	float pebble = smoothstep(0.8, 0.92, noise4(p * 19.0 + 5.0).g) * near;
@@ -51,17 +84,43 @@ void fragment() {
 	vec3 color = mix(turf, soil, dirt_f);
 	color = mix(color, stones, gravel_f);
 	float bare = max(dirt_f, gravel_f);
-	float h = mix(tuft * 0.07 + blades * 0.03 * near, mid.a * 0.05 + micro.r * 0.02 * near + pebble * 0.02, dirt_f);
+	float h = mix(tuft * 0.07 + blades * 0.03 * near + ripple_h * 0.035, mid.a * 0.05 + micro.r * 0.02 * near + pebble * 0.02, dirt_f);
 	h = mix(h, fine.g * 0.03 + micro.b * 0.03 * near, gravel_f);
+
+	// Playa: la hierba se acaba en una orla de dunas bajas y, hasta el agua, arena lisa con las
+	// rizaduras de la marea y alguna raya de algas y conchas.
+	float beach_f = 0.0;
+	if (dot(beach_dir, beach_dir) > 0.5) {
+		float toward = dot(p, beach_dir);
+		beach_f = smoothstep(beach_from - 12.0, beach_from + 9.0, toward + (large - 0.5) * 34.0 + (mid.r - 0.5) * 7.0);
+		float tide = sin(toward * 1.9 + (mid.g + large) * 7.0) * 0.5 + 0.5;
+		vec3 sand = beach_color * (0.9 + tide * 0.1 * near + (mid.b - 0.5) * 0.1 + (micro.g - 0.5) * 0.08 * near);
+		// Más oscura y prieta cuanto más cerca del agua.
+		sand *= mix(1.0, 0.82, smoothstep(beach_from + 40.0, beach_from + 120.0, toward));
+		float wrack = smoothstep(0.82, 0.9, noise4(vec2(toward * 0.9, dot(p, vec2(beach_dir.y, beach_dir.x)) * 0.05) + 3.0).r) * 0.35;
+		sand = mix(sand, sand * vec3(0.55, 0.6, 0.5), wrack);
+		color = mix(color, sand, beach_f);
+		h = mix(h, tide * 0.02 + micro.g * 0.01 * near, beach_f);
+		bare = max(bare * (1.0 - beach_f), beach_f * 0.4);
+	}
 
 	// Rodadas de oruga: pares de surcos sinuosos con las huellas de los eslabones.
 	float lane = (p.x + sin(p.y * 0.02) * 30.0) / 70.0;
 	float across = abs(fract(lane) - 0.5) * 70.0;
 	float rut = (1.0 - smoothstep(0.35, 0.75, abs(across - 1.6))) * step(0.5, noise(p * 0.01 + 5.0));
 	float tread = 0.6 + 0.4 * step(0.5, fract(p.y * 2.2)) * near;
+	// Fuera del campo no hay rodadas: el terreno se funde con las parcelas lejanas.
+	float far_f = smoothstep(arena_half + 10.0, arena_half + 90.0, max(abs(p.x), abs(p.y)));
+	// (En la playa la arena sigue hasta la orilla.)
+	far_f *= 1.0 - beach_f;
+	rut *= (1.0 - far_f) * (1.0 - beach_f);
 	color = mix(color, dirt * 0.55, rut * 0.65 * tread);
 	h -= rut * 0.06 * tread;
 	bare = max(bare, rut);
+	if (far_f > 0.0) {
+		color = mix(color, far_fields(p), far_f * 0.88);
+		h *= 1.0 - far_f;
+	}
 
 	float rough = mix(0.96, 0.9, bare);
 	// Lluvia: todo más oscuro y charcos brillantes en las zonas de tierra y en las rodadas.

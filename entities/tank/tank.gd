@@ -66,6 +66,7 @@ var buffs: Dictionary = {}
 var _fx: Fx
 var _exhaust_at: Vector3
 var _track_at: Vector3
+var _mark_from: Vector3 = Vector3.INF
 var _deck_at: Vector3
 var _exhaust_due: float = 0.0
 var _dust_due: float = 0.0
@@ -219,6 +220,7 @@ func _process(delta: float) -> void:
 		return
 	_update_effects(delta)
 	_animate_tracks(delta)
+	_leave_marks()
 	_update_sound(delta)
 	if camera != null and _view > 0:
 		var target: Transform3D = _chase_transform()
@@ -228,6 +230,29 @@ func _process(delta: float) -> void:
 		_shake = maxf(_shake - delta * 2.5, 0.0)
 		camera.h_offset = randf_range(-1.0, 1.0) * _shake * 0.25
 		camera.v_offset = randf_range(-1.0, 1.0) * _shake * 0.25
+
+
+## Huellas de las orugas en el suelo (ver TrackMarks): un tramo cada STEP metros de avance. En
+## el agua, en los vados y en los puentes no se marcan.
+func _leave_marks() -> void:
+	var marks: TrackMarks = TrackMarks.current
+	if marks == null or is_destroyed:
+		return
+	var here: Vector3 = global_position
+	if _mark_from == Vector3.INF:
+		_mark_from = here
+		return
+	var moved: float = here.distance_to(_mark_from)
+	if moved < TrackMarks.STEP:
+		return
+	var from: Vector3 = _mark_from
+	_mark_from = here
+	# Un salto (reaparecer, recolocarse) no deja rastro.
+	if moved > TrackMarks.STEP * 4.0 or Water.deep_at(here.x, here.z, 1.0) or Water.on_crossing(here.x, here.z):
+		return
+	var frame: Transform3D = chassis.global_transform
+	frame.origin = Vector3((here.x + from.x) * 0.5, minf(here.y, from.y), (here.z + from.z) * 0.5)
+	marks.stamp(frame, _track_at.x - 0.08 * _scale_factor, 0.62 * _scale_factor, moved, is_player)
 
 
 ## Sacudida de la cámara (explosiones cercanas, impactos); solo la nota el tanque del jugador.
@@ -569,7 +594,8 @@ func _build_body() -> void:
 		camera.name = "Camera"
 		camera.fov = 75.0
 		camera.near = 0.1
-		camera.far = 600.0
+		# Hasta el horizonte: el paisaje de fuera del campo llega a un par de kilómetros.
+		camera.far = 2800.0
 		camera.cull_mask = 1
 		camera.position = Vector3(0.0, 0.35, 0.2)
 		gun_pivot.add_child(camera)

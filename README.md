@@ -102,6 +102,52 @@ que se reparte por los huecos:
   `shaders/ground_strip.gdshader`, `shaders/water.gdshader`): solo dibujo, se mojan y se nievan con el
   tiempo como el terreno.
 
+## Tres frentes que no se confunden
+Cada frente tiene su suelo, su luz, su borde, sus cosas y su horizonte (`levels/backdrop/`,
+`entities/props/front_props.gd`, `data/fronts/fronts.gd`, `levels/weather/weather.gd`):
+
+- **Normandía**: prado verde con trébol y margaritas, bocage de verdad (una cuadrícula de setos sobre
+  talud con portillos, `_build_bocage`), granjas de piedra, calvarios, planeadores estrellados y
+  «espárragos de Rommel». El campo lo cierra un seto. Fuera, colinas con su mosaico de parcelas y
+  choperas; según la misión se ven las agujas de Caen, la acería de Colombelles, Saint-Lô en ruinas o
+  el mar con la flota de invasión, los globos cautivos, las lanchas en la playa y el puerto artificial.
+- **Norte de África**: arena con rizaduras, sin hierba, sol alto y cielo casi sin nubes. Peñascos,
+  sangars, jaimas, camiones quemados, campos de minas cercados, acacias y matorral. Lo cierra una
+  alambrada con carteles de minas (los disparos la atraviesan). Fuera, mesetas con su escarpe, dunas,
+  la sierra en Túnez, el fuerte de Bir Hakeim, Tobruk blanca junto a su puerto.
+- **Kursk**: estepa pajiza sobre tierra negra, llana hasta el horizonte. Isbas con su pozo de cigoñal,
+  molinos de viento, girasoles, almiares, abedules, línea de telégrafo junto a la vía, carros quemados.
+  Fuera, franjas de cultivo, pueblos con su iglesia de cúpula, estaciones con elevador de grano, Járkov
+  u Oriol a lo lejos y muchas columnas de humo (todas se tuercen con el mismo viento).
+
+El paisaje de fuera sale de la clave `backdrop` de cada misión (`data/missions/campaign.gd`): hacia qué
+lado queda el mar (`sea`, `sea_extras`), qué se ve en cada horizonte (`skyline`), el relieve y el humo.
+Son maquetas fundidas en una malla por color (`Blocks`), sin colisión ni sombra. Hay más pueblos dentro
+del campo donde los hubo (la costa del desembarco, Carpiquet, la llanura de Caen) y El Alamein tiene su vía.
+
+**Playa**: en las misiones con mar, la última franja del campo es arena de playa, despejada
+(`Arena.BEACH_FROM`, `beach_dir` en `shaders/grid_ground.gdshader`).
+
+**Huellas de oruga** (`levels/track_marks.gd`, `shaders/track_marks.gdshader`): cada tanque deja el rastro
+de sus dos orugas, más hondo en la arena que en la hierba; se va borrando con el tiempo y el del jugador
+dura más. En el agua, los vados y los puentes no se marca.
+
+## Entrada aérea de las misiones
+Al empezar una misión de historia (`levels/intro_flight.gd`) la cámara sobrevuela el campo en espiral
+desde 210 m, baja en picado y acaba en la cámara del tanque, con el título de la misión. La partida está
+en pausa mientras dura (7,5 s) y se salta tocando la pantalla. Las pruebas la quitan con
+`GameSession.skip_intro`; la suya es `SHOTS_ONLY=intro`.
+
+## Hundir barcos: el puerto de Tobruk
+Misión de tipo `sink` (campaña del Eje en África). El 20 de junio de 1942 los carros alemanes llegaron al
+puerto de Tobruk y dispararon a los barcos que intentaban salir; el parte del Panzerarmee da por hundidos
+una cañonera y seis transportes pequeños. En la misión, esa flotilla (`entities/props/ship.gd`) está
+fondeada en la rada, fuera del campo y a tiro desde la orilla; zarpan de uno en uno hacia mar abierto y
+hay que hundir cinco de los siete (`needed`). Arden, se escoran y se van a pique; la cañonera responde con
+su cañón automático. Los disparos que caen al mar levantan un surtidor de espuma (`Fx.shell_water`).
+Sustituye a «El cuartel general» (la campaña ya tenía otro asalto a un cuartel, Bir Hakeim) para seguir
+con ocho misiones por campaña. Prueba: `SHOTS_ONLY=barcos`.
+
 ## Asaltos: oleadas y carros en posición
 En las misiones de asalto (y en la escolta del comandante) el enemigo ya no gotea de uno en uno: entra en
 **oleadas** de 2 a 4 carros, juntos y por el mismo lado del mapa (`StoryMode.WAVE_SIZE`, `WAVE_ALIVE`). El
@@ -115,7 +161,11 @@ arde). Cuentan para el total.
 lo hacen en vuelo rasante sobre el campo; más duelos de artillería en el horizonte, salvas de cohetes y
 bengalas. Parte de los aviones derribados caen ahora **dentro** del campo, a la vista: solo en suelo
 despejado y a más de 30 m de todo tanque, y si alguno se acerca mientras caen se desvían. No hacen daño;
-dejan los restos ardiendo un rato (sin colisión).
+dejan los restos ardiendo un rato (sin colisión). Pasa una formación cada 6-13 s, seis de cada diez
+pierden un avión y dos de cada tres cazas van rasantes. Los **bombarderos sueltan su carga sobre el
+terreno lejano** (`_bomb_run`): las bombas caen con su parábola siempre a más de 90 m del muro, con
+fogonazo, surtidor de humo y el estampido que llega con su retraso. Y hay casi el doble de fogonazos de
+artillería en el horizonte.
 
 ## Relieve: lomas
 `levels/terrain.gd`. Además de las colinas y montañas (empinadas: hacen de pared, como siempre), cada
@@ -219,6 +269,8 @@ También comprueba que los tanques suben y bajan las lomas (y siguen sin poder s
 pantalla en los diez idiomas, las fichas de los tanques que puede llevar el jugador, los refuerzos aliados y los bordes de ayuda.
 Con los trazados: arranca las 48 misiones y comprueba que todo sigue siendo accesible y que nada queda dentro de un río (`mapas`), que los
 aliados cruzan el río por los pasos y que un tanque no lo cruza por donde no hay paso (`rios`), y que ningún avión derribado cae sobre un tanque.
-`SHOTS_ONLY=vista_mapas` (a mano) guarda vistas de los mapas nuevos.
+`SHOTS_ONLY=vista_mapas` (a mano) guarda vistas de los mapas nuevos y `SHOTS_ONLY=vista_frentes` las del paisaje de cada frente
+(`FRENTE_SOLO`, `FRENTE_LADOS`, `FRENTE_ALTO`, `FRENTE_HUELLAS`). `intro` comprueba la entrada aérea y `barcos` la misión de Tobruk; el
+cielo (`sky`) comprueba además que las bombas de los aviones de ambiente caen siempre fuera del campo.
 Y, ya con gráficos, que los bordes de ayuda y el contorno de los tanques no cambian las sombras del campo: son el modelo hinchado y en la
 pasada de sombras se reducen a un punto (`IN_SHADOW_PASS`), porque ahí el grosor «en píxeles» sale de metros.

@@ -14,6 +14,10 @@ var _sun: DirectionalLight3D
 var _obstacle_rects: Array[Rect2] = []
 ## Sitios en los que no se coloca decorado pero sí se puede estar: caminos, calles, arroyos.
 var _keep_clear: Array[Rect2] = []
+## Hacia dónde queda el mar (cero si la misión no tiene) y a qué distancia del centro empieza
+## la arena de la playa dentro del campo.
+const BEACH_FROM: float = 128.0
+var _beach_dir: Vector2 = Vector2.ZERO
 ## Rasgos del trazado de esta partida (ver Layouts).
 var _layout: Dictionary = {}
 ## Montañas de fuera del muro: [nodo, radio de la falda].
@@ -40,8 +44,23 @@ func _ready() -> void:
 		layout_name = Layouts.random_open(GameSession.front) if GameSession.debug_layout == "" else GameSession.debug_layout
 	_layout = Layouts.get_layout(GameSession.front, layout_name)
 	_build_environment()
+	var far_spec: Dictionary = Backdrop.spec_for(GameSession.front, _mode.backdrop())
+	if Backdrop.SIDES.has(far_spec.get("sea", "")) and not GameSession.debug_bare:
+		# Junto al mar, la última franja del campo es la playa: arena despejada.
+		_beach_dir = Backdrop.SIDES[far_spec["sea"]]
+		var inland: Vector2 = _beach_dir * (BEACH_FROM + 4.0)
+		var along := Vector2(absf(_beach_dir.y), absf(_beach_dir.x)) * ARENA_HALF
+		var far_corner: Vector2 = _beach_dir * ARENA_HALF + along
+		var near_corner: Vector2 = inland - along
+		_keep_clear.append(Rect2(Vector2(minf(near_corner.x, far_corner.x), minf(near_corner.y, far_corner.y)), (far_corner - near_corner).abs()))
+	Backdrop.sea_side = _beach_dir
 	_build_ground()
-	_build_walls()
+	_build_walls(far_spec.get("sea", ""))
+	if not GameSession.debug_bare:
+		# El paisaje de fuera del campo, hasta el horizonte.
+		var backdrop := Backdrop.new()
+		add_child(backdrop)
+		backdrop.build(GameSession.front, far_spec)
 	if _mode.wants_scenery() and not GameSession.debug_bare:
 		_build_scenery()
 	_spawn_player(spawn)
@@ -66,6 +85,12 @@ func _ready() -> void:
 		spawner.player = _player
 		spawner.is_free_point = _mode.is_free_point
 		add_child(spawner)
+	if not GameSession.debug_bare:
+		# Las huellas de las orugas; junto al mar el suelo es arena de playa y se marcan más.
+		var marks := TrackMarks.new()
+		marks.name = "TrackMarks"
+		add_child(marks)
+		marks.build(GameSession.front, _beach_dir, BEACH_FROM)
 	_build_ui()
 	var voice := VoiceManager.new()
 	voice.name = "VoiceManager"
@@ -75,6 +100,15 @@ func _ready() -> void:
 	music.volume_db = -6.0
 	add_child(music)
 	_mode.start(_player, self)
+	if GameSession.mode == GameSession.Mode.STORY and not GameSession.skip_intro and not GameSession.debug_bare:
+		# Entrada de la misión: barrido aéreo y picado hasta el tanque.
+		var intro := IntroFlight.new()
+		intro.name = "IntroFlight"
+		intro.player = _player
+		intro.ui_layer = _hud.get_parent() as CanvasLayer
+		intro.title = Loc.t(GameSession.current_mission()["title"])
+		intro.subtitle = "%s · %s" % [Loc.t(Fronts.NAMES[GameSession.front]), (get_node("Weather") as Weather).display_name()]
+		add_child(intro)
 
 
 func _create_mode() -> GameMode:
@@ -131,8 +165,14 @@ func _build_ground() -> void:
 	material.set_shader_parameter("dry_grass", colors[1])
 	material.set_shader_parameter("dirt", colors[2])
 	material.set_shader_parameter("gravel", colors[3])
+	material.set_shader_parameter("arena_half", ARENA_HALF)
+	material.set_shader_parameter("beach_dir", _beach_dir)
+	material.set_shader_parameter("beach_from", BEACH_FROM)
+	material.set_shader_parameter("beach_color", Backdrop.beach_sand(GameSession.front))
+	Fronts.apply_fields(material, GameSession.front)
+	# El suelo sigue hasta el horizonte: fuera del campo son las parcelas lejanas del frente.
 	var mesh := PlaneMesh.new()
-	mesh.size = Vector2(ARENA_HALF * 2.0 + 400.0, ARENA_HALF * 2.0 + 400.0)
+	mesh.size = Vector2.ONE * Backdrop.REACH * 2.4
 	var ground := MeshInstance3D.new()
 	ground.mesh = mesh
 	ground.material_override = material
@@ -144,31 +184,19 @@ func _build_ground() -> void:
 	body.collision_layer = 1
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(ARENA_HALF * 2.0 + 20.0, 100.0, ARENA_HALF * 2.0 + 20.0)
+	# Bastante más ancho que el campo: los disparos que salen de él también dan en tierra.
+	box.size = Vector3(ARENA_HALF * 2.0 + 1000.0, 100.0, ARENA_HALF * 2.0 + 1000.0)
 	shape.shape = box
 	shape.position.y = -50.0
 	body.add_child(shape)
 	add_child(body)
 
 
-func _add_wall(center: Vector3, size: Vector3) -> void:
-	var body := StaticBody3D.new()
-	body.collision_layer = 1
-	body.position = center
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = size
-	shape.shape = box
-	body.add_child(shape)
-	body.add_child(VectorMaterials.make_box(size, Color(0.45, 0.43, 0.4), 2, 2.0))
-	add_child(body)
-
-
-## Límite infranqueable para los tanques: una barrera alta e invisible sobre cada muro, en una
+## Límite infranqueable para los tanques: una barrera alta e invisible en cada borde, en una
 ## capa que solo ellos tocan (los disparos y los aviones la atraviesan).
-func _add_boundary(center: Vector3, size: Vector3) -> void:
+func _add_boundary(center: Vector3, size: Vector3, layer: int = Tank.LAYER_BOUNDARY) -> void:
 	var body := StaticBody3D.new()
-	body.collision_layer = Tank.LAYER_BOUNDARY
+	body.collision_layer = layer
 	body.collision_mask = 0
 	body.position = center
 	var shape := CollisionShape3D.new()
@@ -179,17 +207,83 @@ func _add_boundary(center: Vector3, size: Vector3) -> void:
 	add_child(body)
 
 
-func _build_walls() -> void:
+## El borde del campo, distinto en cada frente: en Normandía, el seto alto sobre talud que
+## cerraba cada prado del bocage; en el desierto y en la estepa, alambradas con los carteles de
+## los campos de minas, que dejan ver el paisaje. Hacia el mar (`sea_side`), siempre alambrada.
+func _build_walls(sea_side: String = "") -> void:
 	var length: float = ARENA_HALF * 2.0
 	for side in [-1.0, 1.0]:
 		_add_boundary(Vector3(0.0, 40.0, side * (ARENA_HALF + 2.0)), Vector3(length + 20.0, 80.0, 6.0))
 		_add_boundary(Vector3(side * (ARENA_HALF + 2.0), 40.0, 0.0), Vector3(6.0, 80.0, length + 20.0))
-	var height: float = 2.5
-	var thickness: float = 2.0
-	_add_wall(Vector3(0.0, height * 0.5, -ARENA_HALF), Vector3(length, height, thickness))
-	_add_wall(Vector3(0.0, height * 0.5, ARENA_HALF), Vector3(length, height, thickness))
-	_add_wall(Vector3(-ARENA_HALF, height * 0.5, 0.0), Vector3(thickness, height, length))
-	_add_wall(Vector3(ARENA_HALF, height * 0.5, 0.0), Vector3(thickness, height, length))
+	var hedges: bool = GameSession.front == Fronts.Id.NORMANDY
+	for key: String in Backdrop.SIDES:
+		var dir: Vector2 = Backdrop.SIDES[key]
+		var edge := Node3D.new()
+		edge.name = "Borde"
+		edge.position = Vector3(dir.x, 0.0, dir.y) * ARENA_HALF
+		# El eje X del borde corre a lo largo del lado.
+		edge.rotation.y = 0.0 if dir.x == 0.0 else PI * 0.5
+		add_child(edge)
+		var along: Vector3 = Vector3(length, 0.0, 2.0) if dir.x == 0.0 else Vector3(2.0, 0.0, length)
+		if hedges and key != sea_side:
+			edge.add_child(_hedge_edge(length))
+			# El seto para los disparos, como un muro.
+			var body := StaticBody3D.new()
+			body.collision_layer = 1
+			body.position = edge.position + Vector3(0.0, 1.6, 0.0)
+			var shape := CollisionShape3D.new()
+			var box := BoxShape3D.new()
+			box.size = along + Vector3(0.0, 3.2, 0.0)
+			shape.shape = box
+			body.add_child(shape)
+			add_child(body)
+		else:
+			_wire_edge(edge, length)
+			# La alambrada no para los disparos, pero la máquina tiene que verla para no
+			# empeñarse en cruzarla: va en la capa de las barreras que solo tocan los tanques.
+			_add_boundary(edge.position + Vector3(0.0, 2.0, 0.0), along + Vector3(0.0, 4.0, 0.0), Tank.LAYER_WATER)
+
+
+## Seto del bocage a lo largo de un borde: talud de tierra y, encima, la maraña de espino y
+## avellano, con algún árbol que sobresale.
+func _hedge_edge(length: float) -> Node3D:
+	var root := Node3D.new()
+	var bank := VectorMaterials.make_box(Vector3(length, 1.3, 3.0), Color(0.3, 0.24, 0.15), 0, 1.0)
+	bank.position.y = 0.65
+	root.add_child(bank)
+	root.add_child(PropFactory.hedge_foliage(length, 1.25))
+	var x: float = -length * 0.5 + _rng.randf_range(8.0, 30.0)
+	while x < length * 0.5 - 8.0:
+		var tree: Node3D = PropFactory.apple_tree(_rng.randf_range(7.0, 10.0))
+		tree.position = Vector3(x, 0.8, _rng.randf_range(-0.4, 0.4))
+		tree.rotation.y = _rng.randf() * TAU
+		root.add_child(tree)
+		x += _rng.randf_range(16.0, 44.0)
+	return root
+
+
+## Alambrada a lo largo de un borde: piquetes, tres hilos de espino y, cada tanto, el cartel
+## de un campo de minas.
+func _wire_edge(edge: Node3D, length: float) -> void:
+	var b := Blocks.new()
+	var wood := Color(0.34, 0.27, 0.18)
+	var steel := Color(0.2, 0.19, 0.18)
+	var posts: int = int(length / 6.0)
+	for i in posts + 1:
+		var x: float = -length * 0.5 + i * length / posts
+		b.box(wood.lightened(_rng.randf() * 0.12), Vector3(0.16, 1.5 + _rng.randf() * 0.15, 0.16), Vector3(x, 0.0, 0.0), 0.0, _rng.randf_range(-0.08, 0.08))
+		# Un segundo piquete, más bajo, por fuera: la alambrada es doble y en pendiente.
+		b.box(wood, Vector3(0.14, 0.8, 0.14), Vector3(x + 3.0, 0.0, 1.6))
+	for strand in 3:
+		b.box(steel, Vector3(length, 0.035, 0.035), Vector3(0.0, 0.45 + strand * 0.45, 0.0))
+		b.box(steel, Vector3(length, 0.035, 0.035), Vector3(0.0, 0.25 + strand * 0.2, 0.8 + strand * 0.3), 0.0, 0.0)
+	# Carteles de minas: tablilla clara con el triángulo rojo.
+	var signs: int = int(length / 45.0)
+	for i in signs:
+		var x: float = -length * 0.5 + (i + 0.5) * length / signs + _rng.randf_range(-6.0, 6.0)
+		b.box(Color(0.86, 0.84, 0.76), Vector3(0.9, 0.6, 0.05), Vector3(x, 1.0, -0.12))
+		b.roof(Color(0.7, 0.12, 0.1), Vector3(0.5, 0.4, 0.07), Vector3(x, 1.1, -0.16))
+	b.commit(edge)
 
 
 ## Busca un sitio libre de radio `radius`. Devuelve Vector2.INF si no lo encuentra.
@@ -240,44 +334,19 @@ func _scatter(center: Vector2, count: int, spread: float, factory: Callable, bur
 func _build_scenery() -> void:
 	var front: int = GameSession.front
 	PropFactory.mountain_color = Fronts.mountain_color(front)
-	# Relieve lejano fuera de la arena.
 	var desert: bool = front == Fronts.Id.AFRICA
-	for i in 14:
-		var angle: float = TAU * i / 14.0 + _rng.randf_range(-0.1, 0.1)
-		var height: float = _rng.randf_range(12.0, 30.0) if desert or front == Fronts.Id.KURSK else _rng.randf_range(20.0, 45.0)
-		var base_radius: float = _rng.randf_range(45.0, 70.0)
-		# Toda la falda queda fuera del muro (que es cuadrado: en las esquinas está más lejos),
-		# para que ninguna montaña tape objetivos ni sirva de rampa para salir del mapa.
-		var toward_wall: float = maxf(absf(cos(angle)), absf(sin(angle)))
-		var dist: float = (ARENA_HALF + base_radius + 12.0) / toward_wall + _rng.randf_range(0.0, 60.0)
-		var mountain := PropFactory.mountain(base_radius, height, _rng.randi_range(6, 9))
-		mountain.position = Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
-		mountain.rotation.y = _rng.randf() * TAU
-		add_child(mountain)
-		_far_mountains.append([mountain, base_radius])
 	# Lo que da forma al campo (río, vía, pueblo, trincheras) va lo primero: lo demás se
 	# reparte por los huecos que deja.
 	_build_layout()
-	# Lomas suaves (dunas tendidas en el desierto): relieve por el que los tanques sí suben. Van
-	# antes que el decorado suelto, que nunca se coloca encima de ellas.
+	# Lomas suaves: relieve por el que los tanques sí suben. Van antes que el decorado suelto,
+	# que nunca se coloca encima de ellas. En el desierto son dunas y crestas alargadas; en la
+	# estepa y en Normandía, ondulaciones redondas del terreno.
 	for i in int(_layout.get("ridge", 0)):
-		var radius: float = _rng.randf_range(30.0, 42.0)
-		var pos := _free_spot(radius)
-		if pos != Vector2.INF:
-			add_child(Terrain.add_mound(pos, radius, VectorMaterials.ground(), _rng.randf()))
-			_obstacle_rects.append(Rect2(pos - Vector2.ONE * (radius + 2.0), Vector2.ONE * (radius + 2.0) * 2.0))
-	for i in int(_layout.get("mounds", 4 if desert else 3)):
-		var radius: float = _rng.randf_range(21.0, 30.0)
-		var pos := _free_spot(radius)
-		if pos != Vector2.INF:
-			add_child(Terrain.add_mound(pos, radius, VectorMaterials.ground(), _rng.randf()))
-			_obstacle_rects.append(Rect2(pos - Vector2.ONE * (radius + 2.0), Vector2.ONE * (radius + 2.0) * 2.0))
-	# Colinas o dunas dentro.
-	for i in int(_layout.get("hills", 5 if desert else 3)):
-		var radius: float = _rng.randf_range(10.0, 18.0)
-		var pos := _free_spot(radius)
-		if pos != Vector2.INF:
-			_place(PropFactory.mountain(radius, _rng.randf_range(4.0, 7.0) if desert else _rng.randf_range(7.0, 13.0), 10 if desert else 7), pos, radius, _rng.randf() * TAU)
+		_add_relief(_rng.randf_range(30.0, 42.0), _rng.randf_range(1.6, 2.4) if desert else 1.0)
+	for i in int(_layout.get("mounds", 2 if desert else 3)):
+		_add_relief(_rng.randf_range(21.0, 30.0), 1.0)
+	for i in int(_layout.get("dunes", 5 if desert else 0)):
+		_add_relief(_rng.randf_range(12.0, 18.0), _rng.randf_range(2.2, 3.4))
 	match front:
 		Fronts.Id.AFRICA:
 			_scenery_africa()
@@ -335,6 +404,20 @@ func _house_size() -> Vector3:
 	return Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.5, 5.0), _rng.randf_range(6.0, 9.0))
 
 
+## Loma de medio ancho `radius`; con `stretch` > 1, alargada (duna, cresta) y de rumbo al azar.
+func _add_relief(radius: float, stretch: float) -> void:
+	var pos := _free_spot(radius * stretch)
+	if pos == Vector2.INF:
+		return
+	var yaw: float = _rng.randf() * PI
+	add_child(Terrain.add_mound(pos, radius, VectorMaterials.ground(), _rng.randf(), Terrain.HEIGHT_RATIO, stretch, yaw))
+	# El rectángulo que ocupa, girado: basta con la caja que lo envuelve.
+	var half := Vector2(absf(cos(yaw)) * radius * stretch + absf(sin(yaw)) * radius, absf(sin(yaw)) * radius * stretch + absf(cos(yaw)) * radius) * 1.1
+	_obstacle_rects.append(Rect2(pos - half, half * 2.0))
+
+
+## Normandía: el bocage (prados cerrados por setos altos sobre talud), granjas de piedra con su
+## palomar, huertos de manzanos, cruceros en los caminos.
 func _scenery_normandy() -> void:
 	for v in int(_layout.get("villages", 2)):
 		# El pueblo de la iglesia ocupa más: las casas van desplazadas respecto al templo.
@@ -353,7 +436,26 @@ func _scenery_normandy() -> void:
 			var lamp := PropFactory.lamp_post()
 			lamp.position = Vector3(center.x + _rng.randf_range(-20.0, 20.0), 0.0, center.y + _rng.randf_range(-20.0, 20.0))
 			add_child(lamp)
-	# Setos del bocage.
+	for f in int(_layout.get("farm", 1)):
+		var pos := _free_spot(24.0)
+		if pos != Vector2.INF:
+			_place(FrontProps.stone_farm(), pos, 20.0, round(_rng.randf() * 4.0) * PI * 0.5)
+	# Planeadores estrellados (los que tomaron los puentes) y estacas contra ellos en los prados.
+	for g in int(_layout.get("gliders", 0)):
+		var pos := _free_spot(12.0)
+		if pos != Vector2.INF:
+			_place(FrontProps.glider_wreck(), pos, 10.0, _rng.randf() * TAU)
+	for a in int(_layout.get("asparagus", 0)):
+		var size := Vector2(_rng.randf_range(50.0, 80.0), _rng.randf_range(40.0, 60.0))
+		var pos := _free_spot(maxf(size.x, size.y) * 0.5)
+		if pos != Vector2.INF:
+			var stakes: Node3D = FrontProps.asparagus(size)
+			stakes.position = Vector3(pos.x, 0.0, pos.y)
+			add_child(stakes)
+			_keep_clear.append(Rect2(pos - size * 0.5, size))
+	# El bocage: una cuadrícula de setos con portillos. Los sueltos de siempre, además.
+	if _layout.has("bocage"):
+		_build_bocage(float(_layout["bocage"]))
 	for i in int(_layout.get("hedges", 12)):
 		var length: float = _rng.randf_range(18.0, 34.0)
 		var pos := _free_spot(length * 0.5)
@@ -365,14 +467,48 @@ func _scenery_normandy() -> void:
 		if center != Vector2.INF:
 			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.apple_tree(_rng.randf_range(4.0, 6.0)),
 					(func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(4.0, 6.0), 0, burning)) if o < 2 else Callable())
-	for f in 6:
+	for f in 4:
 		var pos := _free_spot(6.0)
 		if pos != Vector2.INF:
 			_place(PropFactory.fence(12.0), pos, 6.0, _rng.randf() * TAU)
+	for c in 2:
+		var pos := _free_spot(2.0)
+		if pos != Vector2.INF:
+			_place(FrontProps.calvary(), pos, 1.5, _rng.randf() * TAU)
 
 
+## Cuadrícula del bocage: setos a lo largo de las lindes de prados de unos `cell` metros, cada
+## uno con su portillo (por ahí pasan los tanques) y alguna linde abierta del todo.
+func _build_bocage(cell: float) -> void:
+	var lines: int = int((ARENA_HALF * 2.0 - 40.0) / cell)
+	var start: float = -lines * cell * 0.5
+	var shift := Vector2(_rng.randf_range(-8.0, 8.0), _rng.randf_range(-8.0, 8.0))
+	for horizontal: bool in [true, false]:
+		for i in range(1, lines):
+			for j in lines:
+				if _rng.randf() < 0.26:
+					continue
+				var gate: float = _rng.randf_range(13.0, 17.0)
+				var length: float = cell - gate
+				# El portillo queda en un extremo o en el otro.
+				var along: float = start + j * cell + (length * 0.5 if _rng.randf() < 0.5 else gate + length * 0.5)
+				var across: float = start + i * cell + _rng.randf_range(-3.0, 3.0)
+				var centre: Vector2 = (Vector2(along, across) if horizontal else Vector2(across, along)) + shift
+				var half: Vector2 = Vector2(length * 0.5, 1.6) if horizontal else Vector2(1.6, length * 0.5)
+				var rect := Rect2(centre - half, half * 2.0)
+				if centre.distance_to(_spawn_point) < 32.0 or not _is_clear(rect.grow(1.5)):
+					continue
+				var hedge: Destructible = PropFactory.hedgerow(length)
+				hedge.position = Vector3(centre.x, 0.0, centre.y)
+				hedge.rotation.y = 0.0 if horizontal else PI * 0.5
+				add_child(hedge)
+				_obstacle_rects.append(rect)
+
+
+## Norte de África: casi nada. Matorral reseco, alguna acacia, afloramientos de roca, sangars de
+## piedra, jaimas, camiones quemados en la pista y campos de minas cercados.
 func _scenery_africa() -> void:
-	for v in int(_layout.get("villages", 2)):
+	for v in int(_layout.get("villages", 1)):
 		# Sitio para el pueblo y para su palmeral, que va a un lado.
 		var center := _free_spot(44.0)
 		if center == Vector2.INF:
@@ -381,19 +517,69 @@ func _scenery_africa() -> void:
 				func() -> Node3D: return PropFactory.bombed_house(Vector3(_rng.randf_range(5.0, 8.0), _rng.randf_range(3.0, 4.5), _rng.randf_range(5.0, 8.0)), 1))
 		_scatter(center + Vector2(32.0, 0.0), 6, 8.0, func() -> Node3D: return PropFactory.palm(_rng.randf_range(7.0, 10.0)),
 				func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(7.0, 10.0), 2, burning))
-	for i in 10:
+	# Afloramientos: peñascos grandes apiñados, la única cobertura del llano.
+	for o in int(_layout.get("outcrops", 5)):
+		var pos := _free_spot(9.0)
+		if pos == Vector2.INF:
+			continue
+		for r in _rng.randi_range(3, 5):
+			var rock: Destructible = PropFactory.rock(_rng.randf_range(2.4, 4.6))
+			rock.position = Vector3(pos.x + _rng.randf_range(-6.0, 6.0), 0.0, pos.y + _rng.randf_range(-6.0, 6.0))
+			add_child(rock)
+		_obstacle_rects.append(Rect2(pos - Vector2(11.0, 11.0), Vector2(22.0, 22.0)))
+	for i in 5:
+		var pos := _free_spot(5.0)
+		if pos != Vector2.INF:
+			_place(FrontProps.sangar(), pos, 4.0, _rng.randf() * TAU)
+	for i in 5:
 		var pos := _free_spot(5.0)
 		if pos != Vector2.INF:
 			_place(PropFactory.sandbags(_rng.randf_range(6.0, 10.0)), pos, 5.0, _rng.randf() * TAU)
-	for i in int(_layout.get("woods", 6)):
+	# Campamento beduino.
+	var camp := _free_spot(16.0)
+	if camp != Vector2.INF:
+		for t in 3:
+			var tent: Destructible = FrontProps.tent()
+			tent.position = Vector3(camp.x + (t - 1) * 9.0 + _rng.randf_range(-1.5, 1.5), 0.0, camp.y + _rng.randf_range(-5.0, 5.0))
+			tent.rotation.y = _rng.randf_range(-0.3, 0.3)
+			add_child(tent)
+		_obstacle_rects.append(Rect2(camp - Vector2(17.0, 12.0), Vector2(34.0, 24.0)))
+	for i in 3:
+		var pos := _free_spot(5.0)
+		if pos != Vector2.INF:
+			_place(FrontProps.truck_wreck(), pos, 4.0, _rng.randf() * TAU)
+	for i in int(_layout.get("minefields", 2)):
+		var size := Vector2(_rng.randf_range(30.0, 52.0), _rng.randf_range(20.0, 34.0))
+		var pos := _free_spot(maxf(size.x, size.y) * 0.5)
+		if pos != Vector2.INF:
+			var mines: Node3D = FrontProps.minefield(size)
+			mines.position = Vector3(pos.x, 0.0, pos.y)
+			add_child(mines)
+			_keep_clear.append(Rect2(pos - size * 0.5, size).grow(1.0))
+	# Palmeras solo donde hay agua (los oasis piden más); fuera, acacias sueltas.
+	for i in int(_layout.get("woods", 2)):
 		var pos := _free_spot(4.0)
 		if pos != Vector2.INF:
 			_scatter(pos, 3, 4.0, func() -> Node3D: return PropFactory.palm(_rng.randf_range(6.0, 9.0)))
+	for i in 9:
+		var pos := _free_spot(3.0)
+		if pos != Vector2.INF:
+			_place(FrontProps.acacia(_rng.randf_range(4.0, 6.5)), pos, 1.0, _rng.randf() * TAU)
+	# Matorral: muchas matas, un solo dibujo. No se ponen en caminos ni dentro de nada.
+	var tufts := PackedVector3Array()
+	for i in 260:
+		var p := Vector2(_rng.randf_range(-ARENA_HALF + 6.0, ARENA_HALF - 6.0), _rng.randf_range(-ARENA_HALF + 6.0, ARENA_HALF - 6.0))
+		if _is_clear(Rect2(p - Vector2(0.8, 0.8), Vector2(1.6, 1.6))):
+			tufts.append(Vector3(p.x, Terrain.height(p.x, p.y), p.y))
+	add_child(FrontProps.scrub(tufts))
 
 
+## Kursk: la estepa. Aldeas de isbas con su granero y su pozo de cigüeñal, un molino de viento,
+## girasoles, bosquetes de abedul, almiares, erizos antitanque, carros calcinados y una pista
+## de tierra con su línea de telégrafo.
 func _scenery_kursk() -> void:
 	for v in int(_layout.get("villages", 2)):
-		var center := _free_spot(30.0)
+		var center := _free_spot(34.0)
 		if center == Vector2.INF:
 			continue
 		_village(center, 5, func() -> Node3D: return PropFactory.izba(Vector3(_rng.randf_range(5.0, 7.0), _rng.randf_range(3.0, 4.0), _rng.randf_range(6.0, 8.0))),
@@ -403,6 +589,34 @@ func _scenery_kursk() -> void:
 			fence.position = Vector3(center.x + _rng.randf_range(-25.0, 25.0), 0.0, center.y + _rng.randf_range(-25.0, 25.0))
 			fence.rotation.y = _rng.randf() * TAU
 			add_child(fence)
+		var well: Destructible = FrontProps.sweep_well()
+		well.position = Vector3(center.x + _rng.randf_range(-6.0, 6.0), 0.0, center.y + _rng.randf_range(-6.0, 6.0))
+		well.rotation.y = _rng.randf() * TAU
+		add_child(well)
+		var barn: Destructible = FrontProps.barn()
+		barn.position = Vector3(center.x + (30.0 if v % 2 == 0 else -30.0), 0.0, center.y + _rng.randf_range(-8.0, 8.0))
+		barn.rotation.y = round(_rng.randf() * 2.0) * PI * 0.5
+		add_child(barn)
+		_obstacle_rects.append(Rect2(center - Vector2(46.0, 30.0), Vector2(92.0, 60.0)))
+	var mill := _free_spot(8.0)
+	if mill != Vector2.INF:
+		_place(FrontProps.windmill(), mill, 6.0, _rng.randf() * TAU)
+	for i in int(_layout.get("sunflowers", 2)):
+		var size := Vector2(snappedf(_rng.randf_range(30.0, 46.0), 4.0), snappedf(_rng.randf_range(24.0, 38.0), 4.0))
+		var pos := _free_spot(maxf(size.x, size.y) * 0.5)
+		if pos != Vector2.INF:
+			var field: Node3D = FrontProps.sunflower_field(size)
+			field.position = Vector3(pos.x, 0.0, pos.y)
+			add_child(field)
+			_keep_clear.append(Rect2(pos - size * 0.5, size).grow(2.0))
+	# Carros de los combates de los días anteriores.
+	var models: Array[TankStats] = []
+	for faction in 2:
+		models.append_array(_mode.roster(faction))
+	for i in int(_layout.get("hulks", 3)):
+		var pos := _free_spot(5.0)
+		if pos != Vector2.INF and not models.is_empty():
+			_place(FrontProps.tank_hulk(models.pick_random()), pos, 4.0, _rng.randf() * TAU)
 	for g in int(_layout.get("woods", 7)):
 		var center := _free_spot(12.0)
 		if center != Vector2.INF:
@@ -413,7 +627,7 @@ func _scenery_kursk() -> void:
 		if pos != Vector2.INF:
 			_place(PropFactory.haystack(), pos, 3.0)
 	# Líneas de erizos antitanque.
-	for line in 4:
+	for line in 3:
 		var start := _free_spot(14.0)
 		if start == Vector2.INF:
 			continue
@@ -425,6 +639,60 @@ func _scenery_kursk() -> void:
 			hog.rotation.y = _rng.randf() * TAU
 			add_child(hog)
 		_obstacle_rects.append(Rect2(start - Vector2(15.0, 15.0), Vector2(30.0, 30.0)))
+
+
+## Línea de telégrafo de `from` a `to`: postes cada 28 m, a un lado, con sus hilos. Cada poste
+## lleva los hilos hasta el siguiente: si un tanque lo tumba, se van con él.
+func _telegraph(from: Vector2, to: Vector2, aside: float = 6.5) -> void:
+	var dir: Vector2 = (to - from).normalized()
+	var side := Vector2(-dir.y, dir.x) * aside
+	var count: int = int(from.distance_to(to) / 28.0)
+	var wire_material: StandardMaterial3D = VectorMaterials.paint(Color(0.1, 0.1, 0.1))
+	for i in count + 1:
+		var spot: Vector2 = from + dir * i * 28.0 + side
+		if absf(spot.x) > ARENA_HALF - 4.0 or absf(spot.y) > ARENA_HALF - 4.0 or not _is_clear(Rect2(spot - Vector2(0.6, 0.6), Vector2(1.2, 1.2)), false):
+			continue
+		var pole: Destructible = FrontProps.telegraph_pole()
+		pole.position = Vector3(spot.x, 0.0, spot.y)
+		# Las crucetas, atravesadas a la línea.
+		pole.rotation.y = atan2(dir.x, dir.y)
+		add_child(pole)
+		if i < count:
+			for offset: float in [-0.7, 0.7]:
+				var wire := MeshInstance3D.new()
+				var strand := BoxMesh.new()
+				strand.size = Vector3(0.03, 0.03, 28.0)
+				wire.mesh = strand
+				wire.material_override = wire_material
+				wire.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				wire.position = Vector3(offset, 6.85, 14.0)
+				pole.add_child(wire)
+
+
+## Escarpe del desierto: un farallón de roca que cruza el mapa de oeste a este por z = `base`,
+## en tramos, con tres collados por los que se pasa (en el centro y a los lados).
+func _build_scarp(base: float) -> void:
+	var phase: float = _rng.randf() * TAU
+	var passes: Array[float] = [-118.0 + _rng.randf_range(-12.0, 12.0), _rng.randf_range(-14.0, 14.0), 118.0 + _rng.randf_range(-12.0, 12.0)]
+	var x: float = -ARENA_HALF + 14.0
+	while x < ARENA_HALF - 30.0:
+		var length: float = _rng.randf_range(26.0, 40.0)
+		var centre_x: float = x + length * 0.5
+		var open: bool = false
+		for pass_x in passes:
+			if absf(centre_x - pass_x) < length * 0.5 + 9.0:
+				open = true
+		var z0: float = base + 16.0 * sin(x * 0.018 + phase)
+		var z1: float = base + 16.0 * sin((x + length) * 0.018 + phase)
+		var centre := Vector2(centre_x, (z0 + z1) * 0.5)
+		var rect := Rect2(centre - Vector2(length * 0.5, 6.0), Vector2(length, 12.0))
+		if not open and centre.distance_to(_spawn_point) > 36.0 and _is_clear(rect.grow(1.0)):
+			var rock: Destructible = FrontProps.scarp(length + 3.0, _rng.randf_range(5.5, 8.5))
+			rock.position = Vector3(centre.x, 0.0, centre.y)
+			rock.rotation.y = -atan2(z1 - z0, length)
+			add_child(rock)
+			_obstacle_rects.append(rect)
+		x += length - 1.0
 
 
 # ------------------------------------------------------------------ trazado del campo
@@ -453,6 +721,20 @@ func _build_layout() -> void:
 		_build_town(town_at + (Vector2(0.0, 34.0) if town_kind == "river" else Vector2.ZERO), town_kind, rail == "ew", rail_line)
 	if int(_layout.get("trenches", 0)) > 0:
 		_build_trenches(int(_layout["trenches"]))
+	if _layout.has("scarp"):
+		_build_scarp(float(_layout["scarp"]))
+	if GameSession.front == Fronts.Id.KURSK:
+		# La línea de telégrafo sigue la vía; si no hay, una pista de tierra que cruza la estepa.
+		if rail_line != INF:
+			var along_rail: Vector2 = Vector2(ARENA_HALF, 0.0) if rail == "ew" else Vector2(0.0, ARENA_HALF)
+			var on_rail: Vector2 = Vector2(0.0, rail_line) if rail == "ew" else Vector2(rail_line, 0.0)
+			_telegraph(on_rail - along_rail, on_rail + along_rail, 7.0)
+		elif town_at == Vector2.INF and water == "":
+			var z: float = _rng.randf_range(-120.0, 90.0)
+			var from := Vector2(-ARENA_HALF - 15.0, z + _rng.randf_range(-40.0, 40.0))
+			var to := Vector2(ARENA_HALF + 15.0, z + _rng.randf_range(-40.0, 40.0))
+			_road(from, to)
+			_telegraph(from, to)
 	var ripe: Color = Color(0.74, 0.6, 0.26) if GameSession.front == Fronts.Id.KURSK else Color(0.66, 0.6, 0.3)
 	for i in int(_layout.get("wheat", 0)):
 		var size := Vector2(snappedf(_rng.randf_range(30.0, 46.0), 4.0), snappedf(_rng.randf_range(24.0, 38.0), 4.0))

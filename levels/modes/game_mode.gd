@@ -76,6 +76,13 @@ func map_layout() -> String:
 	return "*"
 
 
+## Lo que esta partida pide al paisaje de fuera del campo: un diccionario con la clave
+## `backdrop` (ver Backdrop): el mar a un lado, una ciudad en el horizonte... Vacío, el fondo de
+## siempre de su frente.
+func backdrop() -> Dictionary:
+	return {}
+
+
 ## Clima obligado (Weather.Kind) o -1 para sortearlo entre los del frente.
 func forced_weather() -> int:
 	return -1

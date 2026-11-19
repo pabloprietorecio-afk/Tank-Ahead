@@ -28,15 +28,24 @@ class Mound:
 	var height: float
 	## Radio más allá del cual seguro que no hay loma.
 	var reach: float
+	## Alargamiento: 1 es redonda; más, una loma tendida (duna, cresta) de eje `yaw`.
+	var stretch: float = 1.0
+	var yaw: float = 0.0
 	var _phase_a: float
 	var _phase_b: float
+	var _cos: float = 1.0
+	var _sin: float = 0.0
 
-	func _init(center: Vector2, mound_radius: float, mound_height: float, seed_value: float) -> void:
+	func _init(center: Vector2, mound_radius: float, mound_height: float, seed_value: float, mound_stretch: float = 1.0, mound_yaw: float = 0.0) -> void:
 		x = center.x
 		z = center.y
 		radius = mound_radius
 		height = mound_height
-		reach = mound_radius * 1.17
+		stretch = maxf(mound_stretch, 1.0)
+		yaw = mound_yaw
+		_cos = cos(yaw)
+		_sin = sin(yaw)
+		reach = mound_radius * 1.17 * stretch
 		_phase_a = seed_value * TAU
 		_phase_b = seed_value * 17.3
 
@@ -52,8 +61,13 @@ class Mound:
 
 	## Altura sobre el llano en un punto dado por su desplazamiento desde el centro.
 	func at(dx: float, dz: float) -> float:
+		if stretch > 1.0:
+			# A sus propios ejes, y encogida a lo largo: el resto es una loma redonda.
+			var along: float = (dx * _cos + dz * _sin) / stretch
+			dz = -dx * _sin + dz * _cos
+			dx = along
 		var d2: float = dx * dx + dz * dz
-		if d2 >= reach * reach:
+		if d2 >= radius * radius * 1.37:
 			return 0.0
 		var edge: float = rim(atan2(dz, dx))
 		var s2: float = d2 / (edge * edge)
@@ -128,8 +142,10 @@ static func rest(point: Vector3, yaw: float, half_length: float, half_width: flo
 ## Crea una loma en `center` y devuelve el nodo que hay que añadir al campo: la malla (con el
 ## mismo material que el suelo, para que sea una ondulación del propio terreno) y el cuerpo con
 ## el que chocan los disparos. `material` es el del suelo.
-static func add_mound(center: Vector2, radius: float, material: Material, seed_value: float, height_ratio: float = HEIGHT_RATIO) -> Node3D:
-	var mound := Mound.new(center, radius, radius * height_ratio, seed_value)
+## Con `stretch` > 1 es una loma alargada (duna, cresta): `radius` es su medio ancho, mide
+## `stretch` veces más de largo y su eje sigue el rumbo `yaw`.
+static func add_mound(center: Vector2, radius: float, material: Material, seed_value: float, height_ratio: float = HEIGHT_RATIO, stretch: float = 1.0, yaw: float = 0.0) -> Node3D:
+	var mound := Mound.new(center, radius, radius * height_ratio, seed_value, stretch, yaw)
 	_mounds.append(mound)
 	var rings: int = 12
 	var segments: int = 36
@@ -140,7 +156,7 @@ static func add_mound(center: Vector2, radius: float, material: Material, seed_v
 		for j in segments:
 			var angle: float = TAU * j / segments
 			var reach_here: float = mound.rim(angle) * s
-			tool.add_vertex(Vector3(cos(angle) * reach_here, mound.profile(s), sin(angle) * reach_here))
+			tool.add_vertex(Vector3(cos(angle) * reach_here * mound.stretch, mound.profile(s), sin(angle) * reach_here))
 	for i in rings:
 		for j in segments:
 			var a: int = i * segments + j
@@ -155,6 +171,7 @@ static func add_mound(center: Vector2, radius: float, material: Material, seed_v
 	var body := StaticBody3D.new()
 	body.name = "Loma"
 	body.position = Vector3(center.x, 0.0, center.y)
+	body.rotation.y = -mound.yaw
 	body.collision_layer = LAYER
 	body.collision_mask = 0
 	body.add_to_group(&"terrain")

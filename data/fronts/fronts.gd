@@ -69,9 +69,10 @@ static func paint(front: int, faction: int, nation: String) -> Dictionary:
 static func ground_colors(front: int) -> Array[Color]:
 	match front:
 		Id.AFRICA:
-			return [Color(0.62, 0.5, 0.32), Color(0.7, 0.58, 0.38), Color(0.55, 0.42, 0.27), Color(0.5, 0.45, 0.38)]
+			return [Color(0.6, 0.45, 0.27), Color(0.68, 0.53, 0.32), Color(0.5, 0.37, 0.23), Color(0.46, 0.4, 0.33)]
 		Id.KURSK:
-			return [Color(0.32, 0.33, 0.14), Color(0.5, 0.45, 0.22), Color(0.3, 0.24, 0.15), Color(0.38, 0.36, 0.3)]
+			# Estepa de julio: pasto pajizo sobre tierra negra (chernozem).
+			return [Color(0.36, 0.36, 0.15), Color(0.6, 0.52, 0.25), Color(0.2, 0.16, 0.12), Color(0.36, 0.33, 0.28)]
 		_:
 			return [Color(0.18, 0.3, 0.1), Color(0.28, 0.35, 0.14), Color(0.28, 0.22, 0.14), Color(0.4, 0.4, 0.38)]
 
@@ -98,6 +99,40 @@ static func weather_choices(front: int) -> Array[int]:
 		if kind in possible:
 			list.append(kind)
 	return list
+
+
+## Parcelas del paisaje lejano (ver far_common.gdshaderinc): [cultivo a, cultivo b, cultivo c,
+## linde]. Normandía: prados y trigo con setos. Desierto: arenas, piedra y sal. Estepa: verde,
+## trigo dorado y barbecho de tierra negra, con caminos de tierra.
+static func field_colors(front: int) -> Array[Color]:
+	match front:
+		Id.AFRICA:
+			return [Color(0.66, 0.5, 0.3), Color(0.6, 0.44, 0.27), Color(0.4, 0.31, 0.23), Color(0.8, 0.74, 0.62)]
+		Id.KURSK:
+			return [Color(0.33, 0.4, 0.16), Color(0.7, 0.59, 0.27), Color(0.17, 0.14, 0.11), Color(0.33, 0.27, 0.18)]
+		_:
+			return [Color(0.2, 0.36, 0.12), Color(0.3, 0.43, 0.14), Color(0.56, 0.5, 0.24), Color(0.07, 0.15, 0.05)]
+
+
+## Roca de los escarpes y montes lejanos.
+static func rock_color(front: int) -> Color:
+	match front:
+		Id.AFRICA:
+			return Color(0.5, 0.33, 0.21)
+		Id.KURSK:
+			return Color(0.5, 0.44, 0.36)
+		_:
+			return Color(0.52, 0.5, 0.45)
+
+
+## Pone en un material del terreno o del paisaje las parcelas y el tipo de suelo del frente.
+static func apply_fields(material: ShaderMaterial, front: int) -> void:
+	var colors: Array[Color] = field_colors(front)
+	material.set_shader_parameter("biome", [0, 1, 2][front])
+	material.set_shader_parameter("field_a", colors[0])
+	material.set_shader_parameter("field_b", colors[1])
+	material.set_shader_parameter("field_c", colors[2])
+	material.set_shader_parameter("field_line", colors[3])
 
 
 static func mountain_color(front: int) -> Color:

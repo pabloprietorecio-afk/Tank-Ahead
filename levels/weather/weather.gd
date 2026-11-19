@@ -65,18 +65,31 @@ func setup(env: Environment, sky_mat: ProceduralSkyMaterial, sun_light: Directio
 		Kind.SUNNY:
 			# Mediodía despejado: sol alto y blanco, cielo azul y casi nada de bruma. Todo se ve
 			# nítido, con sombras cortas y marcadas.
-			_aim_sun(50.0, -35.0)
-			if desert:
-				_apply(Color(0.12, 0.35, 0.8), Color(0.62, 0.75, 0.9), Color(1.0, 0.96, 0.87), 1.75, 0.0011, Color(0.74, 0.78, 0.8), 0.9)
-			else:
-				_apply(Color(0.13, 0.34, 0.78), Color(0.6, 0.75, 0.93), Color(1.0, 0.97, 0.9), 1.6, 0.0011, Color(0.66, 0.77, 0.9), 0.9)
+			# Cada frente tiene su luz. Desierto: sol casi a plomo, blanco y duro, cielo desvaído y
+			# calima de polvo en el horizonte. Estepa: luz dorada de verano y aire polvoriento.
+			# Normandía: sol más tibio, cielo lavado y bruma azulada y húmeda.
+			match front:
+				Fronts.Id.AFRICA:
+					_aim_sun(64.0, -35.0)
+					_apply(Color(0.14, 0.4, 0.86), Color(0.78, 0.82, 0.84), Color(1.0, 0.97, 0.9), 1.55, 0.00065, Color(0.8, 0.77, 0.7), 0.8)
+				Fronts.Id.KURSK:
+					_aim_sun(44.0, -35.0)
+					_apply(Color(0.1, 0.3, 0.74), Color(0.78, 0.8, 0.76), Color(1.0, 0.94, 0.8), 1.65, 0.00055, Color(0.76, 0.77, 0.72), 0.9)
+				_:
+					_aim_sun(47.0, -35.0)
+					_apply(Color(0.2, 0.4, 0.74), Color(0.7, 0.8, 0.9), Color(0.98, 0.98, 0.95), 1.45, 0.0008, Color(0.68, 0.78, 0.88), 0.9)
 		Kind.CLOUDS:
 			# Sol y nubes: día luminoso con cúmulos que pasan; luz algo más suave.
-			_aim_sun(40.0, -52.0)
-			if desert:
-				_apply(Color(0.14, 0.36, 0.78), Color(0.66, 0.76, 0.88), Color(1.0, 0.95, 0.86), 1.5, 0.0017, Color(0.76, 0.78, 0.78), 0.9)
-			else:
-				_apply(Color(0.15, 0.36, 0.76), Color(0.64, 0.76, 0.9), Color(1.0, 0.96, 0.88), 1.4, 0.0017, Color(0.7, 0.78, 0.88), 0.9)
+			match front:
+				Fronts.Id.AFRICA:
+					_aim_sun(52.0, -52.0)
+					_apply(Color(0.18, 0.4, 0.8), Color(0.78, 0.8, 0.8), Color(1.0, 0.95, 0.86), 1.4, 0.0009, Color(0.8, 0.76, 0.68), 0.8)
+				Fronts.Id.KURSK:
+					_aim_sun(38.0, -52.0)
+					_apply(Color(0.12, 0.32, 0.72), Color(0.74, 0.78, 0.78), Color(1.0, 0.93, 0.8), 1.45, 0.0008, Color(0.72, 0.75, 0.74), 0.9)
+				_:
+					_aim_sun(40.0, -52.0)
+					_apply(Color(0.24, 0.4, 0.68), Color(0.7, 0.77, 0.84), Color(0.97, 0.97, 0.95), 1.25, 0.0012, Color(0.68, 0.75, 0.82), 0.9)
 		Kind.CLEAR:
 			# Atardecer: cielo azul profundo, horizonte cálido, sol bajo.
 			_apply(Color(0.05, 0.08, 0.2), Color(0.85, 0.45, 0.25), Color(1.0, 0.75, 0.5), 1.3, 0.004, Color(0.55, 0.4, 0.35))
@@ -157,10 +170,12 @@ func _setup_effects(top: Color, horizon: Color, light: Color, energy: float, fog
 	var haze: Color = horizon.srgb_to_linear()
 	match kind:
 		Kind.SUNNY:
-			# Unos pocos cúmulos blancos y pequeños.
-			clouds.setup(Color(1.0, 1.0, 1.0), Color(0.5, 0.56, 0.68), haze, 0.28, 0.75, fx.wind)
+			# Cielo raso en el desierto, unos pocos cúmulos en la estepa, más nubes en Normandía.
+			clouds.setup(Color(1.0, 1.0, 1.0), Color(0.5, 0.56, 0.68), haze, [0.36, 0.1, 0.27][_front], 0.75, fx.wind)
 		Kind.CLOUDS:
-			clouds.setup(Color(1.0, 0.99, 0.96), Color(0.4, 0.45, 0.56), haze, 0.46, 0.95, fx.wind)
+			# Velos altos en el desierto, cúmulos de verano en la estepa, cielo medio cubierto y
+			# de panza gris en Normandía.
+			clouds.setup(Color(1.0, 0.99, 0.96), [Color(0.34, 0.38, 0.46), Color(0.5, 0.52, 0.56), Color(0.4, 0.45, 0.56)][_front], haze, [0.6, 0.24, 0.46][_front], 0.95, fx.wind)
 		Kind.CLEAR:
 			clouds.setup(Color(0.85, 0.34, 0.17), Color(0.1, 0.055, 0.1), haze, 0.42, 0.8, fx.wind)
 		Kind.FOG:
@@ -198,8 +213,9 @@ func _aim_sun(elevation: float, heading: float) -> void:
 func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float, fog_color: Color, ambient: float = 0.6) -> void:
 	sky_material.sky_top_color = top
 	sky_material.sky_horizon_color = horizon
-	sky_material.ground_horizon_color = horizon.darkened(0.3)
-	sky_material.ground_bottom_color = top.darkened(0.5)
+	# Bajo el horizonte, el color de la bruma: allí donde acaba el paisaje no se ve el corte.
+	sky_material.ground_horizon_color = fog_color
+	sky_material.ground_bottom_color = fog_color.darkened(0.2)
 	sky_material.sun_angle_max = 20.0
 	sun.light_color = light
 	sun.light_energy = energy
@@ -213,8 +229,9 @@ func _apply(top: Color, horizon: Color, light: Color, energy: float, fog: float,
 		# admite un punto más de contraste y de color.
 		environment.glow_intensity = 0.35
 		environment.glow_bloom = 0.0
-		environment.adjustment_contrast = 1.1
-		environment.adjustment_saturation = 1.14
+		environment.adjustment_contrast = [1.1, 1.14, 1.1][_front]
+		# Verdes jugosos en Normandía, color quemado por el sol en el desierto.
+		environment.adjustment_saturation = [1.2, 1.04, 1.12][_front]
 	_setup_effects(top, horizon, light, energy, fog)
 
 

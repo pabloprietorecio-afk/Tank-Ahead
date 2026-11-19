@@ -77,8 +77,8 @@ void fragment() {
 		float gravel_f = smoothstep(0.5, 0.75, noise4(p * 0.8 + 7.0).g);
 		float cobble = smoothstep(0.7, 0.85, noise4(p * 6.0).b) * near;
 		color = mix(color, detail_color * 1.6, gravel_f * 0.5);
-		color = mix(color, vec3(0.55, 0.52, 0.47) * (0.7 + fine.a * 0.5), cobble * 0.7);
-		h = cobble * 0.05;
+		color = mix(color, base_color * vec3(0.8, 0.8, 0.82) * (0.75 + fine.a * 0.4), cobble * 0.55);
+		h = cobble * 0.04;
 	} else if (pattern == 6) {
 		// Tablones atravesados.
 		float boards = groove(UV.y * 2.2, 0.035);

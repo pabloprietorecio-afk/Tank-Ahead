@@ -48,6 +48,9 @@ class Runner extends Node:
 		process_mode = Node.PROCESS_MODE_ALWAYS
 		# Con el renderizador por software todo va lento: que los efectos no se rebajen solos.
 		Fx.governor = false
+		# Las pruebas quieren la partida en marcha desde el primer instante (la entrada aérea
+		# tiene su propia prueba, «intro»).
+		GameSession.skip_intro = true
 		_dir = ProjectSettings.globalize_path("res://shots_out")
 		DirAccess.make_dir_recursive_absolute(_dir)
 		_run.call_deferred()
@@ -92,6 +95,12 @@ class Runner extends Node:
 			await _assaults()
 		if only.contains("vista_mapas"):
 			await _map_shots()
+		if only.contains("vista_frentes"):
+			await _front_shots()
+		if only.contains("intro"):
+			await _intro()
+		if only.contains("barcos"):
+			await _ships()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -623,6 +632,11 @@ class Runner extends Node:
 		print("SKY RESULT derribos sobre tanques: %d de %d (dentro del campo, a la vista: %d)" % [sky.crashes_on_tanks, sky.crashes, sky.crashes_inside])
 		if sky.crashes < 20:
 			print("SKY MAL: demasiado pocos derribos para dar la prueba por buena")
+		print("SKY bombas sobre el terreno lejano: %d (dentro del campo: %d)" % [sky.bombs, sky.bombs_inside])
+		if sky.bombs_inside > 0:
+			print("SKY MAL: una bomba de los aviones de ambiente ha caído dentro del campo")
+		if sky.bombs < 9:
+			print("SKY MAL: los bombarderos casi no sueltan bombas")
 		if sky.crashes_inside < 5:
 			print("SKY MAL: casi ningún derribo cae dentro del campo, a la vista del jugador")
 
@@ -710,7 +724,7 @@ class Runner extends Node:
 					for key in ["title", "type", "briefing", "front"]:
 						if not mission.has(key):
 							push_error("Misión sin «%s»: %s" % [key, mission])
-					if not mission["type"] in ["assault", "destroy", "sabotage", "defend", "boss", "liberate", "breakthrough"]:
+					if not mission["type"] in ["assault", "destroy", "sabotage", "defend", "boss", "liberate", "breakthrough", "sink"]:
 						push_error("Tipo de misión desconocido: %s" % mission["type"])
 		print("CAMPAIGN OK ", total)
 		# Premium: en cada campaña, exactamente tres misiones gratuitas (por frente).
@@ -915,6 +929,207 @@ class Runner extends Node:
 		GameSettings.difficulty = old_difficulty
 		GameSession.debug_weather = -1
 
+	## La misión de hundir barcos (Tobruk): la flotilla está fondeada en el mar, fuera del campo y
+	## a tiro desde la orilla; zarpan de uno en uno; los proyectiles del jugador los alcanzan y
+	## los hunden; hundir los que se piden gana la misión, y dejar escapar demasiados la pierde.
+	## Con gráficos (BARCOS_FOTOS) guarda la rada, un barco ardiendo y un disparo al agua.
+	func _ships() -> void:
+		var bad: int = 0
+		var photos: bool = OS.get_environment("BARCOS_FOTOS") != ""
+		var index: int = -1
+		var list: Array = Campaign.DATA[Fronts.Id.AFRICA][Fronts.Faction.AXIS]
+		for i in list.size():
+			if list[i]["type"] == "sink":
+				index = i
+		if index < 0:
+			print("BARCOS MAL: no hay misión de hundir barcos")
+			print("BARCOS RESULT fallos: 1")
+			return
+		for round_kind: String in ["hundir", "escapar"]:
+			await _start_game(GameSession.Mode.STORY, Fronts.Id.AFRICA, Fronts.Faction.AXIS, Weather.Kind.SUNNY, 1, index)
+			var arena: Node = get_tree().current_scene
+			var mode: StoryMode = arena.get_node("GameMode")
+			mode.raid_interval = Vector2.ZERO
+			var result: Array = [false, false]
+			mode.ended.connect(func(victory: bool, _title: String, _detail: String) -> void:
+				result[0] = true
+				result[1] = victory)
+			var fleet: Array = mode._fleet.duplicate()
+			var needed: int = mode._ships_needed
+			var afloat: int = 0
+			for ship: Ship in fleet:
+				if Backdrop.in_sea(ship.global_position.x, ship.global_position.z) and ship.global_position.z < -205.0:
+					afloat += 1
+			# Desde la orilla, por encima de la alambrada, se les ve y se les da: nada lo tapa.
+			var space: PhysicsDirectSpaceState3D = arena.get_world_3d().direct_space_state
+			var in_sight: int = 0
+			for ship: Ship in fleet:
+				var from := Vector3(ship.global_position.x * 0.6, 2.4, -190.0)
+				var query := PhysicsRayQueryParameters3D.create(from, ship.global_position + Vector3.UP * 2.0, Projectile.MASK_WORLD | Projectile.MASK_HURTBOX | Terrain.LAYER)
+				var hit: Dictionary = space.intersect_ray(query)
+				if not hit.is_empty() and hit["collider"] == ship:
+					in_sight += 1
+			if afloat != fleet.size() or in_sight != fleet.size() or needed < 1 or needed > fleet.size():
+				bad += 1
+			print("BARCOS %s: %d barcos, hay que hundir %d | en el mar y fuera del campo: %d | a tiro desde la orilla: %d" % [round_kind, fleet.size(), needed, afloat, in_sight])
+			var player: Tank = mode.player
+			player.health.invulnerable = true
+			if round_kind == "hundir":
+				if photos:
+					_camera = Camera3D.new()
+					_camera.far = 2800.0
+					arena.add_child(_camera)
+					arena._hud.get_parent().visible = false
+					_look(Vector3(-40.0, 9.0, -150.0), Vector3(20.0, 2.0, -330.0), 60.0)
+					await _snap("barcos_rada")
+				# Zarpan a su hora (se adelanta el reloj) y los proyectiles los hunden.
+				mode._sail_timer = 0.2
+				await get_tree().create_timer(1.0).timeout
+				var first: Ship = fleet[0]
+				var start: Vector3 = first.global_position
+				await get_tree().create_timer(3.0).timeout
+				var moved: float = first.global_position.distance_to(start)
+				if not first.sailing or moved < 3.0:
+					bad += 1
+				print("BARCOS el primero zarpa y navega: %s (%.1f m en 3 s)" % ["sí" if first.sailing else "NO", moved])
+				var sunk_by_shell: bool = false
+				for n in fleet.size():
+					var ship: Ship = fleet[n]
+					if mode.is_over:
+						break
+					if n == 0:
+						# Uno, a cañonazos de verdad: proyectiles desde la orilla hasta que se hunde.
+						var gun := Vector3(ship.global_position.x, 2.4, -192.0)
+						for shot in 30:
+							if ship.is_destroyed:
+								break
+							var shell: Projectile = Projectile.acquire(Ship.SHELL, arena)
+							shell.launch(gun, (ship.global_position + Vector3.UP * 1.5 - gun).normalized() * 180.0, 60.0, player, [], GameMode.PLAYER_TEAM)
+							await get_tree().create_timer(0.9).timeout
+						sunk_by_shell = ship.is_destroyed
+						if photos:
+							await get_tree().create_timer(2.5).timeout
+							_look(Vector3(ship.global_position.x - 30.0, 7.0, -195.0), ship.global_position, 50.0)
+							await _snap("barcos_hundido")
+							var splash: Projectile = Projectile.acquire(Ship.SHELL, arena)
+							splash.launch(gun, Vector3(0.3, -0.03, -1.0).normalized() * 180.0, 60.0, player, [], GameMode.PLAYER_TEAM)
+							await get_tree().create_timer(0.75).timeout
+							_look(Vector3(gun.x, 5.0, gun.z), gun + Vector3(0.3, -0.03, -1.0) * 100.0, 50.0)
+							await _snap("barcos_agua")
+					elif is_instance_valid(ship) and not ship.is_destroyed:
+						ship.take_hit(9999.0, player, ship.global_position)
+					await _frames(2)
+				await _frames(4)
+				if not sunk_by_shell or not result[0] or not result[1] or mode._sunk < needed:
+					bad += 1
+				print("BARCOS hundir: a cañonazos %s | hundidos %d | la misión acaba en victoria: %s | %s" % ["sí" if sunk_by_shell else "NO", mode._sunk, "sí" if result[0] and result[1] else "NO", mode.objective_lines()])
+			else:
+				# Nadie les dispara: zarpan todos (con el reloj y el andar adelantados) y escapan.
+				for ship: Ship in fleet:
+					ship.speed = 45.0
+					ship.target = null
+				mode._sail_timer = 0.1
+				var waited: float = 0.0
+				while not result[0] and waited < 60.0:
+					mode._sail_timer = minf(mode._sail_timer, 0.3)
+					await get_tree().create_timer(0.5).timeout
+					waited += 0.5
+				if not result[0] or result[1] or mode._escaped.size() <= fleet.size() - needed:
+					bad += 1
+				print("BARCOS escapar: escapados %d | la misión acaba en derrota: %s | %s" % [mode._escaped.size(), "sí" if result[0] and not result[1] else "NO", mode.objective_lines()])
+			get_tree().paused = false
+		print("BARCOS RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
+	## Entrada de una misión: mientras la cámara baja desde lo alto la partida está en pausa y
+	## la interfaz escondida; al acabar (sola, o al tocar la pantalla) todo vuelve a su sitio y
+	## manda la cámara del tanque. Con gráficos (INTRO_FOTOS) guarda además tres momentos del vuelo.
+	func _intro() -> void:
+		var bad: int = 0
+		for skip: bool in [false, true]:
+			GameSession.skip_intro = false
+			await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 0)
+			GameSession.skip_intro = true
+			var arena: Node = get_tree().current_scene
+			var intro := arena.get_node_or_null("IntroFlight") as IntroFlight
+			var hud_layer: CanvasLayer = arena._hud.get_parent()
+			var player: Tank = arena.get_node("GameMode").player
+			var started: bool = intro != null and get_tree().paused and not hud_layer.visible and get_viewport().get_camera_3d() != player.camera
+			var height: float = get_viewport().get_camera_3d().global_position.y
+			if OS.get_environment("INTRO_FOTOS") != "" and not skip:
+				for moment: float in [1.2, 3.6, 5.6, 6.8]:
+					await get_tree().create_timer(maxf(moment - intro._clock, 0.01)).timeout
+					await _snap("intro_%02d" % roundi(moment * 10.0))
+			if skip:
+				await get_tree().create_timer(1.0).timeout
+				var tap := InputEventScreenTouch.new()
+				tap.pressed = true
+				tap.position = Vector2(300.0, 300.0)
+				Input.parse_input_event(tap)
+				await _frames(3)
+			else:
+				await get_tree().create_timer(IntroFlight.DURATION + 0.6).timeout
+			var ended: bool = not get_tree().paused and hud_layer.visible and get_viewport().get_camera_3d() == player.camera and arena.get_node_or_null("IntroFlight") == null
+			if not started or not ended or height < 100.0:
+				bad += 1
+			print("INTRO %s: empieza en pausa y desde %.0f m de altura: %s | acaba con la partida en marcha y la cámara del tanque: %s" % ["saltada con un toque" if skip else "entera", height, "sí" if started else "NO", "sí" if ended else "NO"])
+			get_tree().paused = false
+		print("INTRO RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
+	## Vistas del paisaje de cada frente: desde el centro del campo hacia los cuatro lados, a la
+	## altura de la cámara del jugador, y una desde lo alto. FRENTE_SOLO = «bando_frente_misión»
+	## (varias separadas por comas) y FRENTE_LADOS = «nesw» eligen qué se guarda.
+	func _front_shots() -> void:
+		var picks: Array = [[0, 0, 0], [1, 0, 1], [0, 0, 3], [1, 0, 6], [0, 1, 0], [1, 1, 0], [1, 1, 6], [0, 2, 0], [0, 2, 2], [0, 2, 7], [0, 2, 1]]
+		var only: String = OS.get_environment("FRENTE_SOLO")
+		if only != "":
+			picks = []
+			for item in only.split(","):
+				picks.append([int(item.get_slice("_", 0)), int(item.get_slice("_", 1)), int(item.get_slice("_", 2))])
+		var sides: String = OS.get_environment("FRENTE_LADOS")
+		if sides == "":
+			sides = "nesw"
+		var weather: int = Weather.Kind.SUNNY if OS.get_environment("FRENTE_CLIMA") == "" else int(OS.get_environment("FRENTE_CLIMA"))
+		for pick: Array in picks:
+			var tag: String = "%d_%d_%d" % [pick[0], pick[1], pick[2]]
+			await _start_game(GameSession.Mode.STORY, pick[1], pick[0], weather, 1, pick[2])
+			var arena: Node = get_tree().current_scene
+			arena.get_node("GameMode").set_process(false)
+			arena.get_node("GameMode").raid_interval = Vector2.ZERO
+			var hud: CanvasLayer = arena._hud.get_parent()
+			hud.visible = false
+			await get_tree().create_timer(1.0).timeout
+			var camera := Camera3D.new()
+			camera.far = 2800.0
+			arena.add_child(camera)
+			_camera = camera
+			var eye := Vector3(0.0, 5.0, 60.0)
+			for side in sides:
+				var dir: Vector2 = Backdrop.SIDES[side]
+				_look(eye, eye + Vector3(dir.x, 0.04, dir.y) * 100.0, 62.0)
+				await _snap("frente_%s_%s" % [tag, side])
+			if OS.get_environment("FRENTE_HUELLAS") != "":
+				# El tanque del jugador da una vuelta y se mira el rastro que deja.
+				var tank: Tank = arena.get_node("GameMode").player
+				var from: Vector3 = tank.global_position
+				var heading: float = 0.6
+				for i in 110:
+					heading += 0.012
+					tank.global_position += Vector3(sin(heading), 0.0, cos(heading)) * 0.45
+					tank.global_rotation.y = heading + PI
+					await _frames(1)
+				var back := Vector3(sin(heading), 0.0, cos(heading))
+				_look(tank.global_position + back * 9.0 + Vector3.UP * 7.0, from.lerp(tank.global_position, 0.55), 62.0)
+				await _snap("frente_%s_huellas" % tag)
+				var marks: TrackMarks = arena.get_node("TrackMarks")
+				print("HUELLAS %s: %d tramos" % [tag, marks.stamped])
+			if OS.get_environment("FRENTE_ALTO") != "":
+				_look(Vector3(0.0, 140.0, 330.0), Vector3(0.0, 0.0, -200.0), 60.0)
+				await _snap("frente_%s_alto" % tag)
+			hud.visible = true
+		GameSession.debug_weather = -1
+
 	## Vistas de los trazados nuevos: desde lo alto y a ras de suelo.
 	func _map_shots() -> void:
 		var picks: Array = [
@@ -1017,6 +1232,9 @@ class Runner extends Node:
 		var bad: int = 0
 		for target in targets:
 			if target is Destructible and target.protected_area:
+				continue
+			# A los barcos no se llega: se les dispara desde la orilla (ver la prueba «barcos»).
+			if target is Ship:
 				continue
 			var point: Vector3 = target.global_position
 			var problem: String = ""

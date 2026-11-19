@@ -14,39 +14,53 @@ extends RefCounted
 ## - `rail`: "ew" o "ns", vía de tren que cruza el mapa; con `station`, estación y vagones.
 ## - `trenches`: líneas de trincheras con parapeto de tierra (de lado a lado del mapa).
 ## - `wheat`: trigales; `ridge`: lomas grandes en las que cubrirse.
+## - Solo en Normandía: `bocage` (lado, en metros, de los prados cercados de setos), `farm`
+##   (granjas de piedra), `gliders` (planeadores estrellados) y `asparagus` (prados con estacas
+##   contra planeadores).
+## - Solo en el desierto: `scarp` (escarpe de roca que cruza el mapa por esa z, con tres
+##   collados), `dunes`, `outcrops` (afloramientos de roca) y `minefields`.
+## - Solo en la estepa: `sunflowers` (campos de girasoles) y `hulks` (carros calcinados).
 ## - `villages`, `hedges`, `woods`, `hills`, `mounds`, `scatter`: cuánto hay del decorado de
 ##   siempre de ese frente (caseríos, setos, arboledas, colinas, lomas y objetos sueltos).
 
 const TABLE: Dictionary = {
 	Fronts.Id.NORMANDY: {
-		"bocage": {"water": "stream"},
-		"bocage_dense": {"hedges": 22, "woods": 8, "villages": 1},
+		"bocage": {"water": "stream", "bocage": 62.0, "hedges": 3},
+		# Tras las playas del desembarco: el bocage y, a un lado, un pueblo de la costa.
+		"coast": {"water": "stream", "bocage": 62.0, "hedges": 3, "town": "side", "villages": 1},
+		"bocage_dense": {"bocage": 50.0, "hedges": 3, "woods": 7, "villages": 1},
 		"town": {"town": "north", "villages": 0, "hedges": 8, "woods": 4},
 		"town_center": {"town": "center", "villages": 0, "hedges": 9, "woods": 4},
 		"river": {"water": "river_ew", "town": "river", "villages": 1, "hedges": 9},
-		"bridge": {"water": "river_ew", "river_at": [-52.0, -58.0, -46.0], "crossings": [[0.0, true], [-125.0, true], [125.0, true], [-62.0, false], [62.0, false]], "villages": 1, "hedges": 9},
-		"plain": {"wheat": 6, "hedges": 3, "woods": 2, "rail": "ew", "hills": 1, "mounds": 2},
-		"ridge": {"ridge": 6, "hedges": 7, "woods": 4, "villages": 1, "hills": 4},
+		"bridge": {"water": "river_ew", "river_at": [-52.0, -58.0, -46.0], "crossings": [[0.0, true], [-125.0, true], [125.0, true], [-62.0, false], [62.0, false]], "villages": 1, "hedges": 9, "gliders": 3},
+		"plain": {"wheat": 6, "hedges": 3, "woods": 2, "rail": "ew", "mounds": 2, "asparagus": 2},
+		# La llanura de Caen: trigales, la vía y los pueblos de piedra que la salpican.
+		"plain_village": {"wheat": 6, "hedges": 3, "woods": 2, "rail": "ew", "mounds": 2, "asparagus": 2, "town": "side", "villages": 2},
+		"ridge": {"ridge": 6, "hedges": 7, "woods": 4, "villages": 2},
 	},
 	Fronts.Id.AFRICA: {
 		"desert": {},
 		"wadi": {"water": "wadi"},
 		"oasis": {"water": "spring", "woods": 14, "villages": 1},
 		"town": {"town": "north", "villages": 0, "woods": 4},
-		"ridge": {"ridge": 6, "hills": 7, "villages": 1},
-		"box": {"trenches": 2, "villages": 0, "hills": 3, "scatter": 16},
-		"djebel": {"water": "wadi", "town": "side", "ridge": 4, "villages": 0},
+		"ridge": {"ridge": 3, "scarp": -52.0, "villages": 1, "dunes": 3},
+		"box": {"trenches": 2, "villages": 0, "scatter": 16, "minefields": 5, "dunes": 3},
+		# El Alamein: las cajas defensivas junto a la vía del ferrocarril de la costa.
+		"alamein": {"trenches": 2, "villages": 0, "scatter": 16, "minefields": 5, "dunes": 3, "rail": "ew"},
+		# El puerto: la ciudad a un lado y el llano despejado que baja hasta la rada.
+		"harbour": {"town": "side", "villages": 0, "outcrops": 4, "dunes": 2},
+		"djebel": {"water": "wadi", "town": "side", "ridge": 3, "villages": 0, "outcrops": 9},
 	},
 	Fronts.Id.KURSK: {
-		"steppe": {"wheat": 4, "trenches": 1},
-		"defences": {"trenches": 3, "wheat": 5, "villages": 1},
+		"steppe": {"wheat": 4, "trenches": 1, "sunflowers": 3},
+		"defences": {"trenches": 3, "wheat": 4, "sunflowers": 2, "villages": 2, "hulks": 4},
 		"town": {"town": "north", "rail": "ew", "station": true, "villages": 0, "wheat": 3},
-		"town_center": {"town": "center", "rail": "ns", "station": true, "villages": 0, "wheat": 3},
-		"villages": {"town": "side", "villages": 2, "wheat": 4, "water": "stream"},
+		"town_center": {"town": "center", "rail": "ns", "station": true, "villages": 0, "wheat": 3, "hulks": 5},
+		"villages": {"town": "side", "villages": 2, "wheat": 4, "water": "stream", "sunflowers": 3},
 		"river": {"water": "river_ew", "trenches": 1, "villages": 1, "wheat": 2},
 		"woods": {"woods": 14, "water": "stream", "villages": 1, "scatter": 8},
-		"ridge": {"ridge": 6, "trenches": 1, "wheat": 2, "villages": 1},
-		"rails": {"rail": "ew", "wheat": 6, "villages": 1, "trenches": 1},
+		"ridge": {"ridge": 6, "trenches": 1, "wheat": 2, "villages": 2},
+		"rails": {"rail": "ew", "wheat": 5, "sunflowers": 3, "villages": 2, "trenches": 1},
 	},
 }
 

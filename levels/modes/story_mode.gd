@@ -29,6 +29,14 @@ var _waiting: int = 0
 var _penalty_cooldown: float = 0.0
 ## Objetivos secundarios repartidos lejos del complejo principal (alargan la misión).
 var _outposts: Array[Vector2] = []
+## Misión de hundir barcos: la flotilla (en el orden en que zarpa), cuántos hay que hundir,
+## cuántos se han hundido y cuáles han escapado.
+var _fleet: Array[Ship] = []
+var _ships_needed: int = 0
+var _sunk: int = 0
+var _escaped: Array[String] = []
+var _next_ship: int = 0
+var _sail_timer: float = SHIP_DELAY
 const MAX_ALIVE: int = 6
 ## Asaltos: el enemigo llega en oleadas, cada una junta y por el mismo lado del mapa, en vez
 ## de gotear de uno en uno. Carros por oleada y máximo de enemigos vivos, por dificultad.
@@ -46,6 +54,11 @@ const ALLY_ARMOR: float = 1.4
 const ALLY_REINFORCE_DELAY: float = 14.0
 var allies_reserve: int = 0
 ## Ruptura: salida al norte y líneas de defensa que hay que cruzar por el camino.
+## Barcos: segundos hasta que zarpa el primero, segundos entre uno y el siguiente y velocidad
+## (m/s) según la dificultad.
+const SHIP_DELAY: float = 50.0
+const SHIP_GAP: float = 16.0
+const SHIP_SPEED: Array[float] = [2.3, 2.7, 3.1, 3.5]
 const EXIT_POINT := Vector3(0.0, 0.0, -165.0)
 const EXIT_RADIUS: float = 14.0
 const DEFENCE_LINES: Array[Vector2] = [Vector2(-55.0, 75.0), Vector2(60.0, 55.0), Vector2(0.0, -10.0), Vector2(-75.0, -70.0), Vector2(70.0, -85.0)]
@@ -55,6 +68,10 @@ func _init() -> void:
 	super._init()
 	mission = GameSession.current_mission()
 	kind = mission["type"]
+
+
+func backdrop() -> Dictionary:
+	return mission
 
 
 func map_layout() -> String:
@@ -121,6 +138,9 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 				_track(part)
 			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 6)
 			_build_outposts()
+		"sink":
+			_moor_fleet()
+			_guards(Vector2(0.0, -110.0), 6, 15.0, 70.0)
 		"liberate":
 			for part in StructureFactory.camp(world, TARGET_CENTER, mission["count"]):
 				_track(part)
@@ -198,6 +218,43 @@ func _dig_in(count: int, revetted: bool) -> int:
 
 
 ## Puestos secundarios: antiaéreo, antena de radio y puesto de mando, cada uno con guardia.
+## Los barcos de la misión, fondeados en la rada a distintas distancias de la orilla. Zarpan
+## de uno en uno (primero el que está más cerca de la bocana) y, si nadie los hunde, ganan mar
+## abierto por un lado del mapa.
+func _moor_fleet() -> void:
+	var count: int = int(mission["count"])
+	_ships_needed = mini(int(mission.get("needed", count)), count)
+	var transports: int = 0
+	for i in count:
+		var gunboat: bool = i == count / 2
+		var ship := Ship.make(Ship.Kind.GUNBOAT if gunboat else Ship.Kind.TRANSPORT)
+		ship.speed = SHIP_SPEED[GameSettings.difficulty] * (1.15 if gunboat else 1.0)
+		ship.target = player
+		if not gunboat:
+			transports += 1
+		StructureFactory._objective(ship, Loc.t("CAÑONERA") if gunboat else Loc.t("TRANSPORTE %d") % transports)
+		var along: float = 150.0 - i * (300.0 / maxf(count - 1, 1.0))
+		var out: float = 44.0 + (i % 3) * 30.0
+		var berth: Vector2 = Backdrop.sea_point(out, along)
+		var mouth: Vector2 = Backdrop.sea_point(out, 310.0)
+		ship.position = Vector3(berth.x, 0.4, berth.y)
+		ship.face(mouth - berth)
+		ship.course = PackedVector2Array([mouth, Backdrop.sea_point(out + 170.0, 480.0)])
+		world.add_child(ship)
+		_track(ship)
+		ship.escaped.connect(_on_ship_escaped)
+		_fleet.append(ship)
+
+
+func _on_ship_escaped(ship: Ship) -> void:
+	if is_over:
+		return
+	_escaped.append(ship.objective_name)
+	message.emit(Loc.t("¡%s HA ESCAPADO!") % ship.objective_name, true)
+	if _escaped.size() > _fleet.size() - _ships_needed:
+		finish(false, Loc.t("MISIÓN FRACASADA"), Loc.t("%s — DEMASIADOS BARCOS HAN GANADO MAR ABIERTO") % Loc.t(mission["title"]))
+
+
 func _build_outposts() -> void:
 	var builders: Array = [[StructureFactory.flak_gun, Loc.t("ANTIAÉREO")], [StructureFactory.radio_mast, Loc.t("ANTENA")], [StructureFactory.command_tent, Loc.t("PUESTO AVANZADO")]]
 	for i in _outposts.size():
@@ -234,6 +291,8 @@ func _objective_line() -> String:
 			return Loc.t("DESTRUYE LOS DEPÓSITOS (ROMBOS EN EL RADAR)")
 		"sabotage":
 			return Loc.t("DESTRUYE EL %s (ROMBOS EN EL RADAR)") % Loc.t(StructureFactory.COMPLEX_NAMES[mission["target"]])
+		"sink":
+			return Loc.t("HUNDE %d DE LOS %d BARCOS ANTES DE QUE GANEN MAR ABIERTO (ROMBOS EN EL RADAR)") % [_ships_needed, _fleet.size()]
 		"liberate":
 			return Loc.t("DERRIBA LAS ALAMBRADAS. NO DISPARES A LOS BARRACONES")
 		"defend":
@@ -250,6 +309,8 @@ func status_text() -> String:
 			return Loc.t("%s   ENEMIGOS RESTANTES %d") % [Loc.t(mission["title"]), remaining]
 		"destroy", "sabotage", "liberate":
 			return Loc.t("%s   OBJETIVOS %d / %d") % [Loc.t(mission["title"]), _objectives.size() - remaining, _objectives.size()]
+		"sink":
+			return Loc.t("%s   BARCOS HUNDIDOS %d / %d") % [Loc.t(mission["title"]), _sunk, _ships_needed]
 		"defend":
 			return Loc.t("%s   RESISTE %d s") % [Loc.t(mission["title"]), ceili(time_left)]
 		"breakthrough":
@@ -263,7 +324,7 @@ func objective_lines() -> Array[String]:
 	var lines: Array[String] = []
 	for i in _objectives.size():
 		var done: bool = not is_instance_valid(_objectives[i]) or _objectives[i].is_destroyed
-		lines.append("%s %s" % ["✔" if done else "▢", _objective_names[i]])
+		lines.append("%s %s" % ["✘" if _escaped.has(_objective_names[i]) else ("✔" if done else "▢"), _objective_names[i]])
 	if kind == "breakthrough":
 		lines.append(Loc.t("%s ALCANZAR LA SALIDA (NORTE)") % ("✔" if is_over and _exit_distance() <= EXIT_RADIUS else "▢"))
 	if kind == "boss":
@@ -287,6 +348,16 @@ func _process(delta: float) -> void:
 		return
 	_penalty_cooldown = maxf(_penalty_cooldown - delta, 0.0)
 	_spawn_timer -= delta
+	if kind == "sink" and _next_ship < _fleet.size():
+		_sail_timer -= delta
+		if _sail_timer <= 0.0:
+			_sail_timer = SHIP_GAP
+			var ship: Ship = _fleet[_next_ship]
+			if _next_ship == 0:
+				message.emit(Loc.t("¡LOS BARCOS ZARPAN! HÚNDELOS ANTES DE QUE GANEN MAR ABIERTO"), true)
+			_next_ship += 1
+			if is_instance_valid(ship) and not ship.is_destroyed:
+				ship.sailing = true
 	match kind:
 		"assault", "boss":
 			var group: int = mini(_to_spawn, WAVE_SIZE[GameSettings.difficulty])
@@ -294,7 +365,7 @@ func _process(delta: float) -> void:
 				_spawn_timer = WAVE_GAP
 				_to_spawn -= group
 				_spawn_wave(group)
-		"destroy", "sabotage", "liberate":
+		"destroy", "sabotage", "liberate", "sink":
 			_reinforce_timer -= delta
 			if _reinforce_timer <= 0.0 and alive < MAX_ALIVE + 2:
 				_reinforce_timer = 25.0 / minf(GameSettings.total_factor(), 1.0)
@@ -417,6 +488,17 @@ func _build_zone() -> void:
 
 
 func _on_objective_destroyed(prop: Destructible) -> void:
+	if kind == "sink":
+		_sunk += 1
+		score += 400
+		if is_over:
+			return
+		message.emit(Loc.t("%s HUNDIDO — %d DE %d") % [prop.objective_name, _sunk, _ships_needed], true)
+		if _sunk >= _ships_needed:
+			_win(Loc.t("LOS BARCOS NO HAN GANADO MAR ABIERTO"))
+		else:
+			get_tree().call_group(&"voice", &"say", "objective", VoiceManager.Priority.HIGH)
+		return
 	remaining -= 1
 	score += 300
 	message.emit(Loc.t("%s DESTRUIDO — QUEDAN %d") % [prop.objective_name, remaining], true)

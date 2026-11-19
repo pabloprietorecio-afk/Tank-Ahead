@@ -274,17 +274,39 @@ static func hedgerow(length: float) -> Destructible:
 	var bank := VectorMaterials.make_box(Vector3(length, 1.2, 2.2), Color(0.3, 0.24, 0.15), 0, 1.0)
 	bank.position.y = 0.6
 	prop.add_child(bank)
-	var count: int = int(length / 2.5)
-	for i in count:
-		var bush := MeshInstance3D.new()
-		bush.mesh = _crown_mesh(i % 3)
-		bush.material_override = VectorMaterials.organic(Color(0.16, 0.3, 0.1), Color(0.26, 0.4, 0.13), 2, 0.4, 0.4, 0.006)
-		bush.scale = Vector3(randf_range(2.8, 3.6), randf_range(2.2, 3.2), 2.8)
-		bush.position = Vector3(-length * 0.5 + (i + 0.5) * length / count, 2.0, 0.0)
-		bush.rotation.y = randf() * TAU
-		prop.add_child(bush)
+	prop.add_child(hedge_foliage(length, 1.0))
 	_add_box_shape(prop, Vector3(length, 3.0, 2.4), Vector3(0.0, 1.5, 0.0))
 	return prop
+
+
+## El follaje de un seto: una sola tira continua de espino y avellano, de alto y grueso
+## irregulares, que va sobre el talud. `scale` la hace más alta y ancha (el seto del borde).
+static func hedge_foliage(length: float, scale: float) -> MeshInstance3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var steps: int = maxi(int(length / 2.2), 2)
+	var ring: Array[Vector2] = [Vector2(-1.1, 0.0), Vector2(-1.5, 0.8), Vector2(-1.0, 1.7), Vector2(0.0, 2.1), Vector2(1.0, 1.7), Vector2(1.5, 0.8), Vector2(1.1, 0.0)]
+	for i in steps + 1:
+		var x: float = -length * 0.5 + i * length / steps
+		# Los extremos se cierran en redondo.
+		var end: float = minf(1.0, minf(i, steps - i) * 0.7 + 0.25)
+		var tall: float = (0.8 + 0.25 * absf(sin(i * 0.37 + length)) + 0.25 * randf()) * end
+		var fat: float = (0.85 + 0.3 * randf()) * end
+		for point in ring:
+			st.add_vertex(Vector3(x, 1.0 + point.y * tall * scale, point.x * fat * scale))
+	for i in steps:
+		for j in ring.size() - 1:
+			var a: int = i * ring.size() + j
+			var b: int = a + 1
+			var c: int = a + ring.size()
+			var d: int = c + 1
+			for index: int in [a, c, b, b, c, d]:
+				st.add_index(index)
+	st.generate_normals()
+	var foliage := MeshInstance3D.new()
+	foliage.mesh = st.commit()
+	foliage.material_override = VectorMaterials.organic(Color(0.15, 0.29, 0.1), Color(0.25, 0.4, 0.13), 2, 0.4, 0.3, 0.004)
+	return foliage
 
 
 ## Casa del desierto: encalada, de azotea plana con pretil.

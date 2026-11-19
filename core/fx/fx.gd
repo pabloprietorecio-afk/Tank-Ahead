@@ -665,6 +665,21 @@ func shell_ground(pos: Vector3, s: float = 1.0) -> void:
 	shake(pos, 0.25 * s)
 
 
+## Proyectil al agua: surtidor blanco de espuma que sube y se deshace en rociada.
+func shell_water(pos: Vector3, s: float = 1.0) -> void:
+	var up := Vector3.UP
+	var g := Vector3(pos.x, 0.5, pos.z)
+	var white := Color(0.9, 0.94, 0.96)
+	for i in maxi(_n(9.0 * _lod(pos)), 4):
+		var rise: float = randf_range(0.3, 1.0)
+		puff(Puff.DUST, g + up * rise * 3.0 * s + ball() * 0.6 * s, up * randf_range(4.0, 11.0) * rise * s + ball() * 0.8, randf_range(1.4, 2.6) * s, randf_range(0.9, 1.7), white, 0.0, randf() * 0.08)
+	var ring: int = maxi(_n(6.0 * _lod(pos)), 3)
+	for i in ring:
+		var angle: float = TAU * (i + randf()) / ring
+		var out := Vector3(cos(angle), 0.0, sin(angle))
+		puff(Puff.DUST, g + out * 0.8 * s, out * randf_range(2.0, 4.5) * s + up * randf_range(0.5, 1.5), randf_range(1.0, 1.6) * s, randf_range(1.2, 2.0), white.darkened(0.08), 0.0, 0.03)
+
+
 ## Proyectil contra blindaje: fogonazo blanco, lluvia de chispas que rebotan, esquirlas al rojo
 ## y una voluta de humo gris.
 func shell_armor(pos: Vector3, normal: Vector3, s: float = 1.0) -> void:

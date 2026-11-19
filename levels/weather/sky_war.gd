@@ -42,14 +42,14 @@ const PAINT: Dictionary = {
 }
 
 const FIELD: float = 215.0
-const PASS_INTERVAL: Vector2 = Vector2(8.0, 18.0)
-const DISTANT_INTERVAL: Vector2 = Vector2(2.5, 6.5)
-const DOWN_CHANCE: float = 0.45
+const PASS_INTERVAL: Vector2 = Vector2(6.0, 13.0)
+const DISTANT_INTERVAL: Vector2 = Vector2(1.4, 4.0)
+const DOWN_CHANCE: float = 0.6
 ## Parte de las pasadas de cazas y aviones de asalto que van en vuelo rasante, y a qué altura (m).
-const LOW_SHARE: float = 0.55
+const LOW_SHARE: float = 0.65
 const LOW_HEIGHT: Vector2 = Vector2(48.0, 68.0)
 ## Parte de los derribos que caen dentro del campo, a la vista del jugador.
-const INSIDE_SHARE: float = 0.55
+const INSIDE_SHARE: float = 0.6
 ## Un avión solo cae dentro si su punto de caída queda a esta distancia (m) de todo tanque; y
 ## mientras cae se aparta de los que se le acerquen a menos de AVOID_RADIUS.
 const CRASH_CLEARANCE: float = 30.0
@@ -57,7 +57,13 @@ const AVOID_RADIUS: float = 20.0
 ## A menos de esto de un tanque, el derribo cuenta como caído encima (debe ser siempre 0).
 const HIT_RADIUS: float = 8.0
 ## Restos de avión que se dejan en el campo a la vez (los más viejos se retiran).
-const MAX_WRECKS: int = 3
+const MAX_WRECKS: int = 4
+## Parte de las formaciones de bombarderos (y de aviones de asalto que no van rasantes) que
+## sueltan sus bombas al pasar. Caen siempre lejos, fuera del campo: como mínimo a BOMB_MARGIN
+## metros del muro.
+const BOMB_SHARE: float = 0.7
+const BOMB_MARGIN: float = 90.0
+const GRAVITY: float = 9.8
 ## Velocidad de las trazadoras antiaéreas (m/s) y color según quién dispara (lineal).
 const TRACER_SPEED: float = 240.0
 const TRACER_AXIS := Color(1.0, 0.62, 0.2)
@@ -70,6 +76,9 @@ var crashes_inside: int = 0
 var crashes: int = 0
 ## Derribos caídos encima de un tanque (debe ser siempre 0; lo miran las pruebas).
 var crashes_on_tanks: int = 0
+## Bombas soltadas por las formaciones y cuántas han caído dentro del campo (debe ser siempre 0).
+var bombs: int = 0
+var bombs_inside: int = 0
 ## Callable(Vector2) -> bool: punto del campo libre de edificios y zonas reservadas.
 var is_free_point: Callable = Callable()
 var _wrecks: Array = []
@@ -167,6 +176,7 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 		"guns": guns, "burst_timer": randf_range(0.2, 1.0), "burst_left": 0, "burst_gun": 0, "burst_due": 0.0,
 		"doomed": planes[doomed] if doomed >= 0 and doomed < count else null, "doom_at": randf_range(-230.0, 40.0), "faction": faction,
 		"inside": randf() < INSIDE_SHARE, "low": rasant,
+		"bombs": not rasant and model[1] != "fighter" and randf() < BOMB_SHARE,
 	}
 	_formations.append(formation)
 	return formation
@@ -199,6 +209,8 @@ func _update_formation(formation: Dictionary, delta: float) -> void:
 		return
 	if along > 430.0 and is_instance_valid(formation["sound"]):
 		(formation["sound"] as FlybySound).fade_out()
+	if formation["bombs"] and along > -60.0:
+		_bomb_run(formation, planes)
 	if not formation["flak"] or absf(along) > 330.0:
 		return
 	_fire_tracers(formation, planes, delta)
@@ -220,6 +232,33 @@ func _update_formation(formation: Dictionary, delta: float) -> void:
 			FlakBurst.spawn(self, plane.global_position, 1.6)
 			plane.shoot_down(self)
 			formation["doomed"] = null
+
+
+## Los bombarderos sueltan su carga sobre el terreno lejano: cada avión, una ristra de bombas
+## que caen con su parábola y revientan más allá del campo. Solo cuando todas van a caer fuera.
+func _bomb_run(formation: Dictionary, planes: Array) -> void:
+	var targets: Array = []
+	for plane: SkyPlane in planes:
+		if plane.falling:
+			continue
+		var fall: float = sqrt(2.0 * maxf(plane.global_position.y, 1.0) / GRAVITY)
+		for n in 3:
+			var hit: Vector3 = plane.global_position + plane.velocity * (fall + 0.35 * n)
+			if maxf(absf(hit.x), absf(hit.z)) < FIELD + BOMB_MARGIN:
+				return
+			targets.append([plane, 0.35 * n])
+	formation["bombs"] = false
+	for target: Array in targets:
+		var plane: SkyPlane = target[0]
+		get_tree().create_timer(target[1]).timeout.connect(func() -> void:
+			if is_inside_tree() and is_instance_valid(plane) and not plane.falling:
+				Bomb.drop(self, plane.global_position - Vector3.UP * 1.5, plane.velocity))
+
+
+func _on_bomb(point: Vector3) -> void:
+	bombs += 1
+	if maxf(absf(point.x), absf(point.z)) < FIELD:
+		bombs_inside += 1
 
 
 ## ¿Puede caer un avión en ese punto del campo? Dentro del muro, en suelo libre (ni edificios
@@ -305,8 +344,8 @@ func distant_guns() -> void:
 	var away := Vector3(sin(heading), 0.0, cos(heading))
 	var distance: float = randf_range(1700.0, 3000.0)
 	var at: float = 0.0
-	for i in randi_range(3, 8):
-		at += randf_range(0.1, 0.7)
+	for i in randi_range(4, 11):
+		at += randf_range(0.08, 0.6)
 		var point: Vector3 = away * distance + Vector3(randf_range(-400.0, 400.0), 0.0, randf_range(-400.0, 400.0))
 		get_tree().create_timer(at).timeout.connect(func() -> void:
 			if is_inside_tree():
@@ -630,6 +669,96 @@ class SmokeColumn extends Node3D:
 			_fx.black_smoke(at, Vector3(randf_range(-0.5, 0.5), randf_range(5.0, 8.0), randf_range(-0.5, 0.5)), randf_range(4.5, 7.5), randf_range(7.0, 9.0))
 			if burn > 0.3:
 				_fx.flame(at, Vector3.ZERO, randf_range(3.0, 5.0) * burn, 1.3)
+
+
+## Bomba de aviación: cae con su parábola y revienta en el terreno lejano: fogonazo que
+## alumbra el cielo, surtidor de tierra y humo, y el estampido, que llega con su retraso.
+class Bomb extends Node3D:
+	static var _mesh: Mesh
+	static var _material: StandardMaterial3D
+
+	var velocity: Vector3
+	var _host: SkyWar
+
+	static func drop(host: SkyWar, from: Vector3, speed: Vector3) -> void:
+		if _mesh == null:
+			var body := CapsuleMesh.new()
+			body.radius = 0.32
+			body.height = 2.0
+			body.radial_segments = 5
+			body.rings = 1
+			_mesh = body
+			_material = StandardMaterial3D.new()
+			_material.albedo_color = Color(0.13, 0.14, 0.12)
+		var bomb := Bomb.new()
+		bomb._host = host
+		bomb.velocity = speed
+		bomb.position = from
+		var shape := MeshInstance3D.new()
+		shape.mesh = _mesh
+		shape.material_override = _material
+		shape.rotation.x = PI * 0.5
+		shape.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		bomb.add_child(shape)
+		host.add_child(bomb)
+
+	func _process(delta: float) -> void:
+		velocity.y -= SkyWar.GRAVITY * delta
+		global_position += velocity * delta
+		if velocity.length_squared() > 1.0:
+			look_at(global_position + velocity, Vector3.UP)
+		if global_position.y > 0.5:
+			return
+		var point := Vector3(global_position.x, 0.0, global_position.z)
+		if is_instance_valid(_host):
+			_host._on_bomb(point)
+		BombBlast.spawn(get_parent(), point)
+		queue_free()
+
+
+## Explosión de una bomba a lo lejos.
+class BombBlast extends Node3D:
+	const TIME: float = 7.0
+
+	var _time: float = 0.0
+	var _boom_at: float = 0.0
+	var _boomed: bool = false
+	var _due: float = 0.0
+
+	static func spawn(host: Node, point: Vector3) -> void:
+		var blast := BombBlast.new()
+		blast.position = point
+		host.add_child(blast)
+
+	func _ready() -> void:
+		var fx := Fx.on(self)
+		fx.sky_flash(global_position + Vector3.UP * 12.0, Color(1.0, 0.62, 0.3), randf_range(1.5, 2.3), randf_range(240.0, 330.0), randf_range(0.25, 0.4))
+		fx.explosion(global_position, 4.5)
+		for i in 7:
+			# Surtidor de tierra y humo, grande para que se vea desde el campo.
+			var up := Vector3(randf_range(-3.0, 3.0), randf_range(9.0, 22.0), randf_range(-3.0, 3.0))
+			fx.black_smoke(global_position + Vector3(randf_range(-6.0, 6.0), randf_range(2.0, 10.0), randf_range(-6.0, 6.0)), up, randf_range(13.0, 22.0), randf_range(5.0, 8.0))
+		var camera: Camera3D = get_viewport().get_camera_3d()
+		if camera != null:
+			_boom_at = camera.global_position.distance_to(global_position) / 343.0
+
+	func _process(delta: float) -> void:
+		_time += delta
+		if not _boomed and _time >= _boom_at:
+			_boomed = true
+			# De lejos el estampido llega grave y sordo.
+			# (Sfx deja de oírse a 500 m: suena desde su dirección, pero más cerca.)
+			var camera: Camera3D = get_viewport().get_camera_3d()
+			var ear: Vector3 = camera.global_position if camera != null else Vector3.ZERO
+			var reach: Vector3 = global_position - ear
+			Sfx.play_at(self, Sfx.EXPLOSION, ear + reach.limit_length(280.0), 14.0, randf_range(0.55, 0.7))
+		if _time < TIME * 0.6:
+			_due += delta * 2.0
+			while _due >= 1.0:
+				_due -= 1.0
+				Fx.on(self).black_smoke(global_position + Vector3(randf_range(-7.0, 7.0), randf_range(3.0, 9.0), randf_range(-7.0, 7.0)), Vector3(randf_range(-1.0, 1.0), randf_range(5.0, 9.0), randf_range(-1.0, 1.0)), randf_range(12.0, 18.0), randf_range(6.0, 8.0))
+		if _time >= TIME:
+			queue_free()
 
 
 ## Estallido de un proyectil antiaéreo: fogonazo, metralla y nubecilla negra que se queda
