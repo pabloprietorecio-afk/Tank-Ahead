@@ -115,6 +115,8 @@ class Runner extends Node:
 			await _lock_reticle()
 		if only.contains("sonido"):
 			await _real_guns()
+		if only.contains("limite"):
+			await _open_border()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -1079,6 +1081,35 @@ class Runner extends Node:
 		print("SONIDO RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
 
+	## Límite del campo: en el desierto no hay valla y un aviso en pantalla dice dónde acaba; en
+	## la estepa sigue la alambrada y no hace falta aviso.
+	func _open_border() -> void:
+		var bad: int = 0
+		for front: int in [Fronts.Id.AFRICA, Fronts.Id.KURSK]:
+			var hud: Hud = await _start_game(GameSession.Mode.STORY, front, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 0)
+			var arena: Node = get_tree().current_scene
+			arena.get_node("GameMode").set_process(false)
+			var fenced: int = 0
+			var edges: int = 0
+			for child: Node in arena.get_children():
+				if String(child.name).begins_with("Borde"):
+					edges += 1
+					fenced += int(child.get_child_count() > 0)
+			var tank: Tank = arena.get_node("GameMode").player
+			var notice: String = Loc.t("LÍMITE DEL CAMPO DE BATALLA: DA LA VUELTA")
+			await _frames(3)
+			var quiet: bool = hud._message.text != notice
+			tank.global_position = Terrain.on_ground(Vector3(40.0, 0.0, Backdrop.FIELD - 6.0), 0.4)
+			await _frames(4)
+			var warned: bool = hud._message.text == notice and hud._message_time > 0.0
+			var open: bool = front == Fronts.Id.AFRICA
+			var ok: bool = edges == 4 and quiet and (fenced == 0 and warned if open else fenced == 4 and not warned)
+			if not ok:
+				bad += 1
+			print("LIMITE %s: lados con valla %d de %d, aviso lejos del límite %s, aviso en el límite %s: %s" % ["desierto" if open else "estepa", fenced, edges, "no" if quiet else "SÍ", "sí" if warned else "no", "bien" if ok else "MAL"])
+		print("LIMITE RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
 	func _lock_reticle() -> void:
 		var bad: int = 0
 		for view: int in [1, 2]:
@@ -1501,6 +1532,16 @@ class Runner extends Node:
 				await _snap("frente_%s_huellas" % tag)
 				var marks: TrackMarks = arena.get_node("TrackMarks")
 				print("HUELLAS %s: %d tramos" % [tag, marks.stamped])
+			if OS.get_environment("FRENTE_BORDE") != "":
+				# El límite del campo visto de cerca: de frente, en diagonal hacia una esquina y a lo largo.
+				_look(Vector3(20.0, 3.6, 150.0), Vector3(20.0, 2.0, 260.0), 62.0)
+				await _snap("frente_%s_borde_frente" % tag)
+				_look(Vector3(130.0, 3.6, 130.0), Vector3(230.0, 2.0, 230.0), 62.0)
+				await _snap("frente_%s_borde_esquina" % tag)
+				_look(Vector3(-150.0, 3.6, 60.0), Vector3(-230.0, 2.0, -160.0), 62.0)
+				await _snap("frente_%s_borde_largo" % tag)
+				_look(Vector3(0.0, 60.0, 120.0), Vector3(0.0, 0.0, 230.0), 62.0)
+				await _snap("frente_%s_borde_alto" % tag)
 			if OS.get_environment("FRENTE_ALTO") != "":
 				_look(Vector3(0.0, 140.0, 330.0), Vector3(0.0, 0.0, -200.0), 60.0)
 				await _snap("frente_%s_alto" % tag)

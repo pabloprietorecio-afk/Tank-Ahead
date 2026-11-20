@@ -231,8 +231,9 @@ func _add_boundary(center: Vector3, size: Vector3, layer: int = Tank.LAYER_BOUND
 
 
 ## El borde del campo, distinto en cada frente: en Normandía, el seto alto sobre talud que
-## cerraba cada prado del bocage; en el desierto y en la estepa, alambradas con los carteles de
-## los campos de minas, que dejan ver el paisaje. Hacia el mar (`sea_side`), siempre alambrada.
+## cerraba cada prado del bocage; en la estepa, alambradas con los carteles de los campos de
+## minas, que dejan ver el paisaje (también hacia el mar, `sea_side`, en Normandía). En el
+## desierto no hay nada: la arena sigue hasta las dunas (`Backdrop.open_border`).
 func _build_walls(sea_side: String = "") -> void:
 	var length: float = ARENA_HALF * 2.0
 	for side in [-1.0, 1.0]:
@@ -242,7 +243,7 @@ func _build_walls(sea_side: String = "") -> void:
 	for key: String in Backdrop.SIDES:
 		var dir: Vector2 = Backdrop.SIDES[key]
 		var edge := Node3D.new()
-		edge.name = "Borde"
+		edge.name = "Borde" + key.to_upper()
 		edge.position = Vector3(dir.x, 0.0, dir.y) * ARENA_HALF
 		# El eje X del borde corre a lo largo del lado.
 		edge.rotation.y = 0.0 if dir.x == 0.0 else PI * 0.5
@@ -261,9 +262,11 @@ func _build_walls(sea_side: String = "") -> void:
 			body.add_child(shape)
 			add_child(body)
 		else:
-			_wire_edge(edge, length)
-			# La alambrada no para los disparos, pero la máquina tiene que verla para no
-			# empeñarse en cruzarla: va en la capa de las barreras que solo tocan los tanques.
+			if not Backdrop.open_border(GameSession.front):
+				_wire_edge(edge, length)
+			# La alambrada no para los disparos, pero la máquina tiene que verla (también donde
+			# no se pinta) para no empeñarse en cruzar el límite: va en la capa de las barreras
+			# que solo tocan los tanques.
 			_add_boundary(edge.position + Vector3(0.0, 2.0, 0.0), along + Vector3(0.0, 4.0, 0.0), Tank.LAYER_WATER)
 
 

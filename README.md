@@ -112,8 +112,9 @@ Cada frente tiene su suelo, su luz, su borde, sus cosas y su horizonte (`levels/
   choperas; según la misión se ven las agujas de Caen, la acería de Colombelles, Saint-Lô en ruinas o
   el mar con la flota de invasión, los globos cautivos, las lanchas en la playa y el puerto artificial.
 - **Norte de África**: arena con rizaduras, sin hierba, sol alto y cielo casi sin nubes. Peñascos,
-  sangars, jaimas, camiones quemados, campos de minas cercados, acacias y matorral. Lo cierra una
-  alambrada con carteles de minas (los disparos la atraviesan). Fuera, mesetas con su escarpe, dunas,
+  sangars, jaimas, camiones quemados, campos de minas cercados, acacias y matorral. No lo cierra
+  nada: la arena sigue hasta las dunas (`Backdrop.open_border`), la barrera del límite no se ve y
+  un aviso en pantalla dice dónde acaba el campo (`Hud._warn_border`). Fuera, mesetas con su escarpe, dunas,
   la sierra en Túnez, el fuerte de Bir Hakeim, Tobruk blanca junto a su puerto.
 - **Kursk**: estepa pajiza sobre tierra negra, llana hasta el horizonte. Isbas con su pozo de cigoñal,
   molinos de viento, girasoles, almiares, abedules, línea de telégrafo junto a la vía, carros quemados.

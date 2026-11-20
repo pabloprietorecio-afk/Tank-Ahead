@@ -35,6 +35,12 @@ const DEFAULTS: Dictionary = {
 ## que caen al agua y la misión de los barcos.
 static var sea_side: Vector2 = Vector2.ZERO
 
+
+## ¿Queda el campo abierto en este frente, sin seto ni alambrada en el límite? En el desierto la
+## arena sigue hasta las dunas y solo un aviso en pantalla dice dónde acaba el campo.
+static func open_border(front: int) -> bool:
+	return front == Fronts.Id.AFRICA
+
 var front: int = 0
 var spec: Dictionary = {}
 var _rng := RandomNumberGenerator.new()

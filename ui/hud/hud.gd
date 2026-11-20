@@ -682,8 +682,27 @@ func _show_message(text: String, urgent: bool) -> void:
 	_message_time = 3.5
 
 
+## Donde el campo no tiene valla (el desierto), avisa al llegar al límite: allí hay una barrera
+## que no se ve.
+const BORDER_NOTICE_AT: float = Backdrop.FIELD - 9.0
+var _border_notice: float = 0.0
+
+
+func _warn_border(delta: float) -> void:
+	_border_notice = maxf(_border_notice - delta, 0.0)
+	if _border_notice > 0.0 or not Backdrop.open_border(GameSession.front) or AaBattery.active != null:
+		return
+	if not is_instance_valid(tank) or tank.is_destroyed or director.is_over:
+		return
+	var at: Vector3 = tank.global_position
+	if maxf(absf(at.x), absf(at.z)) >= BORDER_NOTICE_AT:
+		_show_message(Loc.t("LÍMITE DEL CAMPO DE BATALLA: DA LA VUELTA"), false)
+		_border_notice = 6.0
+
+
 func _process(delta: float) -> void:
 	_message_time = maxf(_message_time - delta, 0.0)
+	_warn_border(delta)
 	if _roaming and (not is_instance_valid(tank) or tank.is_destroyed):
 		# Le han destruido el tanque paseando por el campo ya ganado: vuelve el menú.
 		_roaming = false
