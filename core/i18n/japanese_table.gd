@@ -361,6 +361,7 @@ const TABLE: Dictionary = {
 	"TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ": "命中していたぞ。もう一度",
 	"SALTAR LECCIÓN": "レッスンをスキップ",
 	"TOCA PARA SALTAR": "タップでスキップ",
+	"Cañón y explosiones reales (prueba)": "実録の砲声と爆発音（試験）",
 	"¡ATAQUE AÉREO! A LA BATERÍA: DERRIBA %d AVIONES Y REPÓN EL BOMBARDEO": "空襲！対空砲へ：%d 機撃墜で爆撃を補充",
 	"¡%d AVIONES DERRIBADOS! BOMBARDEO REPUESTO": "%d 機撃墜！爆撃を補充",
 	"¡NO HA PASADO NI UNO! +1 MISIL": "1機も通さなかった！ミサイル +1",

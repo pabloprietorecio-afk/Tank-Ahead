@@ -3,6 +3,10 @@ class_name Sfx
 
 const CANNON := preload("res://assets/audio/cannon.ogg")
 const EXPLOSION := preload("res://assets/audio/explosion.ogg")
+## Grabaciones reales (prueba): cañón de 25 libras y detonación de una bomba de 250 kg. Sustituyen a
+## las dos de arriba mientras GameSettings.real_guns esté activo; ver `_pick`.
+const CANNON_REAL := preload("res://assets/audio/cannon_real.ogg")
+const EXPLOSION_REAL := preload("res://assets/audio/explosion_real.ogg")
 const HIT := preload("res://assets/audio/hit.ogg")
 const HIT_TANK := preload("res://assets/audio/hit_tank.ogg")
 const PICKUP := preload("res://assets/audio/pickup.ogg")
@@ -29,9 +33,18 @@ const AA_FIRE := preload("res://assets/audio/aa_fire.wav")
 const AA_TAIL := preload("res://assets/audio/aa_tail.ogg")
 
 
+## El cañonazo y la explosión tienen dos versiones; el ajuste del jugador elige cuál suena.
+static func _pick(stream: AudioStream) -> AudioStream:
+	if GameSettings.real_guns:
+		if stream == CANNON:
+			return CANNON_REAL
+		if stream == EXPLOSION:
+			return EXPLOSION_REAL
+	return stream
+
 static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: float = 0.0, pitch: float = 1.0) -> void:
 	var player := AudioStreamPlayer3D.new()
-	player.stream = stream
+	player.stream = _pick(stream)
 	player.bus = AudioSetup.SFX
 	player.volume_db = volume_db
 	player.pitch_scale = pitch * randf_range(0.92, 1.08)
@@ -47,7 +60,7 @@ static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: 
 
 static func play_2d(host: Node, stream: AudioStream, volume_db: float = 0.0, pitch: float = 1.0) -> void:
 	var player := AudioStreamPlayer.new()
-	player.stream = stream
+	player.stream = _pick(stream)
 	player.bus = AudioSetup.SFX
 	player.volume_db = volume_db
 	player.pitch_scale = pitch * randf_range(0.95, 1.05)
@@ -75,3 +88,20 @@ static func loop_player(stream: AudioStream, unit_size: float = 10.0, max_distan
 static func _root(host: Node) -> Node:
 	var tree: SceneTree = host.get_tree()
 	return tree.current_scene if tree.current_scene != null else tree.root
+
+
+## Hace sonar el cañonazo y, un momento después, la explosión, tal como estén elegidos en los
+## ajustes. Suena también con el juego en pausa: es la muestra del interruptor del menú.
+static func preview_guns(host: Node) -> void:
+	var tree: SceneTree = host.get_tree()
+	for step: Array in [[CANNON, 0.0], [EXPLOSION, 1.3]]:
+		var player := AudioStreamPlayer.new()
+		player.stream = _pick(step[0])
+		player.bus = AudioSetup.SFX
+		player.process_mode = Node.PROCESS_MODE_ALWAYS
+		tree.root.add_child(player)
+		player.finished.connect(player.queue_free)
+		if step[1] > 0.0:
+			tree.create_timer(step[1], true, false, true).timeout.connect(player.play)
+		else:
+			player.play()

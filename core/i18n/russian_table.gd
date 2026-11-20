@@ -361,6 +361,7 @@ const TABLE: Dictionary = {
 	"TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ": "ОНО ПОПАЛО БЫ В ТЕБЯ. ПОПРОБУЙ ЕЩЁ РАЗ",
 	"SALTAR LECCIÓN": "ПРОПУСТИТЬ УРОК",
 	"TOCA PARA SALTAR": "НАЖМИТЕ, ЧТОБЫ ПРОПУСТИТЬ",
+	"Cañón y explosiones reales (prueba)": "Настоящие пушка и взрывы (проба)",
 	"¡ATAQUE AÉREO! A LA BATERÍA: DERRIBA %d AVIONES Y REPÓN EL BOMBARDEO": "ВОЗДУШНАЯ АТАКА! К ЗЕНИТКЕ: СБЕЙ %d САМОЛЁТА И ПОПОЛНИ НАЛЁТ",
 	"¡%d AVIONES DERRIBADOS! BOMBARDEO REPUESTO": "СБИТО САМОЛЁТОВ: %d! НАЛЁТ ПОПОЛНЕН",
 	"¡NO HA PASADO NI UNO! +1 MISIL": "НИ ОДИН НЕ ПРОШЁЛ! +1 РАКЕТА",

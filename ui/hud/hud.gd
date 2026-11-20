@@ -257,6 +257,12 @@ func _build_pause_and_history() -> void:
 
 	_menu_sliders = VolumeSliders.create(2, 26, Vector2(220.0, 50.0))
 	options.add_child(_menu_sliders)
+	# Prueba: cañonazo y explosiones grabados de verdad o los de siempre. Al cambiarlo suenan los
+	# dos, para compararlos sin salir del menú.
+	options.add_child(_make_toggle(Loc.t("Cañón y explosiones reales (prueba)"), GameSettings.real_guns, func(on: bool) -> void:
+		GameSettings.real_guns = on
+		GameSettings.save()
+		Sfx.preview_guns(self)))
 	options.add_child(_make_toggle(Loc.t("Destacar enemigos (borde amarillo)"), GameSettings.highlight_enemies, func(on: bool) -> void:
 		GameSettings.highlight_enemies = on
 		GameSettings.save()

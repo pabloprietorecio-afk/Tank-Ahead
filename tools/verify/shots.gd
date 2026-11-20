@@ -113,6 +113,8 @@ class Runner extends Node:
 			await _coast()
 		if only.contains("mira"):
 			await _lock_reticle()
+		if only.contains("sonido"):
+			await _real_guns()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -1004,6 +1006,65 @@ class Runner extends Node:
 
 	## Con un objetivo fijado y la cámara por detrás del tanque, la mira naranja queda sobre el
 	## objetivo (no por encima de él, en lo que haya detrás) y no tiembla.
+	## Cañonazo y explosión: con el ajuste encendido suenan las grabaciones reales y, apagado, los
+	## de siempre; el interruptor de la pausa lo cambia, lo guarda y deja oír la muestra en pausa.
+	func _real_guns() -> void:
+		var bad: int = 0
+		var was: bool = GameSettings.real_guns
+		var hud: Hud = await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.KURSK, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+		var lengths_ok: bool = absf(Sfx.CANNON_REAL.get_length() - 1.15) < 0.1 and absf(Sfx.EXPLOSION_REAL.get_length() - 2.8) < 0.1
+		if not lengths_ok:
+			bad += 1
+		print("SONIDO duraciones: cañonazo real %.2f s, explosión real %.2f s: %s" % [Sfx.CANNON_REAL.get_length(), Sfx.EXPLOSION_REAL.get_length(), "bien" if lengths_ok else "MAL"])
+		for on: bool in [true, false]:
+			GameSettings.real_guns = on
+			var before: int = get_tree().current_scene.get_child_count()
+			Sfx.play_2d(hud, Sfx.CANNON)
+			Sfx.play_at(hud, Sfx.EXPLOSION, Vector3.ZERO)
+			Sfx.play_2d(hud, Sfx.HIT)
+			var streams: Array = []
+			for i: int in range(before, get_tree().current_scene.get_child_count()):
+				streams.append(get_tree().current_scene.get_child(i).get("stream"))
+			var want: Array = [Sfx.CANNON_REAL if on else Sfx.CANNON, Sfx.EXPLOSION_REAL if on else Sfx.EXPLOSION, Sfx.HIT]
+			var ok: bool = streams == want
+			if not ok:
+				bad += 1
+			print("SONIDO ajuste %s: cañonazo %s, explosión %s, impacto sin cambios %s: %s" % ["encendido" if on else "apagado", "real" if streams[0] == Sfx.CANNON_REAL else "de siempre", "real" if streams[1] == Sfx.EXPLOSION_REAL else "de siempre", "sí" if streams[2] == Sfx.HIT else "NO", "bien" if ok else "MAL"])
+		# El interruptor del menú de pausa.
+		var toggle: CheckButton = null
+		for entry: Array in hud._menu_toggles:
+			if (entry[0] as CheckButton).text == Loc.t("Cañón y explosiones reales (prueba)"):
+				toggle = entry[0]
+		GameSettings.real_guns = false
+		if toggle != null:
+			toggle.set_pressed_no_signal(false)
+		hud._set_paused(true)
+		await _frames(2)
+		var shown: bool = toggle != null and toggle.is_visible_in_tree()
+		var root_before: int = get_tree().root.get_child_count()
+		if toggle != null:
+			toggle.button_pressed = not toggle.button_pressed
+		await _frames(3)
+		var samples: int = 0
+		var playing: int = 0
+		for i: int in range(root_before, get_tree().root.get_child_count()):
+			var node := get_tree().root.get_child(i) as AudioStreamPlayer
+			if node != null and node.process_mode == Node.PROCESS_MODE_ALWAYS:
+				samples += 1
+				playing += int(node.playing)
+		var cfg := ConfigFile.new()
+		cfg.load(GameSettings.PATH)
+		var saved: bool = cfg.get_value("audio", "real_guns", null) == GameSettings.real_guns
+		var switch_ok: bool = shown and GameSettings.real_guns and samples == 2 and playing >= 1 and saved
+		if not switch_ok:
+			bad += 1
+		print("SONIDO interruptor de la pausa: visible %s, lo enciende %s, guardado %s, muestras %d (sonando en pausa %d): %s" % ["sí" if shown else "NO", "sí" if GameSettings.real_guns else "NO", "sí" if saved else "NO", samples, playing, "bien" if switch_ok else "MAL"])
+		hud._set_paused(false)
+		GameSettings.real_guns = was
+		GameSettings.save()
+		print("SONIDO RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
 	func _lock_reticle() -> void:
 		var bad: int = 0
 		for view: int in [1, 2]:

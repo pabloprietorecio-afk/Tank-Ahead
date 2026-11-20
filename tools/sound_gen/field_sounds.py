@@ -73,11 +73,15 @@ def loop(out, source, length, fade, target_db, start=None, extra="highpass=f=60"
     print(f"{out}: bucle de {length:.0f} s desde {start:.1f} s de {source} (variación {spread:.1f} dB), nivel {level(body):.1f} dB, pico {20*np.log10(np.abs(body).max()):.1f} dB")
 
 
-def shot(out, source, start, length, fade_out, peak_db, fade_in=0.004, extra="highpass=f=40"):
+def shot(out, source, start, length, fade_out, peak_db, fade_in=0.004, extra="highpass=f=40", drive=0.0):
+    """`drive` (dB): empuja la señal contra un tope redondeado, para que un estampido corto suene
+    tan fuerte como los demás sonidos del juego sin recortarse en seco."""
     x = load(source, start, length, extra)
     x[: int(fade_in * SR)] *= np.linspace(0.0, 1.0, int(fade_in * SR))
     f = int(fade_out * SR)
     x[-f:] *= np.linspace(1.0, 0.0, f) ** 2
+    if drive > 0.0:
+        x = np.tanh(x / max(np.abs(x).max(), 1e-9) * 10 ** (drive / 20.0))
     x *= 10 ** (peak_db / 20.0) / max(np.abs(x).max(), 1e-9)
     tmp = os.path.join(OUT, out + ".tmp.wav")
     with wave.open(tmp, "wb") as w:
@@ -86,6 +90,15 @@ def shot(out, source, start, length, fade_out, peak_db, fade_in=0.004, extra="hi
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp, "-c:a", "libvorbis", "-q:a", "5", os.path.join(OUT, out)], check=True)
     os.remove(tmp)
     print(f"{out}: {length:.2f} s desde {start:.2f} s de {source}, nivel {level(x):.1f} dB")
+
+
+def onset(source, around, span=0.5):
+    """Instante (s) en que salta el estampido, buscado `span` s a cada lado de `around`."""
+    x = load(source, around - span, 2.0 * span, "highpass=f=40")
+    n = int(SR * 0.002)
+    frames = np.sqrt((x[: len(x) // n * n].reshape(-1, n) ** 2).mean(axis=1) + 1e-12)
+    first = int(np.argmax(frames > 0.25 * frames.max()))
+    return around - span + first * 0.002 - 0.004
 
 
 def loudest(source, length):
@@ -120,3 +133,13 @@ body[:f] = x[:f] * np.sin(t) + x[n:n + f] * np.cos(t)
 body *= 10 ** (-1.0 / 20.0) / np.abs(body).max()
 write_wav("aa_fire.wav", body, True)
 print(f"aa_fire.wav: bucle de 0,8 s, nivel {level(body):.1f} dB")
+
+# Cañonazo: el disparo de un cañón de 25 libras (salva, en el museo de Fort Nelson). El micro de la
+# cámara apenas recoge graves y carga los agudos: se sube el cuerpo por debajo de 110 Hz y se
+# suaviza por encima de 4,5 kHz.
+at = onset("gun_25pdr.ogg", 7.2)
+shot("cannon_real.ogg", "gun_25pdr.ogg", at, 1.15, 0.45, -2.0, 0.002, "highpass=f=35,bass=g=8:f=110,treble=g=-5:f=4500", drive=5.0)
+# Explosión: la detonación de una bomba de aviación de 250 kg de la Segunda Guerra Mundial
+# (Múnich, 2012), grabada a 300 m.
+at = onset("boom_ww2_bomb.ogg", 29.46)
+shot("explosion_real.ogg", "boom_ww2_bomb.ogg", at, 2.8, 1.1, -1.5, 0.002, "highpass=f=30", drive=5.0)
