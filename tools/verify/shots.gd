@@ -996,33 +996,84 @@ class Runner extends Node:
 		print("CARGA RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
 
-	## Supervivencia: el ataque aéreo llega solo cada tres oleadas, no de golpe (hay un respiro
-	## tras el «oleada superada») y, al empezar, el cañón del jugador se levanta hacia el cielo.
+	## Supervivencia: el ataque aéreo llega solo cada tres oleadas y no de golpe (hay un respiro
+	## tras el «oleada superada»). Entonces la vista pasa del tanque a una batería antiaérea en
+	## un sitio despejado, sin cámara lenta; sus disparos derriban los aviones; con tres
+	## derribos se repone el bombardeo; al acabar, la vista vuelve al tanque. Con gráficos
+	## (AEREO_FOTOS) guarda la batería, la vista del apuntador y un derribo.
 	func _air_phase() -> void:
 		var bad: int = 0
+		var photos: bool = OS.get_environment("AEREO_FOTOS") != ""
 		await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
-		var mode: SurvivalMode = get_tree().current_scene.get_node("GameMode")
+		var arena: Node = get_tree().current_scene
+		var mode: SurvivalMode = arena.get_node("GameMode")
 		mode.raid_interval = Vector2.ZERO
 		mode.player.health.invulnerable = true
 		var phases: Array[int] = []
 		for wave in range(1, 7):
 			mode.wave = wave
 			mode._wave_active = true
+			mode.strikes = 0
 			mode._end_wave()
 			var at_once: bool = mode.air_phase
-			await get_tree().create_timer(SurvivalMode.AIR_WARNING + 0.6).timeout
+			await get_tree().create_timer(SurvivalMode.AIR_WARNING + 0.4).timeout
 			if at_once:
 				bad += 1
-			if mode.air_phase:
-				phases.append(wave)
-				if not mode.player.air_mode or mode.player.turret_controller._target_pitch < 0.2:
-					bad += 1
-					print("AEREO MAL: en la oleada %d el cañón no se levanta hacia el cielo" % wave)
-				mode._end_air_phase()
-				await _frames(2)
-				if mode.player.turret_controller._target_pitch > TurretController.MAX_PITCH + 0.001:
-					bad += 1
-					print("AEREO MAL: el cañón se queda mirando al cielo tras el ataque")
+			if not mode.air_phase:
+				continue
+			phases.append(wave)
+			var battery: AaBattery = mode._battery
+			var placed: bool = battery != null and AaBattery.active == battery and Engine.time_scale == 1.0
+			var gap: float = Vector2(battery.global_position.x - mode.player.global_position.x, battery.global_position.z - mode.player.global_position.z).length() if battery != null else 0.0
+			# Nada pisa el pozo: ni un tanque ni un obstáculo del campo.
+			var clear: bool = gap > AaBattery.RADIUS + 4.0 and absf(battery.global_position.x) < 180.0 and absf(battery.global_position.z) < 180.0
+			await get_tree().create_timer(AaBattery.MOVE_IN + 0.3).timeout
+			var seated: bool = battery.ready() and get_viewport().get_camera_3d() == battery.camera and battery.camera.global_position.distance_to(battery.global_position) < 4.0
+			if photos and wave == 3:
+				_camera = Camera3D.new()
+				_camera.far = 2800.0
+				arena.add_child(_camera)
+				arena._hud.get_parent().visible = false
+				_look(battery.global_position + Vector3(7.0, 3.2, 8.0), battery.global_position + Vector3.UP * 1.2, 50.0)
+				await _snap("aereo_bateria")
+				arena._hud.get_parent().visible = true
+				battery.camera.current = true
+				_camera.queue_free()
+				await _frames(3)
+			# El jugador apunta a un avión y mantiene el gatillo: los proyectiles lo derriban.
+			# (La prueba lleva la mira y el gatillo en lugar de los mandos táctiles.)
+			arena._hud.input_source.set_process(false)
+			var plane: AirTarget = AirTarget.spawn(arena, AirTarget.Kind.BOMBER, battery.global_position, 0.6)
+			var kills_before: int = mode._air_kills
+			var clock: float = 0.0
+			var snapped: bool = false
+			while clock < 9.0 and is_instance_valid(plane) and not plane.is_destroyed:
+				var to: Vector3 = plane.global_position + plane._velocity * 0.35 - battery._muzzle.global_position
+				battery._aim_yaw = atan2(-to.x, -to.z)
+				battery._aim_pitch = atan2(to.y, Vector2(to.x, to.z).length())
+				# (Para la foto, primero sigue al avión un momento sin disparar.)
+				battery.trigger = not (photos and wave == 3 and clock < 1.6)
+				await _frames(1)
+				clock += get_process_delta_time()
+				if photos and wave == 3 and not snapped and clock > 1.2:
+					snapped = true
+					await _snap("aereo_mira")
+			battery.trigger = false
+			arena._hud.input_source.set_process(true)
+			var shot_down: bool = mode._air_kills == kills_before + 1 and battery.shots > 3
+			if photos and wave == 3:
+				await get_tree().create_timer(0.5).timeout
+				await _snap("aereo_derribo")
+			# Con tres derribos se repone el bombardeo.
+			while mode._air_kills < SurvivalMode.AIR_GOAL:
+				mode.air_reward(Vector3.ZERO)
+			var rewarded: bool = mode.strikes == 1
+			mode._end_air_phase()
+			await get_tree().create_timer(AaBattery.MOVE_OUT + 0.3).timeout
+			var back: bool = AaBattery.active == null and get_viewport().get_camera_3d() == mode.player.camera
+			if not placed or not clear or not seated or not shot_down or not rewarded or not back:
+				bad += 1
+			print("AEREO oleada %d: batería %s a %.0f m del tanque, despejada: %s | la vista llega al apuntador: %s | derriba un avión a ráfagas (%d disparos): %s | 3 derribos reponen el bombardeo: %s | la vista vuelve al tanque: %s" % [wave, battery.gun_name, gap, "sí" if placed and clear else "NO", "sí" if seated else "NO", battery.shots, "sí" if shot_down else "NO", "sí" if rewarded else "NO", "sí" if back else "NO"])
 		if phases != [3, 6]:
 			bad += 1
 		print("AEREO ataque aéreo tras las oleadas: %s (de 6) | nunca en el mismo instante que el fin de la oleada" % str(phases))

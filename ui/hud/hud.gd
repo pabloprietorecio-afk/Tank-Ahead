@@ -23,6 +23,7 @@ var _message: Label
 var _end_panel: PanelContainer
 ## Hay una pausa publicitaria en curso (evita pulsar dos veces).
 var _ad_busy: bool = false
+var _view_button: Button
 ## Tras ganar, el jugador ha elegido seguir en el campo: el menú de fin de misión está cerrado y
 ## vuelve con el botón de pausa (o solo, si le destruyen el tanque).
 var _roaming: bool = false
@@ -84,6 +85,7 @@ func _build_settings() -> void:
 	add_child(gear)
 
 	var view_button := Button.new()
+	_view_button = view_button
 	view_button.text = Loc.t("CÁM")
 	view_button.add_theme_font_size_override("font_size", 22)
 	view_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -684,7 +686,9 @@ func _process(delta: float) -> void:
 	if _overlay.visible:
 		(_overlay.material as ShaderMaterial).set_shader_parameter("hurt", _flash)
 		(_overlay.material as ShaderMaterial).set_shader_parameter("vignette", 0.3 if vignette else 0.0)
-	_release.visible = tank.aim_lock != null and not director.is_over
+	_release.visible = tank.aim_lock != null and not director.is_over and AaBattery.active == null
+	_zoom_button.visible = AaBattery.active == null
+	_view_button.visible = AaBattery.active == null
 	_history_button.visible = _release.visible and not get_tree().paused
 	_missile_button.text = Loc.t("MISIL %d") % director.missiles
 	_missile_button.disabled = director.missiles <= 0
@@ -731,6 +735,11 @@ func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var green: Color = VectorMaterials.GREEN
 	var locked: bool = tank != null and tank.aim_lock != null
+	if AaBattery.active != null:
+		# En la batería antiaérea: su mira de anillos; nada del tanque.
+		if AaBattery.active.ready():
+			_draw_aa_sight(_aim_screen_point(center))
+		return
 	_draw_reticle(_aim_screen_point(center), locked)
 	if tank == null:
 		return
@@ -762,6 +771,21 @@ func _draw() -> void:
 	_draw_raid_warning(center)
 	# Icono del tanque visto desde arriba (norte arriba): casco y cañón con su orientación real.
 	_draw_tank_icon(Vector2(center.x, 74.0), green)
+
+
+## Mira de la batería antiaérea: punto central y dos anillos para calcular el adelanto (al
+## avión se le apunta por delante, tanto más cuanto más rápido cruza), con el nombre del cañón.
+func _draw_aa_sight(aim: Vector2) -> void:
+	for dark: bool in [true, false]:
+		var color: Color = RETICLE_EDGE if dark else RETICLE_COLOR
+		var width: float = 3.0 + (RETICLE_EDGE_EXTRA if dark else 0.0)
+		draw_circle(aim, 4.0 + (1.5 if dark else 0.0), color)
+		for radius: float in [44.0, 96.0]:
+			draw_arc(aim, radius, 0.0, TAU, 48, color, width, true)
+		for arm: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
+			draw_line(aim + arm * 96.0, aim + arm * 118.0, color, width, true)
+	var font: Font = ThemeDB.fallback_font
+	draw_string(font, aim + Vector2(-160.0, 150.0), AaBattery.active.gun_name, HORIZONTAL_ALIGNMENT_CENTER, 320.0, 18, Color(0.95, 0.92, 0.82))
 
 
 ## Retícula del cañón: roja y gruesa, con un borde oscuro para que se vea igual sobre el cielo
@@ -837,6 +861,11 @@ func _draw_tank_icon(origin: Vector2, green: Color) -> void:
 
 ## En las vistas exteriores la retícula marca dónde caerá el disparo (proyectado en pantalla).
 func _aim_screen_point(center: Vector2) -> Vector2:
+	if AaBattery.active != null:
+		# En la batería antiaérea la mira va con su cañón.
+		var battery: AaBattery = AaBattery.active
+		var mark: Vector3 = battery.aim_point()
+		return center if battery.camera.is_position_behind(mark) else battery.camera.unproject_position(mark)
 	if tank == null or GameSettings.camera_view == 0 or tank.camera == null:
 		return center
 	var from: Vector3 = tank.muzzle.global_position

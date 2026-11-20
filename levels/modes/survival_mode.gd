@@ -19,17 +19,23 @@ var _seen_types: Dictionary = {}
 var _intro_queue: Array[TankStats] = []
 var _intro_timer: float = 0.0
 
-## Fase aérea: cada AIR_EVERY oleadas (tras la 3, la 6, la 9…), cámara lenta y zoom durante
-## 20 s. No entra de golpe: tras el «oleada superada» hay AIR_WARNING segundos de respiro y
-## entonces el aviso; al empezar, el cañón se levanta solo hacia el cielo.
-const AIR_PHASE_TIME: float = 20.0
+## Fase aérea: cada AIR_EVERY oleadas (tras la 3, la 6, la 9…) el jugador pasa a una batería
+## antiaérea de su bando y tiene AIR_PHASE_TIME segundos para derribar aviones. No entra de
+## golpe: tras el «oleada superada» hay AIR_WARNING segundos de respiro. Con AIR_GOAL derribos
+## se repone el bombardeo; si no pasa ni un avión, además un misil.
+const AIR_PHASE_TIME: float = 28.0
 const AIR_EVERY: int = 3
 const AIR_WARNING: float = 3.5
-const AIR_GUN_LIFT: float = 0.3
+const AIR_GOAL: int = 3
+## Los aviones de esta fase van más deprisa que los de paso (no hay cámara lenta).
+const AIR_PACE: float = 1.6
+const AIR_SPAWN_GAP: float = 2.6
 var _air_warning: float = -1.0
-const SLOW_MOTION: float = 0.45
+var _battery: AaBattery
+var _air_kills: int = 0
+var _air_total: int = 0
 var air_phase: bool = false
-var _air_end_msec: int = 0
+var _air_left: float = 0.0
 var _air_spawn_timer: float = 0.0
 var _air_spawned: int = 0
 
@@ -164,52 +170,124 @@ func _end_wave() -> void:
 
 func _start_air_phase() -> void:
 	air_phase = true
-	_air_end_msec = Time.get_ticks_msec() + int(AIR_PHASE_TIME * 1000.0)
-	_air_spawn_timer = 0.0
+	_air_left = AIR_PHASE_TIME
+	# Los primeros aviones llegan cuando la vista ya está en la batería.
+	_air_spawn_timer = AaBattery.MOVE_IN + 0.6
 	_air_spawned = 0
-	Engine.time_scale = SLOW_MOTION
-	player.set_air_mode(true)
-	# El cañón mira al cielo: se ve a qué hay que disparar sin tener que leerlo.
-	player.turret_controller.add_aim(0.0, AIR_GUN_LIFT)
-	message.emit(Loc.t("¡ATAQUE AÉREO! APUNTA AL CIELO Y DISPARA A LOS AVIONES"), true)
+	_air_kills = 0
+	_air_total = mini(5 + wave / 3, 9)
+	if _battery == null or not is_instance_valid(_battery):
+		_battery = _emplace_battery()
+	player.aim_lock = null
+	player.set_binoculars(false)
+	_battery.man(player, player.camera, Vector3.ZERO)
+	message.emit(Loc.t("¡ATAQUE AÉREO! A LA BATERÍA: DERRIBA %d AVIONES Y REPÓN EL BOMBARDEO") % AIR_GOAL, true)
 	get_tree().call_group(&"voice", &"say", "air_phase", VoiceManager.Priority.CRITICAL)
 
 
+## Monta la batería antiaérea del bando del jugador en un sitio despejado cerca de su tanque:
+## llano, fuera del agua y sin nada encima. Se queda ahí el resto de la partida.
+func _emplace_battery() -> AaBattery:
+	var battery := AaBattery.make(player.stats.nation)
+	battery.name = "AaBattery"
+	var here := Vector2(player.global_position.x, player.global_position.z)
+	var spot: Vector2 = here + Vector2(0.0, 16.0)
+	var found: bool = false
+	var space: PhysicsDirectSpaceState3D = world.get_world_3d().direct_space_state
+	var probe := CylinderShape3D.new()
+	probe.radius = AaBattery.RADIUS + 2.0
+	probe.height = 2.4
+	for ring: float in [28.0, 38.0, 50.0, 64.0, 80.0, 100.0]:
+		for step in 12:
+			var angle: float = TAU * step / 12.0 + ring
+			var at: Vector2 = here + Vector2(cos(angle), sin(angle)) * ring
+			if absf(at.x) > 176.0 or absf(at.y) > 176.0 or not is_free_point.call(at):
+				continue
+			if Water.deep_at(at.x, at.y, 8.0) or Water.drag_at(at.x, at.y) < 1.0 or Backdrop.in_sea(at.x, at.y):
+				continue
+			var bumpy: bool = false
+			for corner: Vector2 in [Vector2.ZERO, Vector2(5.0, 0.0), Vector2(-5.0, 0.0), Vector2(0.0, 5.0), Vector2(0.0, -5.0)]:
+				if absf(Terrain.height(at.x + corner.x, at.y + corner.y)) > 0.25:
+					bumpy = true
+			if bumpy:
+				continue
+			var query := PhysicsShapeQueryParameters3D.new()
+			query.shape = probe
+			query.transform = Transform3D(Basis(), Vector3(at.x, 1.9, at.y))
+			query.collision_mask = 1 | 2
+			if not space.intersect_shape(query, 1).is_empty():
+				continue
+			spot = at
+			found = true
+			break
+		if found:
+			break
+	battery.position = Vector3(spot.x, 0.0, spot.y)
+	battery.rotation.y = randf() * TAU
+	world.add_child(battery)
+	return battery
+
+
 func _update_air_phase(delta: float) -> void:
-	# El tiempo de la fase se mide en segundos reales (la cámara lenta no la alarga).
-	if Time.get_ticks_msec() >= _air_end_msec:
+	_air_left -= delta
+	if _air_left <= 0.0:
 		_end_air_phase()
 		return
 	_air_spawn_timer -= delta
-	if _air_spawn_timer <= 0.0 and _air_spawned < 4 + wave / 2:
-		_air_spawn_timer = 1.6
+	if _air_spawn_timer <= 0.0 and _air_spawned < _air_total:
+		_air_spawn_timer = AIR_SPAWN_GAP
 		_air_spawned += 1
 		var kind: int = AirTarget.Kind.FIGHTER
 		if _air_spawned % 3 == 0:
 			kind = AirTarget.Kind.ATTACK
 		elif _air_spawned == 2:
 			kind = AirTarget.Kind.BOMBER
-		AirTarget.spawn(world, kind, player.global_position)
+		AirTarget.spawn(world, kind, _battery.global_position, AIR_PACE)
+	elif _air_spawned >= _air_total and _air_spawn_timer < -1.5 and get_tree().get_nodes_in_group(&"air_targets").is_empty():
+		# Ya han pasado (o caído) todos: no hace falta esperar al reloj.
+		_end_air_phase()
+
+
+## Un avión derribado. En la batería cuenta para el objetivo de la fase; fuera de ella (los
+## ataques aéreos sueltos) da el premio de siempre.
+func air_reward(where: Vector3) -> void:
+	if not air_phase:
+		super.air_reward(where)
+		return
+	score += 200
+	_air_kills += 1
+	get_tree().call_group(&"voice", &"say", "shot_down", VoiceManager.Priority.HIGH)
+	if _air_kills == AIR_GOAL:
+		strikes = maxi(strikes, 1)
+		message.emit(Loc.t("¡%d AVIONES DERRIBADOS! BOMBARDEO REPUESTO") % _air_kills, true)
+	elif _air_kills == _air_total:
+		missiles += 1
+		message.emit(Loc.t("¡NO HA PASADO NI UNO! +1 MISIL"), true)
+	else:
+		message.emit(Loc.t("AVIÓN DERRIBADO  %d / %d") % [_air_kills, AIR_GOAL if _air_kills < AIR_GOAL else _air_total], false)
 
 
 func air_seconds_left() -> float:
-	return maxf((_air_end_msec - Time.get_ticks_msec()) / 1000.0, 0.0)
+	return maxf(_air_left, 0.0)
 
 
 func _end_air_phase() -> void:
 	air_phase = false
-	Engine.time_scale = 1.0
-	player.set_air_mode(false)
+	if _battery != null and is_instance_valid(_battery):
+		_battery.leave()
 	for node in get_tree().get_nodes_in_group(&"air_targets"):
 		(node as AirTarget).leave()
 	if not is_over:
-		message.emit(Loc.t("CIELO DESPEJADO — PREPÁRATE"), false)
+		if _air_kills >= AIR_GOAL:
+			message.emit(Loc.t("CIELO DESPEJADO — VUELVES AL TANQUE CON EL BOMBARDEO REPUESTO"), false)
+		else:
+			message.emit(Loc.t("CIELO DESPEJADO — VUELVES AL TANQUE"), false)
 		get_tree().call_group(&"voice", &"say", "air_clear", VoiceManager.Priority.NORMAL)
 
 
 func status_text() -> String:
 	if air_phase:
-		return Loc.t("PUNTOS %d   OLEADA %d   ATAQUE AÉREO %d s") % [score, wave, ceili(air_seconds_left())]
+		return Loc.t("PUNTOS %d   OLEADA %d   AVIONES %d / %d   %d s") % [score, wave, _air_kills, AIR_GOAL, ceili(air_seconds_left())]
 	return _status_normal()
 
 

@@ -25,12 +25,13 @@ var _wobble: float = randf() * TAU
 var _sound: FlybySound
 
 
-static func spawn(host: Node, aircraft_kind: Kind, center: Vector3) -> AirTarget:
+## `pace` multiplica la velocidad (los blancos de la batería antiaérea van más deprisa).
+static func spawn(host: Node, aircraft_kind: Kind, center: Vector3, pace: float = 1.0) -> AirTarget:
 	var target := AirTarget.new()
 	target.kind = aircraft_kind
 	host.add_child(target)
 	var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU)
-	var speed: float = SPEEDS[aircraft_kind]
+	var speed: float = SPEEDS[aircraft_kind] * pace
 	var height: float = [randf_range(28.0, 42.0), randf_range(22.0, 32.0), randf_range(40.0, 55.0)][aircraft_kind]
 	var start_dist: float = [160.0, 110.0, 90.0][aircraft_kind]
 	target.global_position = center - dir * start_dist + dir.cross(Vector3.UP) * randf_range(-40.0, 40.0) + Vector3.UP * height
@@ -102,7 +103,7 @@ func _process(delta: float) -> void:
 ## Se aleja sin más (al acabar la fase aérea).
 func leave() -> void:
 	_life = minf(_life, 4.0)
-	_velocity = _velocity.normalized() * PLANE_SPEED * 2.0 + Vector3.UP * 6.0
+	_velocity = _velocity.normalized() * maxf(PLANE_SPEED * 2.0, _velocity.length()) + Vector3.UP * 6.0
 
 
 func _on_died(source: Node) -> void:

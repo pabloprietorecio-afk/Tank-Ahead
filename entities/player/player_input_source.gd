@@ -39,6 +39,16 @@ const ALIGN_GAIN: float = 2.2
 func _process(delta: float) -> void:
 	if tank == null or touch == null or tank.is_destroyed:
 		return
+	if AaBattery.active != null:
+		# En la batería antiaérea: el mismo mando mueve su mira y el gatillo es el suyo; el
+		# tanque se queda quieto.
+		var sweep: Vector2 = touch.consume_look_delta()
+		tank.trigger_held = false
+		tank.drive_input = Vector2.ZERO
+		if AaBattery.active.ready():
+			AaBattery.active.aim(-sweep.x * look_sensitivity, -sweep.y * look_sensitivity)
+			AaBattery.active.trigger = touch.fire_held
+		return
 	var stick: Vector2 = touch.move_vector
 	_turn = move_toward(_turn, stick.x, TURN_SMOOTHING * delta)
 	stick.x = _turn

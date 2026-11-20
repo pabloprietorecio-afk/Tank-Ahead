@@ -148,6 +148,17 @@ licencias en `assets/audio/CREDITS.md`. Las grabaciones se buscan y se bajan con
 elegidas de Commons y de Freesound a la rama `audio-raw`) y se montan con
 `tools/sound_gen/field_sounds.py`. Commons exige un `User-Agent` con datos de contacto: sin él responde 429.
 
+## Batería antiaérea (supervivencia)
+Cada tres oleadas (tras la 3, la 6, la 9…) y después de un respiro de 3,5 s, la vista vuela del tanque a
+una batería antiaérea ligera del bando del jugador (`entities/props/aa_battery.gd`: Flak 38 de 2 cm,
+Oerlikon de 20 mm o 72-K de 25 mm), montada en un sitio despejado cerca del tanque. Un cañón de tanque
+no podía tirar a los aviones (el del Sherman subía a +25° y el del Panzer IV a +20°); la antiaérea sí.
+Se apunta con el mismo mando que la torreta y dispara a ráfaga mientras se mantiene el gatillo
+(`PlayerInputSource` desvía los mandos a `AaBattery.active`; el HUD pinta su mira de anillos). Sin
+cámara lenta: los aviones de la fase van 1,6 veces más deprisa. Hay 28 s para derribar 3
+(`SurvivalMode.AIR_GOAL`): al conseguirlo se repone el bombardeo, y si no pasa ni uno, además un misil.
+Al acabar, la vista vuelve al tanque. Prueba: `SHOTS_ONLY=aereo` (`AEREO_FOTOS=1` guarda capturas).
+
 ## Pantalla de carga
 Al entrar en una partida (`ui/loading/`), una pantalla tapa el montaje del campo: un carro de perfil
 avanza por un terreno ondulado (ruedas, eslabones y polvo animados, dibujado por código en
