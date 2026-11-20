@@ -1,9 +1,9 @@
 class_name Strafe
 extends Node3D
 ## Pasada de ametrallamiento de un caza contra el tanque del jugador. Avisa marcando en el suelo
-## un pasillo recto que pasa por donde está el tanque, con flechas que dicen de dónde viene el
-## avión; a los pocos segundos el caza baja, enfila el pasillo y lo barre de punta a punta: una
-## hilera doble de surtidores de polvo avanza por él y todo carro del bando atacado que siga
+## un pasillo recto que pasa por donde está el tanque: dos rayas rojas que se cierran hacia el
+## centro como cuenta atrás; a los pocos segundos el caza baja, enfila el pasillo y lo barre: una
+## hilera doble de impactos lo cose de punta a punta y todo carro del bando atacado que siga
 ## dentro cuando le llegan las balas pierde blindaje. Se esquiva saliendo de lado.
 
 signal finished
@@ -24,8 +24,10 @@ const PASS_HEIGHT: float = 24.0
 ## Las balas caen por delante del morro.
 const LEAD: float = 42.0
 const SEGMENTS: int = 34
-const SPURT_STEP: float = 2.6
-const TRACER_SPEED: float = 260.0
+## Cada cuántos metros cae una bala en cada una de las dos hileras, y lo que se separan.
+const SPURT_STEP: float = 1.9
+const ROW_OFFSET: float = 1.5
+const TRACER_SPEED: float = 380.0
 ## De dónde puede venir: norte, este, sur u oeste (más un pequeño desvío).
 const FROM: Array[Vector3] = [Vector3(0.0, 0.0, -1.0), Vector3(1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0), Vector3(-1.0, 0.0, 0.0)]
 const FROM_KEYS: Array[String] = ["n", "e", "s", "w"]
@@ -50,7 +52,6 @@ var _front: float = -INF
 var _next_spurt: float = 0.0
 var _tracer_due: float = 0.0
 var _tracer_color: Color = SkyWar.TRACER_AXIS
-var _dust: Color = Color(0.7, 0.62, 0.48)
 var _firing: bool = false
 var _spent: bool = false
 
@@ -107,7 +108,6 @@ func _build() -> void:
 	set_meta("radar_shape", "strip")
 	set_meta("radar_along", direction)
 	set_meta("radar_length", LENGTH)
-	_dust = Fronts.ground_colors(GameSession.front)[2].lightened(0.25)
 	# El caza: uno del bando contrario, de los que de verdad atacaban a ras de suelo.
 	var faction: int = GameSession.enemy_faction() if hostile_to_player else GameSession.faction
 	var choice: Array = SkyWar.pick_model(GameSession.front, faction, ["fighter", "attack"])
@@ -150,6 +150,8 @@ func _build_strip(color: Color) -> void:
 	_material.shader = load("res://shaders/strafe_lane.gdshader")
 	_material.set_shader_parameter("color", color)
 	_material.set_shader_parameter("lane", Vector2(WIDTH, LENGTH))
+	_material.set_shader_parameter("warning", WARNING)
+	_material.set_shader_parameter("speed", SPEED)
 	_material.render_priority = 1
 	_strip = MeshInstance3D.new()
 	_strip.mesh = tool.commit()
@@ -188,8 +190,7 @@ func _process(delta: float) -> void:
 	_place_plane()
 	var front: float = _plane_along(_time) + LEAD
 	if not _spent:
-		_material.set_shader_parameter("progress", clampf(_time / WARNING, 0.0, 1.0))
-		_material.set_shader_parameter("alert", 1.0 if fmod(_time, 0.5) < 0.35 else 0.0)
+		_material.set_shader_parameter("elapsed", _time)
 		_material.set_shader_parameter("swept", clampf(front / LENGTH + 0.5, 0.0, 1.0))
 	if _time >= WARNING and not _spent:
 		if not _firing:
@@ -212,25 +213,24 @@ func _process(delta: float) -> void:
 		queue_free()
 
 
-## Las balas avanzan hasta `front`: surtidores en el suelo, trazadoras desde las alas y daño a
-## los carros a los que les llegan dentro del pasillo.
+## Las balas avanzan hasta `front`: dos hileras de impactos que cosen el suelo, las trazadoras
+## que bajan desde las alas y daño a los carros a los que les llegan dentro del pasillo.
 func _fire(front: float, delta: float) -> void:
 	var fx: Fx = Fx.on(self)
 	while _next_spurt <= front:
 		for side: float in [-1.0, 1.0]:
-			var point: Vector3 = global_position + direction * (_next_spurt + randf_range(-0.6, 0.6)) + _right * (side * 1.7 + randf_range(-1.1, 1.1))
-			point.y = Terrain.height(point.x, point.z) + 0.15
-			fx.puff(Fx.Puff.DUST, point, Vector3(randf_range(-0.8, 0.8), randf_range(5.0, 9.5), randf_range(-0.8, 0.8)) + direction * 2.0, randf_range(0.55, 0.95), randf_range(0.7, 1.2), _dust)
-			if randf() < 0.3:
-				fx.puff(Fx.Puff.DUST, point, Vector3(randf_range(-1.5, 1.5), randf_range(1.0, 2.5), randf_range(-1.5, 1.5)), randf_range(0.9, 1.4), randf_range(1.6, 2.6), _dust.darkened(0.1), 0.0, 0.05)
+			fx.bullet_ground(global_position + direction * (_next_spurt + randf_range(-0.5, 0.5)) + _right * (side * ROW_OFFSET + randf_range(-0.45, 0.45)))
 		_next_spurt += SPURT_STEP
-	_tracer_due += delta * 18.0
+	# Una de cada pocas balas es trazadora: salen de las dos alas y convergen en el suelo.
+	_tracer_due += delta * 26.0
 	while _tracer_due >= 1.0:
 		_tracer_due -= 1.0
 		var side: float = 1.0 if randf() < 0.5 else -1.0
-		var muzzle: Vector3 = _plane.global_position + _right * side * 2.2 - Vector3.UP * 0.4
-		var target: Vector3 = global_position + direction * (front + randf_range(-3.0, 3.0)) + _right * (side * 1.7 + randf_range(-1.2, 1.2))
-		fx.tracer(muzzle, (target - muzzle).normalized() * TRACER_SPEED, _tracer_color)
+		var muzzle: Vector3 = _plane.global_position + _right * side * 2.4 - Vector3.UP * 0.5 + direction * 1.5
+		var target: Vector3 = global_position + direction * (front + randf_range(-4.0, 2.0)) + _right * (side * ROW_OFFSET + randf_range(-0.6, 0.6))
+		target.y = Terrain.height(target.x, target.z)
+		fx.strafe_tracer(muzzle, target, TRACER_SPEED, _tracer_color)
+		fx.glow(Fx.Glow.STAR, muzzle, Vector3.ZERO, 1.1, 0.05, Fx.FLASH, 0.8)
 	var team: int = GameMode.PLAYER_TEAM if hostile_to_player else GameMode.ENEMY_TEAM
 	for node in get_tree().get_nodes_in_group(&"tanks"):
 		var tank := node as Tank
@@ -244,6 +244,6 @@ func _fire(front: float, delta: float) -> void:
 		hits += 1
 		tank.health.apply_damage(DAMAGE, null)
 		Sfx.play_at(self, Sfx.HIT_TANK, tank.global_position, 6.0)
-		for i in 5:
-			fx.spark(tank.global_position + Vector3(randf_range(-1.2, 1.2), randf_range(1.2, 2.2), randf_range(-1.2, 1.2)), Vector3(randf_range(-6.0, 6.0), randf_range(3.0, 9.0), randf_range(-6.0, 6.0)), 0.5, randf_range(0.25, 0.5), Color(1.0, 0.85, 0.5))
+		for i in 6:
+			fx.bullet_armor(tank.global_position + Vector3(randf_range(-1.3, 1.3), randf_range(1.3, 2.3), randf_range(-1.6, 1.6)))
 	_front = front

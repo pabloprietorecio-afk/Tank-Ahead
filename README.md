@@ -264,11 +264,14 @@ misión de cada campaña, y desde la oleada 3 en supervivencia (`GameMode.strafe
 de los ataques aéreos enemigos (`STRAFE_SHARE`) ya no es un bombardeo sino un caza que ametralla:
 
 - La radio dice de dónde viene (norte, este, sur u oeste: `strafe_n`…`strafe_w`, en los diez
-  idiomas) y en el suelo se marca un pasillo rojo de 170 × 12 m que pasa por donde está el tanque,
-  con flechas en el sentido del caza. También sale en el radar.
-- A los 5 s (`WARNING`; un tanque gira despacio) el caza baja, enfila el pasillo y lo barre: una
-  hilera doble de surtidores de polvo avanza por él con las trazadoras. La cuenta de la pantalla es
-  hasta que las balas llegan a la altura del tanque.
+  idiomas) y en el suelo se marca un pasillo de 170 × 12 m que pasa por donde está el tanque. No
+  va relleno (era demasiado rojo): dos rayas de trazos en los bordes y, por dentro, dos rayas que
+  se cierran de fuera hacia el centro como cuenta atrás, igual que el anillo del bombardeo; en
+  cada punto se juntan justo cuando llegan allí las balas. También sale en el radar.
+- A los 5 s (`WARNING`; un tanque gira despacio) el caza baja, enfila el pasillo y lo barre: dos
+  hileras de impactos cosen el suelo (`Fx.bullet_ground`: un pellizco de tierra, una bocanada
+  pequeña de polvo, algún rebote) y bajan trazadoras finas desde las alas (`Fx.strafe_tracer`).
+  La cuenta de la pantalla es hasta que las balas llegan a la altura del tanque.
 - Quien siga dentro cuando le llegan pierde 30 de blindaje (`DAMAGE`), una sola vez: castiga, no
   mata. Vale igual para los aliados. Se esquiva saliendo de lado.
 - No cambia la frecuencia de los ataques aéreos (`raid_interval`): alterna con el bombardeo.

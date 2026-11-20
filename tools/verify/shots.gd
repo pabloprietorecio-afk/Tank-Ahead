@@ -1128,9 +1128,9 @@ class Runner extends Node:
 			Engine.time_scale = 0.1
 			await get_tree().create_timer(2.6).timeout
 			await _snap("ametralla_aviso")
-			await get_tree().create_timer(Strafe.WARNING - 2.6 + 0.6 - strafe._time + 2.6).timeout
+			await get_tree().create_timer(Strafe.WARNING + 0.8 - strafe._time).timeout
 			await _snap("ametralla_pasada")
-			await get_tree().create_timer(0.45).timeout
+			await get_tree().create_timer(0.3).timeout
 			await _snap("ametralla_encima")
 		Engine.time_scale = 4.0
 		await get_tree().create_timer(Strafe.WARNING + Strafe.LENGTH / Strafe.SPEED + 0.6).timeout

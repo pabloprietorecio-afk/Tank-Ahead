@@ -638,6 +638,38 @@ func pop(pos: Vector3, s: float = 1.0) -> void:
 		spark(pos, ball() * randf_range(8.0, 22.0), 0.07, randf_range(0.3, 0.8), SPARK)
 
 
+## Bala de ametralladora o de cañón de avión que da en tierra: un pellizco seco de tierra que
+## salta hacia arriba, una bocanada pequeña de polvo y, a veces, el chispazo de un rebote.
+func bullet_ground(pos: Vector3) -> void:
+	var g := Vector3(pos.x, Terrain.height(pos.x, pos.z) + 0.05, pos.z)
+	for i in 2:
+		var dir := Vector3(randf_range(-0.22, 0.22), 1.0, randf_range(-0.22, 0.22)).normalized()
+		puff(Puff.CLOD, g, dir * randf_range(4.5, 9.5), randf_range(0.05, 0.13), randf_range(0.45, 0.85), soil, 0.0, randf() * 0.02)
+	# El surtidor: una bocanada estrecha que sube deprisa y otra, más ancha y lenta, que se queda.
+	puff(Puff.DUST, g + Vector3.UP * 0.2, Vector3(randf_range(-0.4, 0.4), randf_range(4.0, 7.0), randf_range(-0.4, 0.4)), randf_range(0.4, 0.62), randf_range(0.5, 0.85), dust, 0.0, 0.01)
+	if randf() < 0.6:
+		puff(Puff.DUST, g + Vector3.UP * 0.25, Vector3(randf_range(-0.7, 0.7), randf_range(0.8, 1.8), randf_range(-0.7, 0.7)), randf_range(0.6, 0.95), randf_range(1.1, 1.9), dust, 0.0, 0.04)
+	if randf() < 0.35:
+		spark(g + Vector3.UP * 0.1, dome(0.5) * randf_range(9.0, 20.0), 0.05, randf_range(0.2, 0.45), SPARK)
+	if randf() < 0.3:
+		glow(Glow.FLASH, g + Vector3.UP * 0.15, Vector3.ZERO, 0.7, 0.05, FLASH, 0.7)
+
+
+## Bala que da en el blindaje: chispas que saltan y algún rebote al rojo.
+func bullet_armor(pos: Vector3) -> void:
+	glow(Glow.FLASH, pos, Vector3.ZERO, 0.9, 0.06, FLASH, 0.9)
+	for i in 3:
+		spark(pos, dome(0.2) * randf_range(7.0, 18.0), 0.05, randf_range(0.2, 0.5), SPARK)
+
+
+## Trazadora de un avión que ametralla el suelo: un trazo fino y rápido que se apaga al llegar.
+func strafe_tracer(from: Vector3, to: Vector3, speed: float, color: Color) -> void:
+	var reach: float = from.distance_to(to)
+	if reach < 1.0:
+		return
+	spark(from, (to - from) / reach * speed, 0.2, reach / speed, Color(color.r, color.g, color.b, 1.7), 0.0, 0.0, 2)
+
+
 ## Granada que cae en tierra: fogonazo corto, surtidor de tierra, polvo, humo y una quemadura.
 func shell_ground(pos: Vector3, s: float = 1.0) -> void:
 	var lod: float = _lod(pos)
