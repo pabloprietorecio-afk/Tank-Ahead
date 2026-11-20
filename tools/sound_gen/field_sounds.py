@@ -138,3 +138,15 @@ print(f"aa_fire.wav: bucle de 0,8 s, nivel {level(body):.1f} dB")
 # (Múnich, 2012), grabada a 300 m.
 at = onset("boom_ww2_bomb.ogg", 29.46)
 shot("explosion_real.ogg", "boom_ww2_bomb.ogg", at, 2.8, 1.1, -1.5, 0.002, "highpass=f=30", drive=5.0)
+
+# Los estampidos sueltos son un golpe de milésimas y casi nada después: se comprime un poco para
+# que la cola se oiga, igual en todos.
+PUNCH = "highpass=f=35,acompressor=threshold=0.09:ratio=4:attack=4:release=160:knee=4"
+# Cañonazo de los carros: un disparo de un cañón antiguo de avancarga en una recreación histórica
+# (Rueil-Malmaison, 2022). El pico inicial se redondea 4 dB para que no lo tape el motor.
+at = onset("gun_reenactment.ogg", 143.74, 0.4)
+shot("cannon.ogg", "gun_reenactment.ogg", at, 1.5, 0.5, -1.0, 0.003, PUNCH, drive=4.0)
+# Cañones lejanos: cuatro disparos de la misma grabación, hecha de lejos (casi todo graves).
+for i, around in enumerate([53.78, 69.58, 99.02, 133.66]):
+    at = onset("gun_airshow.ogg", around, 0.4)
+    shot(f"distant_gun_{i + 1}.ogg", "gun_airshow.ogg", at, 1.4, 0.5, -1.0, 0.003, PUNCH)

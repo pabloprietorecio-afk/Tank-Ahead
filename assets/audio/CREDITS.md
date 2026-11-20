@@ -1,6 +1,16 @@
 # Créditos de sonido
 
-- Cañón, explosiones e impactos: mezclas propias a partir de sonidos de **Kenney** (www.kenney.nl),
+- Cañonazo de los carros (`cannon.ogg`): un disparo de «VOC_220925-2130_FR_CannonShots» de
+  **kevp888 (Kevin Luce)**, www.freesound.org (https://freesound.org/s/654077/), **CC BY 4.0**:
+  un cañón antiguo auténtico disparando en una recreación histórica napoleónica en el parque del
+  castillo de Malmaison (Rueil-Malmaison, Francia), en septiembre de 2022, grabado con una Olympus
+  LS-100. Recorte de 1,5 s desde el disparo, compresión ligera y pico inicial redondeado 4 dB.
+  Elegido de oído por el autor del juego entre cuatro candidatos.
+- Cañones lejanos del duelo de artillería del horizonte (`distant_gun_1.ogg` a `distant_gun_4.ogg`):
+  cuatro disparos de «Cannon shots» de **Andykub** (Freesound 415293, **CC0**): cañonazos de una
+  exhibición aérea grabados de lejos, desde una ventana, con un micrófono de condensador de
+  membrana grande. Recorte de 1,4 s y compresión ligera. Casi todo son graves.
+- Explosiones (la de siempre) e impactos: mezclas propias a partir de sonidos de **Kenney** (www.kenney.nl),
   packs *Sci-Fi Sounds*, *Impact Sounds* y *Desert Shooter Pack*, con licencia
   **CC0 1.0 (dominio público)**. Obtenidos de la copia de github.com/series-ai/jam-ready-assets.
 - Explosión real, en prueba (`explosion_real.ogg`): «FliegerbombensprengungMuenchen2012» de

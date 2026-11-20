@@ -352,11 +352,15 @@ func distant_guns() -> void:
 				Fx.on(self).sky_flash(point, Color(1.0, 0.62, 0.32), randf_range(1.2, 2.0), randf_range(300.0, 420.0), randf_range(0.22, 0.42)))
 		# El sonido viaja a 343 m/s: de tan lejos llega tarde y ya solo es un golpe grave.
 		get_tree().create_timer(at + distance / 343.0).timeout.connect(func() -> void:
-			if not is_inside_tree():
-				return
-			var camera: Camera3D = get_viewport().get_camera_3d()
-			var ear: Vector3 = camera.global_position if camera != null else Vector3.ZERO
-			Sfx.play_at(self, Sfx.EXPLOSION, ear + away * 260.0, 8.0, randf_range(0.42, 0.55)))
+			if is_inside_tree():
+				distant_report(away))
+
+
+## El estampido de un cañón lejano, llegando desde `away`: una grabación real hecha de lejos.
+func distant_report(away: Vector3) -> void:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	var ear: Vector3 = camera.global_position if camera != null else Vector3.ZERO
+	Sfx.play_at(self, Sfx.DISTANT_GUNS.pick_random(), ear + away * 260.0, 8.0, randf_range(0.88, 1.06))
 
 
 ## Salva de cohetes desde detrás del horizonte (Katiusha, Nebelwerfer): una ristra de estelas

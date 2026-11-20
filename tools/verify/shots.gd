@@ -1016,6 +1016,20 @@ class Runner extends Node:
 		if not length_ok:
 			bad += 1
 		print("SONIDO duración: explosión real %.2f s: %s" % [Sfx.EXPLOSION_REAL.get_length(), "bien" if length_ok else "MAL"])
+		# El cañonazo de los carros y los cañones lejanos del duelo de artillería del horizonte.
+		var far_ok: bool = absf(Sfx.CANNON.get_length() - 1.5) < 0.1 and Sfx.DISTANT_GUNS.size() == 4
+		for stream: AudioStream in Sfx.DISTANT_GUNS:
+			far_ok = far_ok and absf(stream.get_length() - 1.4) < 0.1
+		var sky: SkyWar = get_tree().current_scene.get_node_or_null("SkyWar")
+		var heard: bool = false
+		if sky != null:
+			var count: int = get_tree().current_scene.get_child_count()
+			sky.distant_report(Vector3.FORWARD)
+			var node := get_tree().current_scene.get_child(get_tree().current_scene.get_child_count() - 1) as AudioStreamPlayer3D
+			heard = get_tree().current_scene.get_child_count() == count + 1 and node != null and Sfx.DISTANT_GUNS.has(node.stream)
+		if not (far_ok and heard):
+			bad += 1
+		print("SONIDO cañonazo %.2f s, cañones lejanos %d, el duelo de artillería lejano suena con uno de ellos %s: %s" % [Sfx.CANNON.get_length(), Sfx.DISTANT_GUNS.size(), "sí" if heard else "NO", "bien" if far_ok and heard else "MAL"])
 		for on: bool in [true, false]:
 			GameSettings.real_explosions = on
 			var before: int = get_tree().current_scene.get_child_count()

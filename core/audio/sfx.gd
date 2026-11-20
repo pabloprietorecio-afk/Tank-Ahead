@@ -3,6 +3,14 @@ class_name Sfx
 
 const CANNON := preload("res://assets/audio/cannon.ogg")
 const EXPLOSION := preload("res://assets/audio/explosion.ogg")
+## Cañones lejanos, grabados de lejos de verdad (casi todo graves): el duelo de artillería de
+## más allá del horizonte sortea uno por disparo.
+const DISTANT_GUNS: Array[AudioStream] = [
+	preload("res://assets/audio/distant_gun_1.ogg"),
+	preload("res://assets/audio/distant_gun_2.ogg"),
+	preload("res://assets/audio/distant_gun_3.ogg"),
+	preload("res://assets/audio/distant_gun_4.ogg"),
+]
 ## Grabación real (prueba): la detonación de una bomba de aviación de 250 kg. Sustituye a la de
 ## arriba mientras GameSettings.real_explosions esté activo; ver `_pick`.
 const EXPLOSION_REAL := preload("res://assets/audio/explosion_real.ogg")

@@ -148,16 +148,23 @@ licencias en `assets/audio/CREDITS.md`. Las grabaciones se buscan y se bajan con
 elegidas de Commons y de Freesound a la rama `audio-raw`) y se montan con
 `tools/sound_gen/field_sounds.py`. Commons exige un `User-Agent` con datos de contacto: sin él responde 429.
 
-### Explosiones reales (prueba)
+### Cañonazo, cañones lejanos y explosiones reales
 
-El menú de pausa tiene el interruptor **«Explosiones reales (prueba)»** (encendido de serie). Con
-él, `Sfx.play_at` y `Sfx.play_2d` cambian la explosión de siempre por una grabación real
-(`Sfx._pick`): la detonación de una bomba de aviación de 250 kg de la Segunda Guerra Mundial. Al
-mover el interruptor suena la elegida, también en pausa (`Sfx.preview_explosion`), para compararla
-con la anterior sin salir de la partida. El cañonazo real que se probó en la 0.1.84 (un cañón de
-25 libras grabado con una cámara) se retiró: sonaba mal. El cañonazo y los impactos contra el
-blindaje siguen siendo los de Kenney. Fuente y licencia en `assets/audio/CREDITS.md`; el montaje,
-en `tools/sound_gen/field_sounds.py`. Prueba `sonido`.
+- **Cañonazo de los carros** (`cannon.ogg`): un disparo de un cañón antiguo en una recreación
+  histórica (kevp888, Freesound 654077, CC BY 4.0). Lo eligió de oído el autor del juego entre
+  cuatro candidatos; el anterior era una mezcla de sonidos de Kenney.
+- **Cañones lejanos** (`Sfx.DISTANT_GUNS`, cuatro variantes): cañonazos grabados de lejos (Andykub,
+  Freesound 415293, CC0). Suenan en el duelo de artillería de más allá del horizonte
+  (`SkyWar.distant_guns` → `distant_report`), con el retraso del sonido tras los fogonazos, en
+  todas las partidas con cielo de guerra. Antes ahí sonaba la explosión bajada de tono.
+- **Explosiones**: el menú de pausa tiene el interruptor **«Explosiones reales (prueba)»**
+  (encendido de serie). Con él, `Sfx.play_at` y `Sfx.play_2d` cambian la explosión de siempre por
+  la detonación de una bomba de aviación de 250 kg de la Segunda Guerra Mundial (`Sfx._pick`). Al
+  moverlo suena la elegida, también en pausa (`Sfx.preview_explosion`).
+- El cañonazo real de 25 libras que se probó en la 0.1.84 (grabado con una cámara) se retiró:
+  sonaba mal. Los impactos contra el blindaje siguen siendo los de Kenney.
+- Fuentes y licencias en `assets/audio/CREDITS.md`; el montaje, en
+  `tools/sound_gen/field_sounds.py`. Prueba `sonido`.
 
 ## Batería antiaérea (supervivencia)
 Cada tres oleadas (tras la 3, la 6, la 9…) y después de un respiro de 3,5 s, la vista vuela del tanque a
