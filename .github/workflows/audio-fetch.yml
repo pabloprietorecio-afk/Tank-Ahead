@@ -39,7 +39,7 @@ jobs:
         if: ${{ inputs.job != 'discover' }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          pip install -q faster-whisper
+          pip install -q faster-whisper || true
           git clone -q --depth 1 --branch audio-raw "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" audio_raw || mkdir -p audio_raw
           rm -rf audio_raw/.git
           grep -v "NO DESCARGADO" audio_raw/README.txt > keep.txt || true
@@ -47,7 +47,7 @@ jobs:
           python3 tools/audio_fetch/fetch.py
           ls -la audio_raw
       - name: Publicar en la rama audio-raw
-        if: ${{ inputs.job != 'discover' }}
+        if: ${{ always() && inputs.job != 'discover' }}
         run: |
           cd audio_raw
           git init -q

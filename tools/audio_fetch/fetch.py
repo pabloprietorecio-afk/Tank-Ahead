@@ -3,7 +3,7 @@
 de voz (para elegir los extractos sabiendo qué se dice). Deja todo en audio_raw/."""
 import os, subprocess, sys, time, urllib.parse, urllib.request
 
-UA = {"User-Agent": "ATankStory-audio-fetch/1.0 (github.com/pabloprietorecio-afk/Tank-Ahead)"}
+UA = {"User-Agent": "ATankStoryAudioFetch/1.1 (https://github.com/pabloprietorecio-afk/Tank-Ahead; pabloprietorecio-afk@users.noreply.github.com) python-urllib"}
 # id: (archivo en Commons, idioma si es voz, [inicio s, duración s] opcional)
 FILES = {
     "churchill_valour": ("Winston Churchill - Be Ye Men of Valour.ogg", "en", None),
@@ -43,20 +43,30 @@ FILES = {
 # Freesound (solo sonidos con licencia Creative Commons 0): id: página del sonido. Se baja la
 # escucha previa de alta calidad, que es pública (la descarga del original pide cuenta).
 FREESOUND = {
-    "splash_rock": "https://freesound.org/people/Fission9/sounds/583348/",
-    "amb_desert_wind": "https://freesound.org/people/Benbojangles/sounds/457159/",
-    "amb_desert_wind_2": "https://freesound.org/people/felix.blume/sounds/146914/",
+    # id: (página, [inicio s, duración s] opcional)
+    "splash_rock": ("https://freesound.org/s/583348/", None),
+    "amb_desert_wind": ("https://freesound.org/s/457159/", [20, 150]),
+    "amb_desert_wind_2": ("https://freesound.org/s/146914/", None),
+    "amb_sea_atlantic": ("https://freesound.org/s/470648/", [30, 120]),
+    "amb_sea_gentle": ("https://freesound.org/s/376795/", None),
+    "amb_meadow_summer": ("https://freesound.org/s/815552/", None),
+    "amb_meadow_france": ("https://freesound.org/s/539174/", [0, 150]),
+    "amb_countryside_dawn": ("https://freesound.org/s/275755/", [10, 150]),
+    "gulls_a": ("https://freesound.org/s/377107/", None),
+    "gulls_b": ("https://freesound.org/s/207130/", None),
 }
 
 os.makedirs("audio_raw", exist_ok=True)
 log = open("audio_raw/README.txt", "a")
 import re
 BROWSER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
-for key, page in FREESOUND.items():
+for key, (page, window) in FREESOUND.items():
     if os.path.exists(f"audio_raw/{key}.ogg"):
         continue
     try:
-        html = urllib.request.urlopen(urllib.request.Request(page, headers=BROWSER), timeout=60).read().decode("utf-8", "replace")
+        opened = urllib.request.urlopen(urllib.request.Request(page, headers=BROWSER), timeout=60)
+        response_url = opened.geturl()
+        html = opened.read().decode("utf-8", "replace")
         found = re.search(r"https://cdn\.freesound\.org/previews/[0-9]+/[0-9_]+-hq\.mp3", html)
         licence = "Creative Commons 0" in html
         if not found or not licence:
@@ -65,10 +75,12 @@ for key, page in FREESOUND.items():
         with urllib.request.urlopen(urllib.request.Request(found.group(0), headers=BROWSER), timeout=180) as response, open(source, "wb") as out:
             out.write(response.read())
         out = f"audio_raw/{key}.ogg"
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, "-vn", "-ac", "1", "-ar", "32000", "-c:a", "libvorbis", "-q:a", "6", out], check=False)
+        cut = ["-ss", str(window[0]), "-t", str(window[1])] if window else []
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, *cut, "-vn", "-ac", "1", "-ar", "32000", "-c:a", "libvorbis", "-q:a", "6", out], check=False)
         duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True, text=True).stdout.strip()
+        author = re.search(r"freesound\.org/people/([^/]+)/sounds", response_url)
         print("OK", key, duration, flush=True)
-        log.write(f"{key}: {duration} s | Freesound, CC0 | {page}\n")
+        log.write(f"{key}: {duration} s | Freesound, CC0, autor {author.group(1) if author else '?'} | {response_url}\n")
     except Exception as error:
         print("ERROR", key, error, flush=True)
         log.write(f"{key}: NO DESCARGADO ({page}: {error})\n")
@@ -80,8 +92,8 @@ for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][
     url = "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(name)
     source = "source_" + key
     ok = False
-    for attempt in range(6):
-        time.sleep(20 + attempt * 50)
+    for attempt in range(3):
+        time.sleep(8 + attempt * 30)
         try:
             with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=180) as response, open(source, "wb") as out:
                 out.write(response.read())
