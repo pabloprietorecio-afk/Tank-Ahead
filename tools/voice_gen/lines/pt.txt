@@ -67,3 +67,7 @@ tut_focus_a|Todos no alvo. Mire no tanque inimigo e aperte o ícone do alvo com 
 tut_focus_b|Todos os seus aliados atacam o que você marcou. Espere até que o destruam.
 tut_final|Combate final. Com os seus dois aliados, destrua os três tanques inimigos e o depósito. Use tudo o que aprendeu.
 tut_end|Tutorial concluído. Muito bem. Agora você pode começar a campanha.
+strafe_n|Caça inimigo vindo do norte! Saia da linha de tiro!
+strafe_e|Caça inimigo vindo do leste! Saia da linha de tiro!
+strafe_s|Caça inimigo vindo do sul! Saia da linha de tiro!
+strafe_w|Caça inimigo vindo do oeste! Saia da linha de tiro!

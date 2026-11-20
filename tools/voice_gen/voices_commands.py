@@ -32,6 +32,19 @@ LINES = {
         "es": ("em_alex", "es", "Sin objetivo a la vista."),
         "en": ("am_michael", "en-us", "No target in sight."),
     },
+    # Aviso de la radio (voz «em_santa», la de la base): un caza viene a ametrallar.
+    "strafe_n": {
+        "es": ("em_santa", "es", "¡Caza enemigo por el norte! ¡Sal de su línea de tiro!"),
+    },
+    "strafe_e": {
+        "es": ("em_santa", "es", "¡Caza enemigo por el este! ¡Sal de su línea de tiro!"),
+    },
+    "strafe_s": {
+        "es": ("em_santa", "es", "¡Caza enemigo por el sur! ¡Sal de su línea de tiro!"),
+    },
+    "strafe_w": {
+        "es": ("em_santa", "es", "¡Caza enemigo por el oeste! ¡Sal de su línea de tiro!"),
+    },
 }
 OUT = {"es": "voice", "en": "voice_en"}
 

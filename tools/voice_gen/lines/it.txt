@@ -67,3 +67,7 @@ tut_focus_a|Tutti sul bersaglio. Mira al carro nemico e premi l'icona del bersag
 tut_focus_b|Tutti i tuoi alleati attaccano ciò che hai indicato. Aspetta che lo distruggano.
 tut_final|Combattimento finale. Con i tuoi due alleati, distruggi i tre carri nemici e il deposito. Usa tutto ciò che hai imparato.
 tut_end|Tutorial completato. Ben fatto. Ora puoi iniziare la campagna.
+strafe_n|Caccia nemico da nord! Fuori dalla sua linea di tiro!
+strafe_e|Caccia nemico da est! Fuori dalla sua linea di tiro!
+strafe_s|Caccia nemico da sud! Fuori dalla sua linea di tiro!
+strafe_w|Caccia nemico da ovest! Fuori dalla sua linea di tiro!

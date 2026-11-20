@@ -10,6 +10,11 @@ enum Priority { LOW, NORMAL, HIGH, CRITICAL }
 ## Evento → variantes de audio.
 const EVENTS: Dictionary = {
 	"raid": ["raid_1", "raid_2"],
+	# Un caza viene a ametrallar: la radio dice de dónde (norte, este, sur, oeste).
+	"strafe_n": ["strafe_n"],
+	"strafe_e": ["strafe_e"],
+	"strafe_s": ["strafe_s"],
+	"strafe_w": ["strafe_w"],
 	"strike": ["strike_1", "strike_2"],
 	"strike_denied": ["strike_denied"],
 	"reinforcements": ["reinforcements"],

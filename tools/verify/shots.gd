@@ -117,6 +117,8 @@ class Runner extends Node:
 			await _real_guns()
 		if only.contains("limite"):
 			await _open_border()
+		if only.contains("ametralla"):
+			await _strafe()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -620,9 +622,17 @@ class Runner extends Node:
 			dummy.add_to_group(&"tanks")
 			_stage.add_child(dummy)
 			dummy.global_position = Vector3(rng.randf_range(-170.0, 170.0), 0.0, rng.randf_range(-170.0, 170.0))
+		# Una cámara que mira al norte desde el sur del campo, como la de un jugador: la mayoría de
+		# los derribos tiene que caer por delante de ella.
+		var eye := Camera3D.new()
+		_stage.add_child(eye)
+		eye.global_position = Vector3(20.0, 3.0, 110.0)
+		eye.current = true
 		Engine.time_scale = 6.0
 		for i in 48:
 			sky.front = i % 3
+			# Va girando poco a poco, como quien busca enemigos.
+			eye.rotation.y = sin(i * 0.7) * 0.9
 			sky.launch(i % 2, -1, true, 0)
 			models[sky.last_model] = true
 			await get_tree().create_timer(4.0).timeout
@@ -655,6 +665,10 @@ class Runner extends Node:
 			print("SKY MAL: los bombarderos casi no sueltan bombas")
 		if sky.crashes_inside < 5:
 			print("SKY MAL: casi ningún derribo cae dentro del campo, a la vista del jugador")
+		print("SKY derribos caídos delante de la cámara: %d de %d" % [sky.crashes_seen, sky.crashes])
+		# Sin llevarlos delante de la cámara eran 2 de 62; ahora, con la cámara girando, uno de cada tres.
+		if sky.crashes_seen * 5 < sky.crashes:
+			print("SKY MAL: menos de un quinto de los derribos cae delante de la cámara")
 
 	## Una formación de bombarderos bajo el fuego antiaéreo y un avión cayendo.
 	func _sky_shots() -> void:
@@ -1079,6 +1093,92 @@ class Runner extends Node:
 		GameSettings.real_explosions = was
 		GameSettings.save()
 		print("SONIDO RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
+	## Cazas que ametrallan: solo desde la tercera misión (y la oleada 3 en supervivencia); el
+	## pasillo pasa por el jugador y viene de donde dice el aviso; quien se queda dentro pierde
+	## blindaje una sola vez y quien sale de lado, nada; y alternan con los bombardeos.
+	func _strafe() -> void:
+		var bad: int = 0
+		var hud: Hud = await _start_game(GameSession.Mode.STORY, Fronts.Id.AFRICA, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 1)
+		var early: bool = (get_tree().current_scene.get_node("GameMode") as GameMode).strafes_active()
+		hud = await _start_game(GameSession.Mode.STORY, Fronts.Id.AFRICA, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 2)
+		var mode: GameMode = get_tree().current_scene.get_node("GameMode")
+		mode.set_process(false)
+		var tank: Tank = mode.player
+		var gate_ok: bool = not early and mode.strafes_active()
+		if not gate_ok:
+			bad += 1
+		print("AMETRALLA historia: en la segunda misión %s, en la tercera %s: %s" % ["sí" if early else "no", "sí" if mode.strafes_active() else "no", "bien" if gate_ok else "MAL"])
+		# Los enemigos, fuera: solo interesa la pasada.
+		for node in get_tree().get_nodes_in_group(&"tanks"):
+			if (node as Tank).team == GameMode.ENEMY_TEAM:
+				node.queue_free()
+		await _frames(2)
+		# 1) El jugador se queda quieto dentro del pasillo.
+		var before: float = tank.health.current
+		var strafe: Strafe = mode.enemy_strafe(0)
+		await _frames(2)
+		var notice_ok: bool = hud._message.text == Loc.t("¡CAZA ENEMIGO DESDE EL NORTE! SAL DEL PASILLO ROJO")
+		var lane_ok: bool = strafe.contains(tank.global_position) and strafe.direction.dot(Vector3(0.0, 0.0, 1.0)) > 0.9 and strafe.model != "" and strafe.is_in_group(&"radar_marks")
+		# Las balas tardan el aviso en llegar al pasillo y un segundo más en llegar al tanque, que está en el centro.
+		var start_ok: bool = absf(strafe.time_left() - Strafe.WARNING) < 0.3 and absf(strafe.time_to(tank.global_position) - Strafe.WARNING - Strafe.LENGTH * 0.5 / Strafe.SPEED) < 0.3 and tank.health.current == before
+		if DisplayServer.get_name() != "headless":
+			# A cámara lenta: el renderizador por software va a pocas imágenes por segundo.
+			Engine.time_scale = 0.1
+			await get_tree().create_timer(2.6).timeout
+			await _snap("ametralla_aviso")
+			await get_tree().create_timer(Strafe.WARNING - 2.6 + 0.6 - strafe._time + 2.6).timeout
+			await _snap("ametralla_pasada")
+			await get_tree().create_timer(0.45).timeout
+			await _snap("ametralla_encima")
+		Engine.time_scale = 4.0
+		await get_tree().create_timer(Strafe.WARNING + Strafe.LENGTH / Strafe.SPEED + 0.6).timeout
+		var lost: float = before - tank.health.current
+		var hit_ok: bool = absf(lost - Strafe.DAMAGE) < 0.5 and (not is_instance_valid(strafe) or not strafe.is_live())
+		if not (notice_ok and lane_ok and start_ok and hit_ok):
+			bad += 1
+		print("AMETRALLA quieto en el pasillo: aviso %s, pasillo por el jugador y de norte a sur %s, %0.f s de margen, blindaje perdido %.0f (una pasada quita %.0f): %s" % ["sí" if notice_ok else "NO", "sí" if lane_ok else "NO", Strafe.WARNING, lost, Strafe.DAMAGE, "bien" if notice_ok and lane_ok and start_ok and hit_ok else "MAL"])
+		await get_tree().create_timer(5.0).timeout
+		var gone: bool = not is_instance_valid(strafe)
+		# 2) El jugador sale de lado antes de que lleguen las balas.
+		before = tank.health.current
+		strafe = mode.enemy_strafe(1)
+		await _frames(2)
+		var aside := Vector3(strafe.direction.z, 0.0, -strafe.direction.x) * (Strafe.WIDTH * 0.5 + 4.0)
+		tank.global_position = Terrain.on_ground(tank.global_position + aside, 0.4)
+		await get_tree().create_timer(Strafe.WARNING + Strafe.LENGTH / Strafe.SPEED + 0.6).timeout
+		var dodge_ok: bool = tank.health.current == before and gone
+		if not dodge_ok:
+			bad += 1
+		print("AMETRALLA saliendo de lado: blindaje perdido %.0f (aliados que se quedaron dentro y lo pagaron: %d), la pasada anterior se retira %s: %s" % [before - tank.health.current, strafe.hits, "sí" if gone else "NO", "bien" if dodge_ok else "MAL"])
+		Engine.time_scale = 1.0
+		# 3) Los ataques aéreos alternan bombardeo y ametrallamiento.
+		for node in get_tree().get_nodes_in_group(&"strafes"):
+			node.queue_free()
+		await _frames(2)
+		for i in 120:
+			mode.enemy_air_raid()
+		var lanes: int = get_tree().get_nodes_in_group(&"strafes").size()
+		var raids: int = get_tree().get_nodes_in_group(&"air_strikes").size()
+		var mix_ok: bool = lanes + raids == 120 and lanes >= 40 and raids >= 40
+		if not mix_ok:
+			bad += 1
+		print("AMETRALLA de 120 ataques aéreos: %d ametrallamientos y %d bombardeos: %s" % [lanes, raids, "bien" if mix_ok else "MAL"])
+		for node in get_tree().get_nodes_in_group(&"strafes") + get_tree().get_nodes_in_group(&"air_strikes"):
+			node.queue_free()
+		# 4) Supervivencia: desde la oleada 3.
+		await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.KURSK, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+		var survival: SurvivalMode = get_tree().current_scene.get_node("GameMode") as SurvivalMode
+		survival.set_process(false)
+		survival.wave = 2
+		var wave2: bool = survival.strafes_active()
+		survival.wave = 3
+		var wave3: bool = survival.strafes_active()
+		if wave2 or not wave3:
+			bad += 1
+		print("AMETRALLA supervivencia: en la oleada 2 %s, en la 3 %s: %s" % ["sí" if wave2 else "no", "sí" if wave3 else "no", "bien" if not wave2 and wave3 else "MAL"])
+		print("AMETRALLA RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
 
 	## Límite del campo: en el desierto no hay valla y un aviso en pantalla dice dónde acaba; en

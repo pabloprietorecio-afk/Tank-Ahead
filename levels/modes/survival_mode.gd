@@ -53,6 +53,10 @@ func raids_active() -> bool:
 	return wave >= 2 and not air_phase
 
 
+func strafes_active() -> bool:
+	return wave >= 3 and not air_phase
+
+
 func _status_normal() -> String:
 	return Loc.t("PUNTOS %d   OLEADA %d   ENEMIGOS %d") % [score, wave, alive]
 

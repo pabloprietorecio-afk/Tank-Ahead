@@ -67,3 +67,7 @@ tut_focus_a|Alle auf das Ziel. Zielen Sie auf den feindlichen Panzer und drücke
 tut_focus_b|Alle Ihre Verbündeten greifen an, was Sie markiert haben. Warten Sie, bis sie es zerstören.
 tut_final|Letzter Kampf. Zerstören Sie mit Ihren zwei Verbündeten die drei feindlichen Panzer und das Depot. Nutzen Sie alles, was Sie gelernt haben.
 tut_end|Tutorial abgeschlossen. Gut gemacht. Jetzt können Sie die Kampagne beginnen.
+strafe_n|Feindlicher Jäger aus Norden! Raus aus seiner Schusslinie!
+strafe_e|Feindlicher Jäger aus Osten! Raus aus seiner Schusslinie!
+strafe_s|Feindlicher Jäger aus Süden! Raus aus seiner Schusslinie!
+strafe_w|Feindlicher Jäger aus Westen! Raus aus seiner Schusslinie!

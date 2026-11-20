@@ -56,6 +56,14 @@ const CRASH_CLEARANCE: float = 30.0
 const AVOID_RADIUS: float = 20.0
 ## A menos de esto de un tanque, el derribo cuenta como caído encima (debe ser siempre 0).
 const HIT_RADIUS: float = 8.0
+## Parte de los derribos que se llevan delante de la cámara del jugador: la formación pasa por un
+## punto a VIEW_RANGE metros por delante de lo que mira (y a VIEW_SPREAD de ancho, en proporción
+## a la distancia) y el avión cae allí. Sin esto casi todos caían a su espalda.
+const VIEW_SHARE: float = 0.75
+const VIEW_RANGE: Vector2 = Vector2(85.0, 195.0)
+const VIEW_SPREAD: float = 0.3
+## Un derribo cuenta como visto si cae a menos de este ángulo (rad) del centro de la vista.
+const SEEN_ANGLE: float = 0.6
 ## Restos de avión que se dejan en el campo a la vez (los más viejos se retiran).
 const MAX_WRECKS: int = 4
 ## Parte de las formaciones de bombarderos (y de aviones de asalto que no van rasantes) que
@@ -74,6 +82,8 @@ var front: int = Fronts.Id.NORMANDY
 ## Aviones derribados que han caído dentro del campo (debe ser siempre 0; lo miran las pruebas).
 var crashes_inside: int = 0
 var crashes: int = 0
+## Derribos caídos dentro del campo y por delante de la cámara (lo miran las pruebas).
+var crashes_seen: int = 0
 ## Derribos caídos encima de un tanque (debe ser siempre 0; lo miran las pruebas).
 var crashes_on_tanks: int = 0
 ## Bombas soltadas por las formaciones y cuántas han caído dentro del campo (debe ser siempre 0).
@@ -142,8 +152,15 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 		height = randf_range(LOW_HEIGHT.x, LOW_HEIGHT.y)
 	# Los rasantes cruzan por encima mismo del campo; los altos pueden pasar más de lado.
 	var aside: float = randf_range(-70.0, 70.0) if rasant else randf_range(-140.0, 140.0)
-	var lead_pos: Vector3 = -dir * 540.0 + right * aside + Vector3.UP * height
 	var count: int = randi_range(spec["group"].x, spec["group"].y)
+	if doomed < 0:
+		doomed = randi() % count if flak and randf() < DOWN_CHANCE else -1
+	# Si va a perder un avión, casi siempre se le hace pasar por delante de lo que mira el
+	# jugador, para que lo vea caer.
+	var view: Variant = _view_point() if doomed >= 0 and doomed < count and randf() < VIEW_SHARE else null
+	if view != null:
+		aside = (view as Vector3).dot(right)
+	var lead_pos: Vector3 = -dir * 540.0 + right * aside + Vector3.UP * height
 	var planes: Array[SkyPlane] = []
 	var paint: Array = PAINT[faction][front]
 	for i in count:
@@ -161,8 +178,6 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 	var sound_stream: AudioStream = Sfx.PLANE_FIGHTER if spec["engines"] == 1 else Sfx.PLANE_BOMBER
 	var sound := FlybySound.attach(planes[0], sound_stream, 7.0 + count + (5.0 if rasant else 0.0), 60.0, 900.0, 1.0 if spec["engines"] < 4 else 0.85)
 	sound.source_velocity = planes[0].velocity
-	if doomed < 0:
-		doomed = randi() % count if flak and randf() < DOWN_CHANCE else -1
 	# Dos cañones antiaéreos ligeros, fuera del campo y a los lados de la ruta, le tiran trazadoras.
 	var guns: Array[Vector3] = []
 	for side in [-1.0, 1.0]:
@@ -175,7 +190,7 @@ func launch(faction: int = -1, choice: int = -1, flak: bool = true, doomed: int 
 		"planes": Array(planes), "dir": dir, "flak": flak, "flak_timer": randf_range(0.5, 1.5), "sound": sound,
 		"guns": guns, "burst_timer": randf_range(0.2, 1.0), "burst_left": 0, "burst_gun": 0, "burst_due": 0.0,
 		"doomed": planes[doomed] if doomed >= 0 and doomed < count else null, "doom_at": randf_range(-230.0, 40.0), "faction": faction,
-		"inside": randf() < INSIDE_SHARE, "low": rasant,
+		"inside": view != null or randf() < INSIDE_SHARE, "low": rasant, "view": view,
 		"bombs": not rasant and model[1] != "fighter" and randf() < BOMB_SHARE,
 	}
 	_formations.append(formation)
@@ -222,13 +237,24 @@ func _update_formation(formation: Dictionary, delta: float) -> void:
 			var miss := Vector3(randf_range(-28.0, 28.0), randf_range(-16.0, 16.0), randf_range(-28.0, 28.0))
 			FlakBurst.spawn(self, target.global_position + target.velocity * 0.4 + miss, 1.0)
 	var doomed: Variant = formation["doomed"]
-	if doomed != null and is_instance_valid(doomed) and along >= formation["doom_at"] and not doomed.falling:
+	var view: Variant = formation.get("view")
+	if doomed != null and is_instance_valid(doomed) and (view != null or along >= formation["doom_at"]) and not doomed.falling:
 		var plane: SkyPlane = doomed
 		# Se le derriba cuando va a caer fuera del campo o, si le toca caer dentro, en un sitio
 		# despejado y lejos de todos los tanques: nunca encima de ellos.
 		var impact: Vector3 = plane.impact_point()
 		var outside: bool = absf(impact.x) > FIELD + 25.0 or absf(impact.z) > FIELD + 25.0
-		if (outside and not (formation["inside"] and along < -60.0)) or (formation["inside"] and crash_site_ok(impact)):
+		var down: bool = false
+		if view != null:
+			# Le toca caer delante de la cámara: se espera a que su punto de caída llegue allí.
+			# Si al llegar no está despejado, se suelta la cita y vale la regla de siempre.
+			var past: float = (impact - (view as Vector3)).dot(dir)
+			down = past >= 0.0 and crash_site_ok(impact)
+			if not down and past > 60.0:
+				formation["view"] = null
+		else:
+			down = (outside and not (formation["inside"] and along < -60.0)) or (formation["inside"] and crash_site_ok(impact))
+		if down:
 			FlakBurst.spawn(self, plane.global_position, 1.6)
 			plane.shoot_down(self)
 			formation["doomed"] = null
@@ -263,6 +289,40 @@ func _on_bomb(point: Vector3) -> void:
 
 ## ¿Puede caer un avión en ese punto del campo? Dentro del muro, en suelo libre (ni edificios
 ## ni zonas de misión ni agua) y con todos los tanques lejos.
+## Un punto despejado del campo por delante de lo que mira la cámara, o null si no lo hay.
+func _view_point() -> Variant:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera == null:
+		return null
+	var forward: Vector3 = -camera.global_transform.basis.z
+	forward.y = 0.0
+	if forward.length() < 0.2:
+		return null
+	forward = forward.normalized()
+	var side := Vector3(forward.z, 0.0, -forward.x)
+	for attempt in 8:
+		var distance: float = randf_range(VIEW_RANGE.x, VIEW_RANGE.y)
+		var point: Vector3 = camera.global_position + forward * distance + side * randf_range(-VIEW_SPREAD, VIEW_SPREAD) * distance
+		point.y = 0.0
+		if crash_site_ok(point):
+			return point
+	return null
+
+
+## ¿Queda el punto por delante de la cámara, dentro de lo que se ve?
+func _in_view(point: Vector3) -> bool:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera == null:
+		return false
+	var to: Vector3 = point - camera.global_position
+	to.y = 0.0
+	var forward: Vector3 = -camera.global_transform.basis.z
+	forward.y = 0.0
+	if to.length() < 1.0 or forward.length() < 0.2:
+		return false
+	return to.length() < 320.0 and forward.normalized().angle_to(to.normalized()) <= SEEN_ANGLE
+
+
 func crash_site_ok(point: Vector3) -> bool:
 	if absf(point.x) > FIELD - 35.0 or absf(point.z) > FIELD - 35.0:
 		return false
@@ -416,6 +476,8 @@ func _on_crash(point: Vector3, plane: SkyPlane = null) -> void:
 	if absf(point.x) >= FIELD or absf(point.z) >= FIELD:
 		return
 	crashes_inside += 1
+	if _in_view(point):
+		crashes_seen += 1
 	if nearest_tank(point) < HIT_RADIUS:
 		crashes_on_tanks += 1
 	if plane == null:
@@ -439,6 +501,10 @@ class SkyPlane extends Node3D:
 
 	var velocity: Vector3
 	var falling: bool = false
+	## Tono del motor al empezar a caer y al llegar al suelo (se embala según pierde altura).
+	const SCREAM_PITCH: Vector2 = Vector2(1.1, 1.75)
+	var _scream: FlybySound
+	var _scream_from: float = 1.0
 	var model: String = ""
 	var _props: Array[Node3D] = []
 	var _fx: Fx
@@ -535,6 +601,9 @@ class SkyPlane extends Node3D:
 		_fx = Fx.on(self)
 		_fx.airburst(global_position, 1.3)
 		Sfx.play_at(self, Sfx.EXPLOSION, global_position, 16.0, 0.9)
+		# El motor, desbocado: su zumbido sube de tono mientras cae y avisa de por dónde viene.
+		_scream = FlybySound.attach(self, Sfx.PLANE_FIGHTER, 15.0, 70.0, 900.0, SCREAM_PITCH.x)
+		_scream_from = maxf(global_position.y, 1.0)
 
 	func _process(delta: float) -> void:
 		for prop in _props:
@@ -542,6 +611,9 @@ class SkyPlane extends Node3D:
 		if falling:
 			velocity.y -= FALL_ACCEL * delta
 			_steer_clear(delta)
+			if is_instance_valid(_scream):
+				_scream.source_velocity = velocity
+				_scream.base_pitch = lerpf(SCREAM_PITCH.y, SCREAM_PITCH.x, clampf(global_position.y / _scream_from, 0.0, 1.0))
 			rotation.z += _roll_rate * delta
 			if velocity.length() > 1.0:
 				var heading: Vector3 = velocity.normalized()

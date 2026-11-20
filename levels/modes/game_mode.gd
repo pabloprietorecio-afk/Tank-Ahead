@@ -6,6 +6,15 @@ extends Node
 signal message(text: String, urgent: bool)
 signal ended(victory: bool, title: String, detail: String)
 
+## Parte de los ataques aéreos enemigos que son una pasada de ametrallamiento (donde las hay).
+const STRAFE_SHARE: float = 0.5
+## Aviso en pantalla según de dónde viene el caza (mismo orden que Strafe.FROM).
+const STRAFE_NOTICE: Array[String] = [
+	"¡CAZA ENEMIGO DESDE EL NORTE! SAL DEL PASILLO ROJO",
+	"¡CAZA ENEMIGO DESDE EL ESTE! SAL DEL PASILLO ROJO",
+	"¡CAZA ENEMIGO DESDE EL SUR! SAL DEL PASILLO ROJO",
+	"¡CAZA ENEMIGO DESDE EL OESTE! SAL DEL PASILLO ROJO",
+]
 const PLAYER_TEAM: int = 0
 const ENEMY_TEAM: int = 1
 
@@ -263,13 +272,33 @@ func raids_active() -> bool:
 	return true
 
 
+## ¿Pueden los cazas enemigos ametrallar al jugador? (La historia, desde la tercera misión;
+## supervivencia, desde la oleada 3.) Donde pueden, la mitad de los ataques aéreos lo son.
+func strafes_active() -> bool:
+	return false
+
+
 ## Bombardeo enemigo sobre la posición actual del jugador: hay 4 s para salir de la zona.
 func enemy_air_raid() -> void:
 	if player == null or player.is_destroyed:
 		return
+	if strafes_active() and randf() < STRAFE_SHARE:
+		enemy_strafe()
+		return
 	AirStrike.launch(world, player.global_position, true)
 	get_tree().call_group(&"voice", &"say", "raid", VoiceManager.Priority.CRITICAL)
 	message.emit(Loc.t("¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA"), true)
+
+
+## Un caza enemigo ametralla un pasillo recto que pasa por donde está el jugador: la radio dice
+## de dónde viene y hay unos segundos para salir de lado. `side`: ver Strafe.launch.
+func enemy_strafe(side: int = -1) -> Strafe:
+	if player == null or player.is_destroyed:
+		return null
+	var strafe: Strafe = Strafe.launch(world, player.global_position, true, side)
+	get_tree().call_group(&"voice", &"say", "strafe_" + strafe.from_key(), VoiceManager.Priority.CRITICAL)
+	message.emit(Loc.t(STRAFE_NOTICE[strafe.from_side]), true)
+	return strafe
 
 
 ## Premio por derribar un avión enemigo: blindaje, misil o bombardeo.

@@ -79,6 +79,14 @@ func _draw() -> void:
 				var r: float = mark.get_meta("radar_radius", 10.0) / RANGE * (RADIUS - 6.0)
 				draw_circle(pos, r, Color(mark_color, 0.35))
 				draw_arc(pos, r, 0.0, TAU, 24, mark_color, 2.0)
+			"strip":
+				# Pasillo de un ametrallamiento: una raya a escala con la punta hacia donde va el caza.
+				var half: Vector3 = (mark.get_meta("radar_along", Vector3.FORWARD) as Vector3) * float(mark.get_meta("radar_length", 100.0)) * 0.5
+				var tail: Vector2 = _to_radar(c, mark.global_position - half - origin, yaw)
+				var tip: Vector2 = _to_radar(c, mark.global_position + half - origin, yaw)
+				draw_line(tail, tip, Color(mark_color, 0.55), 4.0)
+				var back: Vector2 = (tail - tip).normalized() * 7.0
+				draw_colored_polygon(PackedVector2Array([tip, tip + back + back.orthogonal() * 0.7, tip + back - back.orthogonal() * 0.7]), mark_color)
 			"crossing":
 				# Puente o vado: dos rayas claras, por donde se cruza el río.
 				for shift: float in [-3.0, 3.0]:

@@ -70,6 +70,11 @@ func _init() -> void:
 	kind = mission["type"]
 
 
+## Los cazas ametrallan desde la tercera misión de cada campaña.
+func strafes_active() -> bool:
+	return GameSession.mission_index >= 2
+
+
 func backdrop() -> Dictionary:
 	return mission
 

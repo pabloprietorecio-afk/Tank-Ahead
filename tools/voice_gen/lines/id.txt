@@ -67,3 +67,7 @@ tut_focus_a|Semua ke sasaran. Bidik tank musuh dan tekan ikon sasaran dengan dua
 tut_focus_b|Semua sekutu Anda menyerang apa yang Anda tandai. Tunggu sampai mereka menghancurkannya.
 tut_final|Pertempuran terakhir. Bersama dua sekutu Anda, hancurkan ketiga tank musuh dan depot. Gunakan semua yang telah Anda pelajari.
 tut_end|Tutorial selesai. Kerja bagus. Sekarang Anda bisa memulai kampanye.
+strafe_n|Pesawat tempur musuh dari utara! Keluar dari garis tembaknya!
+strafe_e|Pesawat tempur musuh dari timur! Keluar dari garis tembaknya!
+strafe_s|Pesawat tempur musuh dari selatan! Keluar dari garis tembaknya!
+strafe_w|Pesawat tempur musuh dari barat! Keluar dari garis tembaknya!

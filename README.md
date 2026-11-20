@@ -257,6 +257,33 @@ cambia la potencia según lo que ese vehículo es frente al de serie (los ligero
 menos; los pesados son lentos, duros y pegan más), con su tamaño real y, en los cazacarros de casamata, el
 cañón casi fijo: entonces el casco gira solo hacia donde se apunta (`PlayerInputSource`).
 
+## Cazas que ametrallan y derribos a la vista
+
+**Ametrallamiento** (`entities/air/strafe.gd`, `shaders/strafe_lane.gdshader`). Desde la tercera
+misión de cada campaña, y desde la oleada 3 en supervivencia (`GameMode.strafes_active`), la mitad
+de los ataques aéreos enemigos (`STRAFE_SHARE`) ya no es un bombardeo sino un caza que ametralla:
+
+- La radio dice de dónde viene (norte, este, sur u oeste: `strafe_n`…`strafe_w`, en los diez
+  idiomas) y en el suelo se marca un pasillo rojo de 170 × 12 m que pasa por donde está el tanque,
+  con flechas en el sentido del caza. También sale en el radar.
+- A los 5 s (`WARNING`; un tanque gira despacio) el caza baja, enfila el pasillo y lo barre: una
+  hilera doble de surtidores de polvo avanza por él con las trazadoras. La cuenta de la pantalla es
+  hasta que las balas llegan a la altura del tanque.
+- Quien siga dentro cuando le llegan pierde 30 de blindaje (`DAMAGE`), una sola vez: castiga, no
+  mata. Vale igual para los aliados. Se esquiva saliendo de lado.
+- No cambia la frecuencia de los ataques aéreos (`raid_interval`): alterna con el bombardeo.
+- Sonidos: el motor es el del caza de ambiente y el cañón, la ráfaga real de 20 mm de la batería
+  antiaérea. No se ha encontrado una grabación libre de un ametrallamiento real.
+- Es igual en los tres frentes y con los dos bandos (decisión del autor: jugabilidad antes que
+  fidelidad; en Normandía la aviación alemana apenas atacaba a los carros aliados).
+- En francés, el texto de la voz del este es «l'este» a propósito: Kokoro lee «l'est» como el verbo.
+
+**Derribos a la vista** (`SkyWar.VIEW_SHARE`). Caía un avión cada 16 s de media, pero casi siempre
+a la espalda del jugador (en la prueba, 2 de 62 delante de la cámara). Ahora tres de cada cuatro
+formaciones que van a perder un avión pasan por un punto despejado a 85-195 m por delante de lo que
+mira el jugador y el avión cae allí (en la prueba, con la cámara girando, uno de cada tres). Al
+caer, el motor se embala: su zumbido sube de tono hasta el suelo. Pruebas `ametralla` y `sky`.
+
 ## Aliados
 En la historia salen dos aliados más de los que marca cada misión (`StoryMode.EXTRA_ALLIES`), con el
 blindaje reforzado, y por cada uno que cae entra un refuerzo por el borde sur hasta agotar la reserva.

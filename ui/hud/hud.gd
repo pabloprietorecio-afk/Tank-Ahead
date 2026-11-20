@@ -992,8 +992,22 @@ func _draw_objectives() -> void:
 		draw_string(font, Vector2(26.0, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color(0.5, 0.9, 0.5) if done else Color(1.0, 1.0, 1.0))
 
 
-## Aviso grande si el jugador está dentro de una zona de bombardeo enemigo.
+## Aviso grande si el jugador está dentro de una zona de bombardeo enemigo o del pasillo de un
+## caza que viene a ametrallar.
 func _draw_raid_warning(center: Vector2) -> void:
+	for node in get_tree().get_nodes_in_group(&"strafes"):
+		var strafe := node as Strafe
+		if strafe == null or not strafe.hostile_to_player or not strafe.is_live() or not strafe.contains(tank.global_position):
+			continue
+		# La cuenta es hasta que las balas llegan a la altura del tanque, no al principio del pasillo.
+		var due: float = strafe.time_to(tank.global_position)
+		if due <= 0.0:
+			continue
+		var lane_text: String = Loc.t("¡CAZA! SAL DEL PASILLO  %d") % ceili(due)
+		var beat: float = 0.6 + 0.4 * sin(Time.get_ticks_msec() / 80.0)
+		draw_rect(Rect2(Vector2.ZERO, size), Color(1.0, 0.0, 0.0, 0.12 * beat), true)
+		draw_string(ThemeDB.fallback_font, Vector2(0.0, center.y - 120.0), lane_text, HORIZONTAL_ALIGNMENT_CENTER, size.x, 40, Color(1.0, 0.25, 0.2, beat))
+		return
 	for node in get_tree().get_nodes_in_group(&"air_strikes"):
 		var strike := node as AirStrike
 		if strike == null or not strike.hostile_to_player or strike.time_left() <= 0.0:

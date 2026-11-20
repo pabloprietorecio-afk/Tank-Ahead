@@ -67,3 +67,7 @@ tut_focus_a|Tous sur la cible. Visez le char ennemi et appuyez sur l'icône de l
 tut_focus_b|Tous vos alliés attaquent ce que vous avez désigné. Attendez qu'ils le détruisent.
 tut_final|Combat final. Avec vos deux alliés, détruisez les trois chars ennemis et le dépôt. Utilisez tout ce que vous avez appris.
 tut_end|Didacticiel terminé. Bien joué. Vous pouvez maintenant commencer la campagne.
+strafe_n|Chasseur ennemi venant du nord ! Sortez de sa ligne de tir !
+strafe_e|Chasseur ennemi venant de l'este ! Sortez de sa ligne de tir !
+strafe_s|Chasseur ennemi venant du sud ! Sortez de sa ligne de tir !
+strafe_w|Chasseur ennemi venant de l'ouest ! Sortez de sa ligne de tir !
