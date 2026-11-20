@@ -4,7 +4,11 @@ import json, re, sys, time, urllib.parse, urllib.request
 
 API = "https://commons.wikimedia.org/w/api.php"
 UA = {"User-Agent": "ATankStory-audio-fetch/1.0 (github.com/pabloprietorecio-afk/Tank-Ahead)"}
-QUERIES = sys.argv[1:] or [
+# Con AUDIO_QUERIES (una búsqueda por línea) se buscan esas; AUDIO_TYPES elige audio, vídeo o ambos
+# (de un vídeo vale la pista de sonido).
+import os
+TYPES = (os.environ.get("AUDIO_TYPES") or "audio").split()
+QUERIES = [line.strip() for line in os.environ.get("AUDIO_QUERIES", "").splitlines() if line.strip()] or sys.argv[1:] or [
     "Hitler 1939", "Hitler 1941", "Kriegserklärung", "Deutschlandsender", "Goebbels", "Rundfunk 1939", "Rundfunk 1944",
     "German radio 1940", "BBC 1944", "D-Day broadcast", "Montgomery", "Levitan", "Stalin 1941", "radio broadcast 1944",
     "tank engine", "Panzer", "tank sound", "T-34", "Sherman tank", "diesel engine", "tracked vehicle", "Kettenfahrzeug",
@@ -19,11 +23,11 @@ def clean(html):
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html or "")).strip()
 
 
-for query in QUERIES:
+for query in [f"filetype:{kind} {text}" for text in QUERIES for kind in TYPES]:
     params = {
         "action": "query", "format": "json", "generator": "search", "gsrnamespace": "6",
-        "gsrsearch": "filetype:audio " + query, "gsrlimit": "40", "prop": "imageinfo",
-        "iiprop": "url|size|mime|extmetadata",
+        "gsrsearch": query, "gsrlimit": "30", "prop": "imageinfo",
+        "iiprop": "url|size|mime|extmetadata|mediatype",
     }
     data = None
     for attempt in range(5):
@@ -44,6 +48,6 @@ for query in QUERIES:
         info = (page.get("imageinfo") or [{}])[0]
         meta = info.get("extmetadata", {})
         get = lambda key: clean(meta.get(key, {}).get("value", ""))
-        print("%s | %s | %d KB | %s | %s | %s | %s" % (
-            page["title"], info.get("mime", "?"), info.get("size", 0) // 1024, get("LicenseShortName"),
+        print("%s | %s | %d KB | %s s | %s | %s | %s | %s" % (
+            page["title"], info.get("mime", "?"), info.get("size", 0) // 1024, info.get("duration", "?"), get("LicenseShortName"),
             get("DateTimeOriginal")[:20], get("Artist")[:40], get("ImageDescription")[:160]))
