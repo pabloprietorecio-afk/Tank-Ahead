@@ -157,7 +157,24 @@ Se apunta con el mismo mando que la torreta y dispara a ráfaga mientras se mant
 (`PlayerInputSource` desvía los mandos a `AaBattery.active`; el HUD pinta su mira de anillos). Sin
 cámara lenta: los aviones de la fase van 1,6 veces más deprisa. Hay 28 s para derribar 3
 (`SurvivalMode.AIR_GOAL`): al conseguirlo se repone el bombardeo, y si no pasa ni uno, además un misil.
-Al acabar, la vista vuelve al tanque. Prueba: `SHOTS_ONLY=aereo` (`AEREO_FOTOS=1` guarda capturas).
+Al acabar, la vista vuelve al tanque. El cañón se lleva con la palanca izquierda (la de mover el
+tanque): se apunta con un pulgar y se dispara con el otro; arrastrar por la derecha sirve para el ajuste
+fino. Desde el puesto del apuntador el cañón se ve translúcido, para que no tape el cielo.
+Prueba: `SHOTS_ONLY=aereo` (`AEREO_FOTOS=1` guarda capturas).
+
+## Costa en supervivencia y captura la bandera
+Cuatro de cada diez partidas de supervivencia y de captura la bandera en Normandía y en el norte de
+África se juegan junto al mar (`GameMode.coast_backdrop`): playa a un lado del campo, con la flota de
+invasión o un puerto. En supervivencia el mar puede quedar a cualquier lado y nadie entra por él
+(`edge_point` salta ese borde); en captura la bandera queda al este o al oeste, igual para las dos bases.
+En Kursk no hay costa. `GameSession.debug_coast` la fija en las pruebas (`SHOTS_ONLY=costa`).
+
+## Mira con objetivo fijado
+Con la cámara por detrás del tanque, la mira se pinta donde la línea del cañón pasa a la distancia del
+objetivo fijado (`Hud._aim_screen_point`), con una amortiguación ligera. Antes se pintaba en lo primero
+que tocara esa línea sin contar los tanques (el suelo lejano o un punto a 250 m), y desde la cámara
+elevada quedaba por encima del objetivo. Sin objetivo fijado cuenta también los tanques. Prueba:
+`SHOTS_ONLY=mira`.
 
 ## Pantalla de carga
 Al entrar en una partida (`ui/loading/`), una pantalla tapa el montaje del campo: un carro de perfil

@@ -23,6 +23,9 @@ static var debug_bare: bool = false
 static var skip_intro: bool = false
 ## Pruebas: trazado del campo forzado para los modos que lo sortean ("" = sortearlo).
 static var debug_layout: String = ""
+## Costa en supervivencia y captura la bandera: "" la sortea, "none" nunca, o el lado del mar
+## ("n", "s", "e", "w"). Las pruebas la fijan.
+static var debug_coast: String = ""
 ## Tanque elegido para repetir una misión ya superada (premium); "" = el de serie del frente.
 static var tank_choice: String = ""
 

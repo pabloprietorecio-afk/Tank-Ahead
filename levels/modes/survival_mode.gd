@@ -45,6 +45,10 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	message.emit(Loc.t("%s — PREPÁRATE") % Loc.t(Fronts.NAMES[front]), false)
 
 
+func backdrop() -> Dictionary:
+	return coast_backdrop(["n", "s", "e", "w"])
+
+
 func raids_active() -> bool:
 	return wave >= 2 and not air_phase
 

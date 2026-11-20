@@ -20,6 +20,12 @@ const SPREAD: float = 0.006
 const MIN_PITCH: float = deg_to_rad(-3.0)
 const MAX_PITCH: float = deg_to_rad(86.0)
 const TURN_SPEED: float = 2.6
+## Giro y elevación (rad/s) con la palanca a fondo.
+const LEVER_YAW: float = 1.7
+const LEVER_PITCH: float = 1.1
+## Opacidad del cañón visto desde el puesto del apuntador: queda como un cristal para que no
+## tape el cielo.
+const GHOST_ALPHA: float = 0.22
 ## Segundos que tarda la vista en ir del tanque a la batería y en volver.
 const MOVE_IN: float = 1.3
 const MOVE_OUT: float = 0.9
@@ -53,6 +59,8 @@ var _from_fov: float = 60.0
 var _blend: float = 0.0
 var _moving: int = 0
 var _back_to: Camera3D
+var _ghost: StandardMaterial3D
+var _solid: Dictionary = {}
 
 
 static func make(nation: String) -> AaBattery:
@@ -225,8 +233,30 @@ func leave() -> void:
 		return
 	trigger = false
 	_stop_fire()
+	_set_ghost(false)
 	_moving = -1
 	_blend = 1.0
+
+
+## Desde el puesto del apuntador el cañón (todo lo que gira con él) se ve translúcido; desde
+## fuera, macizo.
+func _set_ghost(on: bool) -> void:
+	if _ghost == null:
+		_ghost = StandardMaterial3D.new()
+		_ghost.albedo_color = Color(0.82, 0.86, 0.8, GHOST_ALPHA)
+		_ghost.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_ghost.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_ghost.cull_mode = BaseMaterial3D.CULL_BACK
+	for node: Node in _yaw_node.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		if on:
+			if not _solid.has(mesh):
+				_solid[mesh] = mesh.material_override
+			mesh.material_override = _ghost
+			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		elif _solid.has(mesh):
+			mesh.material_override = _solid[mesh]
+			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 
 ## Mueve la mira (radianes): la llaman los mandos del jugador.
@@ -273,6 +303,7 @@ func _process(delta: float) -> void:
 		camera.fov = lerpf(_from_fov, 62.0, weight)
 		if _moving > 0 and _blend >= 1.0:
 			_moving = 0
+			_set_ghost(true)
 		elif _moving < 0 and _blend <= 0.0:
 			_moving = 0
 			active = null

@@ -51,6 +51,8 @@ class Runner extends Node:
 		# Las pruebas quieren la partida en marcha desde el primer instante (la entrada aérea
 		# tiene su propia prueba, «intro»).
 		GameSession.skip_intro = true
+		# Y sin sortear costa en supervivencia y captura la bandera (su prueba es «costa»).
+		GameSession.debug_coast = "none"
 		_dir = ProjectSettings.globalize_path("res://shots_out")
 		DirAccess.make_dir_recursive_absolute(_dir)
 		_run.call_deferred()
@@ -107,6 +109,10 @@ class Runner extends Node:
 			await _stay()
 		if only.contains("aereo"):
 			await _air_phase()
+		if only.contains("costa"):
+			await _coast()
+		if only.contains("mira"):
+			await _lock_reticle()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -996,6 +1002,73 @@ class Runner extends Node:
 		print("CARGA RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
 
+	## Con un objetivo fijado y la cámara por detrás del tanque, la mira naranja queda sobre el
+	## objetivo (no por encima de él, en lo que haya detrás) y no tiembla.
+	func _lock_reticle() -> void:
+		var bad: int = 0
+		for view: int in [1, 2]:
+			var hud: Hud = await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.KURSK, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, view)
+			var mode: SurvivalMode = get_tree().current_scene.get_node("GameMode")
+			mode.raid_interval = Vector2.ZERO
+			mode.set_process(false)
+			var player: Tank = mode.player
+			player.health.invulnerable = true
+			var enemy: Tank = mode.spawn_tank(Fronts.tank("panzer4"), GameMode.ENEMY_TEAM, Vector2(player.global_position.x + 7.0, player.global_position.z - 70.0), 1.1)
+			enemy.get_node("AIBrain").queue_free()
+			await _frames(3)
+			GameSettings.aim_assist = false
+			hud.input_source._voice_lock = true
+			player.aim_lock = enemy
+			await get_tree().create_timer(2.5).timeout
+			var worst: float = 0.0
+			var shake: float = 0.0
+			var last: Vector2 = hud._reticle_at
+			for i in 60:
+				await _frames(1)
+				var on_target: Vector2 = player.camera.unproject_position(enemy.global_position + Vector3.UP * 1.2 * enemy.stats.body_scale)
+				worst = maxf(worst, hud._reticle_at.distance_to(on_target))
+				shake = maxf(shake, hud._reticle_at.distance_to(last))
+				last = hud._reticle_at
+			# Como se calculaba antes (lo primero que tocaba la línea del cañón, sin contar los
+			# tanques, o un punto a 250 m): solo para dejar constancia de cuánto se iba.
+			var muzzle: Vector3 = player.muzzle.global_position
+			var far: Vector3 = muzzle - player.muzzle.global_transform.basis.z * 250.0
+			var old_hit: Dictionary = player.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(muzzle, far, 1 | Terrain.LAYER))
+			var old_point: Vector3 = old_hit["position"] if not old_hit.is_empty() else far
+			var before: float = player.camera.unproject_position(old_point).distance_to(player.camera.unproject_position(enemy.global_position + Vector3.UP * 1.2 * enemy.stats.body_scale))
+			var ok: bool = worst < 26.0 and shake < 2.5
+			if not ok:
+				bad += 1
+			print("MIRA vista %d: la mira fijada se separa del objetivo como mucho %.1f px y tiembla %.2f px por cuadro (con el cálculo de antes quedaba a %.0f px): %s" % [view, worst, shake, before, "bien" if ok else "MAL"])
+		print("MIRA RESULT fallos: ", bad)
+		GameSettings.aim_assist = true
+		GameSession.debug_weather = -1
+
+	## Supervivencia y captura la bandera junto al mar: el campo se monta con su playa, nadie
+	## entra por el lado del agua y, en captura la bandera, el mar queda a un lado (las bases
+	## siguen al norte y al sur). En Kursk no hay costa aunque se pida.
+	func _coast() -> void:
+		var bad: int = 0
+		for case: Array in [[GameSession.Mode.SURVIVAL, Fronts.Id.NORMANDY, "s", Vector2(0.0, 1.0)], [GameSession.Mode.SURVIVAL, Fronts.Id.AFRICA, "n", Vector2(0.0, -1.0)], [GameSession.Mode.CTF, Fronts.Id.NORMANDY, "e", Vector2(1.0, 0.0)], [GameSession.Mode.CTF, Fronts.Id.AFRICA, "n", Vector2(1.0, 0.0)], [GameSession.Mode.SURVIVAL, Fronts.Id.KURSK, "s", Vector2.ZERO]]:
+			GameSession.debug_coast = case[2]
+			await _start_game(case[0], case[1], Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+			GameSession.debug_coast = "none"
+			var arena: Node = get_tree().current_scene
+			var mode: GameMode = arena.get_node("GameMode")
+			var side: Vector2 = Backdrop.sea_side
+			var wet: int = 0
+			for i in 60:
+				var point: Vector2 = mode.edge_point()
+				if side != Vector2.ZERO and point.dot(side) > GameMode.EDGE - 2.0:
+					wet += 1
+			var sea_built: bool = (arena.get_node_or_null("Ambience/Sea") != null) == (side != Vector2.ZERO)
+			var ok: bool = side == case[3] and wet == 0 and sea_built and mode.player != null
+			if not ok:
+				bad += 1
+			print("COSTA %s en %s, pedida «%s»: mar hacia %s | entradas por el lado del mar: %d de 60 | %s" % ["supervivencia" if case[0] == GameSession.Mode.SURVIVAL else "captura la bandera", Fronts.NAMES[case[1]], case[2], str(side), wet, "bien" if ok else "MAL"])
+		print("COSTA RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
 	## Supervivencia: el ataque aéreo llega solo cada tres oleadas y no de golpe (hay un respiro
 	## tras el «oleada superada»). Entonces la vista pasa del tanque a una batería antiaérea en
 	## un sitio despejado, sin cámara lenta; sus disparos derriban los aviones; con tres
@@ -1029,6 +1102,18 @@ class Runner extends Node:
 			var clear: bool = gap > AaBattery.RADIUS + 4.0 and absf(battery.global_position.x) < 180.0 and absf(battery.global_position.z) < 180.0
 			await get_tree().create_timer(AaBattery.MOVE_IN + 0.3).timeout
 			var seated: bool = battery.ready() and get_viewport().get_camera_3d() == battery.camera and battery.camera.global_position.distance_to(battery.global_position) < 4.0
+			# Desde el puesto, el cañón se ve translúcido; y la palanca izquierda lo mueve.
+			var glassy: bool = (battery._barrel.get_child(0) as MeshInstance3D).material_override == battery._ghost
+			var touch: TouchControls = arena._hud.touch
+			var yaw_before: float = battery._aim_yaw
+			var pitch_before: float = battery._aim_pitch
+			touch.move_vector = Vector2(0.8, 0.6)
+			await get_tree().create_timer(0.4).timeout
+			touch.move_vector = Vector2.ZERO
+			var lever: bool = angle_difference(yaw_before, battery._aim_yaw) < -0.15 and battery._aim_pitch > pitch_before + 0.08
+			if not glassy or not lever:
+				bad += 1
+				print("AEREO MAL: cañón translúcido %s | la palanca izquierda mueve la mira %s" % [glassy, lever])
 			if photos and wave == 3:
 				_camera = Camera3D.new()
 				_camera.far = 2800.0
@@ -1070,7 +1155,7 @@ class Runner extends Node:
 			var rewarded: bool = mode.strikes == 1
 			mode._end_air_phase()
 			await get_tree().create_timer(AaBattery.MOVE_OUT + 0.3).timeout
-			var back: bool = AaBattery.active == null and get_viewport().get_camera_3d() == mode.player.camera
+			var back: bool = AaBattery.active == null and get_viewport().get_camera_3d() == mode.player.camera and (battery._barrel.get_child(0) as MeshInstance3D).material_override != battery._ghost
 			if not placed or not clear or not seated or not shot_down or not rewarded or not back:
 				bad += 1
 			print("AEREO oleada %d: batería %s a %.0f m del tanque, despejada: %s | la vista llega al apuntador: %s | derriba un avión a ráfagas (%d disparos): %s | 3 derribos reponen el bombardeo: %s | la vista vuelve al tanque: %s" % [wave, battery.gun_name, gap, "sí" if placed and clear else "NO", "sí" if seated else "NO", battery.shots, "sí" if shot_down else "NO", "sí" if rewarded else "NO", "sí" if back else "NO"])

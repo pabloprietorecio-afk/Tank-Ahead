@@ -24,6 +24,10 @@ var _end_panel: PanelContainer
 ## Hay una pausa publicitaria en curso (evita pulsar dos veces).
 var _ad_busy: bool = false
 var _view_button: Button
+## Dónde se pinta la mira del cañón. Con un objetivo fijado sigue a su punto con un pelo de
+## amortiguación, para que no tiemble con cada corrección de la torreta.
+var _reticle_at: Vector2
+var _reticle_set: bool = false
 ## Tras ganar, el jugador ha elegido seguir en el campo: el menú de fin de misión está cerrado y
 ## vuelve con el botón de pausa (o solo, si le destruyen el tanque).
 var _roaming: bool = false
@@ -686,6 +690,12 @@ func _process(delta: float) -> void:
 	if _overlay.visible:
 		(_overlay.material as ShaderMaterial).set_shader_parameter("hurt", _flash)
 		(_overlay.material as ShaderMaterial).set_shader_parameter("vignette", 0.3 if vignette else 0.0)
+	var reticle_goal: Vector2 = _aim_screen_point(size * 0.5)
+	if _reticle_set and tank.aim_lock != null and _reticle_at.distance_to(reticle_goal) < 220.0:
+		_reticle_at = _reticle_at.lerp(reticle_goal, 1.0 - exp(-delta * 14.0))
+	else:
+		_reticle_at = reticle_goal
+	_reticle_set = true
 	_release.visible = tank.aim_lock != null and not director.is_over and AaBattery.active == null
 	_zoom_button.visible = AaBattery.active == null
 	_view_button.visible = AaBattery.active == null
@@ -740,7 +750,7 @@ func _draw() -> void:
 		if AaBattery.active.ready():
 			_draw_aa_sight(_aim_screen_point(center))
 		return
-	_draw_reticle(_aim_screen_point(center), locked)
+	_draw_reticle(_reticle_at if _reticle_set else _aim_screen_point(center), locked)
 	if tank == null:
 		return
 	if tank.aim_lock != null and is_instance_valid(tank.aim_lock):
@@ -785,6 +795,7 @@ func _draw_aa_sight(aim: Vector2) -> void:
 		for arm: Vector2 in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 			draw_line(aim + arm * 96.0, aim + arm * 118.0, color, width, true)
 	var font: Font = ThemeDB.fallback_font
+	draw_string_outline(font, aim + Vector2(-160.0, 150.0), AaBattery.active.gun_name, HORIZONTAL_ALIGNMENT_CENTER, 320.0, 18, 5, Color(0.0, 0.0, 0.0, 0.75))
 	draw_string(font, aim + Vector2(-160.0, 150.0), AaBattery.active.gun_name, HORIZONTAL_ALIGNMENT_CENTER, 320.0, 18, Color(0.95, 0.92, 0.82))
 
 
@@ -869,10 +880,20 @@ func _aim_screen_point(center: Vector2) -> Vector2:
 	if tank == null or GameSettings.camera_view == 0 or tank.camera == null:
 		return center
 	var from: Vector3 = tank.muzzle.global_position
-	var to: Vector3 = from - tank.muzzle.global_transform.basis.z * 250.0
-	var query := PhysicsRayQueryParameters3D.create(from, to, 1 | Terrain.LAYER)
-	var hit: Dictionary = tank.get_world_3d().direct_space_state.intersect_ray(query)
-	var point: Vector3 = hit["position"] if not hit.is_empty() else to
+	var aim: Vector3 = -tank.muzzle.global_transform.basis.z
+	var point: Vector3
+	if tank.aim_lock != null and is_instance_valid(tank.aim_lock):
+		# Con un objetivo fijado la mira se pinta donde la línea del cañón pasa a la distancia
+		# de ese objetivo: sobre él cuando el cañón ya lo tiene, y sin saltar a lo que haya
+		# detrás (el suelo lejano, un seto, el cielo).
+		point = from + aim * clampf(from.distance_to(tank.aim_lock.global_position), 6.0, 400.0)
+	else:
+		var to: Vector3 = from + aim * 250.0
+		# Lo primero que encuentra el disparo: el terreno, un obstáculo u otro tanque.
+		var query := PhysicsRayQueryParameters3D.create(from, to, 1 | Tank.LAYER_TANK | Terrain.LAYER)
+		query.exclude = [tank.get_rid()]
+		var hit: Dictionary = tank.get_world_3d().direct_space_state.intersect_ray(query)
+		point = hit["position"] if not hit.is_empty() else to
 	if tank.camera.is_position_behind(point):
 		return center
 	return tank.camera.unproject_position(point)

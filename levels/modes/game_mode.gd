@@ -83,6 +83,34 @@ func backdrop() -> Dictionary:
 	return {}
 
 
+## Parte de las partidas de supervivencia y de captura la bandera en Normandía y en el norte
+## de África se juegan junto al mar (en Kursk no hay costa): playa a un lado del campo, con la
+## flota de invasión o un puerto según el frente. `sides`: los lados por los que puede quedar.
+const COAST_SHARE: float = 0.4
+var _coast: Dictionary = {}
+var _coast_drawn: bool = false
+
+func coast_backdrop(sides: Array[String]) -> Dictionary:
+	if _coast_drawn:
+		return _coast
+	_coast_drawn = true
+	var side: String = GameSession.debug_coast
+	if GameSession.front == Fronts.Id.KURSK or side == "none" or GameSession.debug_layout != "":
+		return _coast
+	if side == "":
+		if randf() >= COAST_SHARE:
+			return _coast
+		side = sides.pick_random()
+	elif not sides.has(side):
+		side = sides[0]
+	# (Con la forma de una misión: el paisaje va en su clave `backdrop`.)
+	if GameSession.front == Fronts.Id.AFRICA:
+		_coast = {"backdrop": {"sea": side, "sea_extras": ["harbor"] if randf() < 0.35 else [], "smoke": 2}}
+	else:
+		_coast = {"backdrop": {"sea": side, "sea_extras": ["fleet", "balloons", "landing"] if randf() < 0.5 else ["fleet", "balloons"], "smoke": 3}}
+	return _coast
+
+
 ## Clima obligado (Weather.Kind) o -1 para sortearlo entre los del frente.
 func forced_weather() -> int:
 	return -1
@@ -475,6 +503,9 @@ func edge_point(min_distance: float = 110.0, north_only: bool = false, south_onl
 				3:
 					point = Vector2(EDGE, along)
 		if not is_free_point.call(point) or not _fits_among(point, solids, 4.0):
+			continue
+		# Por el lado del mar no entra nadie (salvo que la misión pida ese lado).
+		if not north_only and not south_only and Backdrop.sea_side != Vector2.ZERO and point.dot(Backdrop.sea_side) > EDGE - 2.0:
 			continue
 		var distance: float = point.distance_to(origin)
 		if distance >= min_distance:

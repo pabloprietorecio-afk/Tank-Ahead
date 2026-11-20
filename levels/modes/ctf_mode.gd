@@ -41,6 +41,11 @@ func base_pos(team: int) -> Vector3:
 	return Vector3(0.0, 0.0, BASE_Z if team == PLAYER_TEAM else -BASE_Z)
 
 
+## Las bases están al norte y al sur: el mar, si lo hay, queda a un lado (igual para los dos).
+func backdrop() -> Dictionary:
+	return coast_backdrop(["e", "w"])
+
+
 func player_spawn() -> Transform3D:
 	return Transform3D(Basis(), base_pos(PLAYER_TEAM) + Vector3(0.0, 0.2, -12.0))
 

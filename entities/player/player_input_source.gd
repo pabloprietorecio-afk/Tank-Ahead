@@ -40,13 +40,17 @@ func _process(delta: float) -> void:
 	if tank == null or touch == null or tank.is_destroyed:
 		return
 	if AaBattery.active != null:
-		# En la batería antiaérea: el mismo mando mueve su mira y el gatillo es el suyo; el
-		# tanque se queda quieto.
+		# En la batería antiaérea el cañón se lleva con la palanca izquierda (la de mover el
+		# tanque), para apuntar con un pulgar y disparar con el otro; arrastrar por la derecha
+		# también sirve, para el ajuste fino. El tanque se queda quieto.
 		var sweep: Vector2 = touch.consume_look_delta()
+		var lever: Vector2 = touch.move_vector
 		tank.trigger_held = false
 		tank.drive_input = Vector2.ZERO
 		if AaBattery.active.ready():
-			AaBattery.active.aim(-sweep.x * look_sensitivity, -sweep.y * look_sensitivity)
+			# Palanca a fondo, giro rápido; un toque suave, corrección fina.
+			var push: Vector2 = lever * lever.length()
+			AaBattery.active.aim(-push.x * AaBattery.LEVER_YAW * delta - sweep.x * look_sensitivity, push.y * AaBattery.LEVER_PITCH * delta - sweep.y * look_sensitivity)
 			AaBattery.active.trigger = touch.fire_held
 		return
 	var stick: Vector2 = touch.move_vector
