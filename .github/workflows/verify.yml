@@ -79,7 +79,7 @@ jobs:
           grep -q "SEGUIR RESULT fallos: 0" logic.log || { echo "«Seguir en el campo» tras la victoria no funciona"; exit 1; }
           grep -q "COSTA RESULT fallos: 0" logic.log || { echo "Las partidas junto al mar de supervivencia o captura la bandera no salen como deben"; grep "^COSTA" logic.log; exit 1; }
           grep -q "MIRA RESULT fallos: 0" logic.log || { echo "La mira con un objetivo fijado no queda sobre el objetivo o tiembla"; grep "^MIRA" logic.log; exit 1; }
-          grep -q "SONIDO RESULT fallos: 0" logic.log || { echo "El cañonazo y la explosión reales no suenan o el interruptor de la pausa no los cambia"; grep "^SONIDO" logic.log; exit 1; }
+          grep -q "SONIDO RESULT fallos: 0" logic.log || { echo "La explosión real no suena o el interruptor de la pausa no la cambia"; grep "^SONIDO" logic.log; exit 1; }
           grep -q "AEREO RESULT fallos: 0" logic.log || { echo "El ataque aéreo de supervivencia no entra como debe"; grep "^AEREO" logic.log; exit 1; }
           grep -q "BARCOS RESULT fallos: 0" logic.log || { echo "La misión de hundir barcos no sale como debe"; grep "^BARCOS" logic.log; exit 1; }
           grep -q "INTRO RESULT fallos: 0" logic.log || { echo "La entrada aérea de las misiones no empieza o no acaba como debe"; grep "^INTRO" logic.log; exit 1; }

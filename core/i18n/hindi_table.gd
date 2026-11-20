@@ -361,7 +361,7 @@ const TABLE: Dictionary = {
 	"TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ": "यह तुम्हें लग जाता। फिर से कोशिश करो",
 	"SALTAR LECCIÓN": "पाठ छोड़ें",
 	"TOCA PARA SALTAR": "छोड़ने के लिए टैप करें",
-	"Cañón y explosiones reales (prueba)": "असली तोप और धमाके (परीक्षण)",
+	"Explosiones reales (prueba)": "असली धमाके (परीक्षण)",
 	"¡ATAQUE AÉREO! A LA BATERÍA: DERRIBA %d AVIONES Y REPÓN EL BOMBARDEO": "हवाई हमला! तोप संभालो: %d विमान गिराओ और हवाई हमला फिर भर लो",
 	"¡%d AVIONES DERRIBADOS! BOMBARDEO REPUESTO": "%d विमान गिराए! हवाई हमला फिर तैयार",
 	"¡NO HA PASADO NI UNO! +1 MISIL": "एक भी नहीं निकल पाया! +1 मिसाइल",

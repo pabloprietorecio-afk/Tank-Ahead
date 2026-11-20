@@ -3,19 +3,14 @@
 - Cañón, explosiones e impactos: mezclas propias a partir de sonidos de **Kenney** (www.kenney.nl),
   packs *Sci-Fi Sounds*, *Impact Sounds* y *Desert Shooter Pack*, con licencia
   **CC0 1.0 (dominio público)**. Obtenidos de la copia de github.com/series-ai/jam-ready-assets.
-- Cañonazo real, en prueba (`cannon_real.ogg`): el disparo de «25 pounder firing a blank» de
-  user:geni (Wikimedia Commons, **CC BY-SA 4.0**): un cañón QF de 25 libras, de la Segunda Guerra
-  Mundial, disparando una salva (sin proyectil) en el museo Royal Armouries de Fort Nelson; sonido de
-  un vídeo de 2008. Recorte de 1,15 s desde el disparo, refuerzo de graves por debajo de 110 Hz,
-  agudos suavizados y nivel igualado al resto; misma licencia. La grabación satura en el estampido.
 - Explosión real, en prueba (`explosion_real.ogg`): «FliegerbombensprengungMuenchen2012» de
   Simon Aschenbrenner (Wikimedia Commons, **CC BY 3.0**): la detonación controlada de una bomba de
   aviación de 250 kg de la Segunda Guerra Mundial en Schwabing (Múnich) el 28 de agosto de 2012,
   grabada a unos 300 m. Recorte de 2,8 s desde la detonación y nivel igualado; la grabación satura
   en el primer instante.
-  Los dos suenan en lugar del cañonazo y la explosión de Kenney mientras esté encendido el ajuste
-  «Cañón y explosiones reales (prueba)» del menú de pausa. Se eligieron por su ficha y por el
-  análisis de la onda y del espectrograma, sin escucharlos.
+  Suena en lugar de la explosión de Kenney mientras esté encendido el ajuste «Explosiones reales
+  (prueba)» del menú de pausa. Se eligió por su ficha y por el análisis de la onda y del
+  espectrograma, sin escucharla.
 - Lluvia y trueno: sintetizados por código para este proyecto.
 - Motores de tanque (grabaciones reales, Wikimedia Commons, **CC BY-SA 3.0**, Nederlands Instituut
   voor Beeld en Geluid). Los bucles del juego son adaptaciones (recorte, fundido en bucle y

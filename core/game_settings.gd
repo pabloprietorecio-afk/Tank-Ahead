@@ -57,8 +57,8 @@ static var voice_always_open: bool = false
 ## Clima elegido por el jugador (Weather.Kind) o -1 para sortearlo en cada partida.
 static var weather: int = -1
 
-## Cañonazo y explosiones con grabaciones reales (prueba). Apagado, suenan los de siempre.
-static var real_guns: bool = true
+## Explosiones con una grabación real (prueba). Apagado, suena la de siempre.
+static var real_explosions: bool = true
 
 ## Idioma del juego: "es" (por defecto) o "en".
 static var language: String = "es"
@@ -80,7 +80,7 @@ static func ensure_loaded() -> void:
 		sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
 		voice_volume = cfg.get_value("audio", "voice", voice_volume)
 		master_volume = cfg.get_value("audio", "master", master_volume)
-		real_guns = bool(cfg.get_value("audio", "real_guns", real_guns))
+		real_explosions = bool(cfg.get_value("audio", "real_explosions", real_explosions))
 		difficulty = clampi(cfg.get_value("game", "difficulty", difficulty), 0, 3)
 		highlight_enemies = cfg.get_value("game", "highlight_enemies", highlight_enemies)
 		highlight_objectives = cfg.get_value("game", "highlight_objectives", highlight_objectives)
@@ -103,7 +103,7 @@ static func save() -> void:
 	cfg.set_value("audio", "sfx", sfx_volume)
 	cfg.set_value("audio", "voice", voice_volume)
 	cfg.set_value("audio", "master", master_volume)
-	cfg.set_value("audio", "real_guns", real_guns)
+	cfg.set_value("audio", "real_explosions", real_explosions)
 	cfg.set_value("game", "difficulty", difficulty)
 	cfg.set_value("game", "highlight_enemies", highlight_enemies)
 	cfg.set_value("game", "highlight_objectives", highlight_objectives)

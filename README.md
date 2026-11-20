@@ -148,15 +148,16 @@ licencias en `assets/audio/CREDITS.md`. Las grabaciones se buscan y se bajan con
 elegidas de Commons y de Freesound a la rama `audio-raw`) y se montan con
 `tools/sound_gen/field_sounds.py`. Commons exige un `User-Agent` con datos de contacto: sin él responde 429.
 
-### Cañonazo y explosiones reales (prueba)
+### Explosiones reales (prueba)
 
-El menú de pausa tiene el interruptor **«Cañón y explosiones reales (prueba)»** (encendido de
-serie). Con él, `Sfx.play_at` y `Sfx.play_2d` cambian el cañonazo y la explosión de siempre por dos
-grabaciones reales (`Sfx._pick`): el disparo de un cañón de 25 libras y la detonación de una bomba
-de aviación de 250 kg de la Segunda Guerra Mundial. Al mover el interruptor suenan los dos seguidos,
-también en pausa (`Sfx.preview_guns`), para compararlos con los anteriores sin salir de la partida.
-Los impactos contra el blindaje no cambian. Las fuentes y licencias están en
-`assets/audio/CREDITS.md`; el montaje, en `tools/sound_gen/field_sounds.py`. Prueba `sonido`.
+El menú de pausa tiene el interruptor **«Explosiones reales (prueba)»** (encendido de serie). Con
+él, `Sfx.play_at` y `Sfx.play_2d` cambian la explosión de siempre por una grabación real
+(`Sfx._pick`): la detonación de una bomba de aviación de 250 kg de la Segunda Guerra Mundial. Al
+mover el interruptor suena la elegida, también en pausa (`Sfx.preview_explosion`), para compararla
+con la anterior sin salir de la partida. El cañonazo real que se probó en la 0.1.84 (un cañón de
+25 libras grabado con una cámara) se retiró: sonaba mal. El cañonazo y los impactos contra el
+blindaje siguen siendo los de Kenney. Fuente y licencia en `assets/audio/CREDITS.md`; el montaje,
+en `tools/sound_gen/field_sounds.py`. Prueba `sonido`.
 
 ## Batería antiaérea (supervivencia)
 Cada tres oleadas (tras la 3, la 6, la 9…) y después de un respiro de 3,5 s, la vista vuela del tanque a

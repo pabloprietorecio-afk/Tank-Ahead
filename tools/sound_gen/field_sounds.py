@@ -134,11 +134,6 @@ body *= 10 ** (-1.0 / 20.0) / np.abs(body).max()
 write_wav("aa_fire.wav", body, True)
 print(f"aa_fire.wav: bucle de 0,8 s, nivel {level(body):.1f} dB")
 
-# Cañonazo: el disparo de un cañón de 25 libras (salva, en el museo de Fort Nelson). El micro de la
-# cámara apenas recoge graves y carga los agudos: se sube el cuerpo por debajo de 110 Hz y se
-# suaviza por encima de 4,5 kHz.
-at = onset("gun_25pdr.ogg", 7.2)
-shot("cannon_real.ogg", "gun_25pdr.ogg", at, 1.15, 0.45, -2.0, 0.002, "highpass=f=35,bass=g=8:f=110,treble=g=-5:f=4500", drive=5.0)
 # Explosión: la detonación de una bomba de aviación de 250 kg de la Segunda Guerra Mundial
 # (Múnich, 2012), grabada a 300 m.
 at = onset("boom_ww2_bomb.ogg", 29.46)
