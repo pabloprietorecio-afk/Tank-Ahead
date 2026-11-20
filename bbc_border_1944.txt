@@ -1,0 +1,9 @@
+    0.0     2.0 This is the BBC Home Service.
+    2.0     4.0 He has another piece of good news.
+    4.0     8.0 The Allies have now crossed the Dutch frontier.
+    8.0    11.0 The announcement has been made by the Netherlands Prime Minister
+   11.0    13.0 in a broadcast to his countrymen
+   13.0    16.0 calling on them to welcome the forces of liberation.
+   16.0    19.0 He didn't say where the crossing had been made.
+   19.0    22.0 The British Second Army closing on Antwerp
+   22.0    25.0 was last reported less than 20 miles from the border.

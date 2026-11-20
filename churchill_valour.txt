@@ -1,0 +1,85 @@
+    0.0     7.1 I speak to you for the first time as Prime Minister in a solemn hour for the life of our
+    7.1    14.9 country, of our empire, of our allies, and above all of the cause of freedom.
+   16.6    24.6 A tremendous battle is raging in France and Flanders. The Germans, by a remarkable combination
+   25.4    32.2 of air bombing and heavily armoured tanks, have broken through the French defences north of the
+   32.2    38.9 Maginot Line, and strong columns of their armoured vehicles are ravaging the open country,
+   39.7    45.9 which for the first day or two was without defenders. They have penetrated deeply and
+   45.9    52.5 spread alarm and confusion in their tracks. Behind them there are now appearing infantry
+   52.6    57.4 in lorries, and behind them again the large masses are moving forward.
+   59.0    65.7 The regroupment of the French armies to make head against and also to strike at this
+   65.7    72.7 intruding wedge has been proceeding for several days, largely assisted by the
+   72.7    79.9 magnificent efforts of the Royal Air Force. We must not allow ourselves to be intimidated
+   80.8    85.2 by the presence of these armoured vehicles in unexpected places behind our lines.
+   86.5    93.3 If they are behind our front, the French are also at many points fighting actively behind
+   93.3   101.6 theirs. Both sides are therefore in an extremely dangerous position, and if the French army
+  102.5   108.4 and our own army are well handled, as I believe they will be, if the French retain
+  108.4   114.1 that genius for recovery and counter attack, which they have so long been famous,
+  115.2   121.5 and if the British army shows the dogged endurance and solid fighting power, which
+  121.5   128.7 there have been so many examples in the past, then a sudden transformation of the scene
+  128.7   136.8 might spring into being. It would be foolish, however, to disguise the gravity of the hour.
+  138.5   143.9 It would be still more foolish to lose heart and courage or to suppose that well-trained,
+  143.9   150.1 well-equipped armies numbering three or four millions of men can be overcome in the space
+  150.1   157.6 of a few weeks or even months by a scoop or raid of mechanized vehicles, however formidable.
+  158.8   162.4 We may look with confidence to the stabilisation of the front in France
+  163.3   168.7 and to the general engagement of the masses, which will enable the qualities of the French
+  168.7   174.3 and British soldiers to be matched squarely against those of their adversaries.
+  175.8   180.9 For myself, I have invincible confidence in the French army and its leaders.
+  182.1   189.7 Only a very small part of that splendid army has yet been heavily engaged, and only a very
+  189.7   196.4 small part of France has yet been invaded. There is good evidence to show that practically the whole
+  196.4   202.0 of the specialised and mechanised forces of the enemy have been already thrown into the battle,
+  202.6   209.0 and we know that very heavy losses have been inflicted upon them. No officer or man,
+  209.8   214.5 no brigade or division which grapples at close quarters with the enemy,
+  214.5   219.6 wherever encountered, can fail to make a worthy contribution to the general result.
+  221.1   227.8 The armies must cast away the idea of resisting attack behind concrete lines or natural obstacles,
+  228.5   234.9 and must realise that mastery can only be regained by furious and unrelenting assault,
+  236.3   241.4 and this spirit must not only animate the high command, but must inspire every fighting man.
+  242.3   250.2 In the air, often at serious odds, often at odds, given to who thought overwhelming,
+  250.2   257.4 we have been clawing down three or four to one of our enemy, and the relative balance of the
+  257.4   263.3 British and German air forces is now considerably more favourable to us than at the beginning of
+  263.3   269.6 the battle. In cutting down the German bombers, we are fighting our own battle, as well as
+  270.5   277.3 that of France. My confidence in our ability to fight it out to the finish with the German air force
+  277.8   282.5 has been strengthened by the fierce encounters which have taken place and are taking place.
+  283.6   289.2 At the same time, our heavy bombers are striking nightly at the tap-root of German
+  289.2   296.1 mechanised power, and have already inflicted serious damage upon the oil refineries
+  296.1   303.5 on which the nasty effort to dominate the world directly depends. We must expect
+  304.4   310.7 that as soon as stability is reached on the western front, the bulk of that hideous apparatus of
+  310.7   316.7 aggression which dashed Holland into ruin and slavery in a few days will be turned upon us.
+  318.7   324.6 I am sure I speak for all when I say we are ready to face it, to endure it,
+  325.4   331.6 and to retaliate against it to any extent that the unwritten laws of war permit.
+  332.9   339.6 There will be many men and many women in this island who when the ordeal comes upon them,
+  339.6   346.5 as come it will, will feel comfort and even a pride that they are sharing the perils of our
+  346.5   353.1 lads at the front, soldiers, sailors and airmen, God bless them, and are drawing away for them
+  353.1   360.9 a part at least of the onslaught they have to bear. Is not this the appointed time for all
+  360.9   368.1 to make the utmost exertions in their power? If the battle is to be won, we must provide our men
+  368.1   374.3 with ever increasing quantities of the weapons and ammunition they need. We must have and have
+  374.3   381.4 quickly more aeroplanes, more tanks, more shells, more guns. There is imperious need for these
+  381.4   388.4 vital munitions, they increase our strength against the powerfully armed enemy, they replace the wastage
+  388.4   396.0 of the obstinate struggle, and the knowledge that wastage will speedily be replaced enables us to
+  396.0   401.4 draw more readily upon our reserves and throw them in now that everything counts so much.
+  402.6   405.9 Our task is not only to win the battle, but to win the war.
+  406.4   413.3 After this battle in France abates its force, there will come the battle for our islands,
+  414.7   420.5 for all that Britain is and all that Britain means, that will be the struggle.
+  422.0   428.4 In that supreme emergency, we shall not hesitate to take every step, even the most drastic,
+  428.4   434.7 to call forth from our people the last ounce and the last inch of effort of which they are
+  434.7   441.1 capable. The interests of property, the hours of labour are nothing compared to the struggle for
+  441.1   447.9 life and honour, for right and freedom to which we have bowed ourselves. I have received from the
+  448.7   457.1 chiefs of the French Republic, and in particular from its indomitable Prime Minister, Monsieur Rayneau,
+  458.0   464.9 the most sacred pledges that whatever happens, they will fight to the end, be it bitter or be
+  464.9   474.4 glorious. Nay, if we fight to the end, it can only be glorious. Having received his Majesty's
+  474.4   480.2 commission, I have formed an administration of men and women of every party, and of almost
+  480.2   487.9 every point of view, we have differed and quarreled in the past, that now one bond unites at all,
+  488.8   496.4 to wage war until victory is won, and never to surrender ourselves to servitude and shame
+  497.1   504.7 whatever the cost and the agony may be. This is one of the most awe-striking periods
+  505.2   511.5 in the long history of France and Britain. It is also, beyond doubt, the most sublime.
+  512.4   519.1 Side by side, unaided except by their kittenkin in the great dominions, and by the wide
+  519.1   525.6 empires which rest beneath their shield. Side by side, the British and French people
+  525.6   532.4 have advanced to rescue not only Europe but mankind from the foulest and most
+  532.5   540.6 sole destroying tyranny which had ever darkened and stained the pages of history. Behind them,
+  541.9   550.0 behind us, behind the armies and pleats of Britain and France gather a group of shattered
+  550.0   558.0 states and bludgeoned races, the Czechs, the Poles, the Norwegians, the Danes, the Dutch,
+  558.0   566.2 the Belgians, upon all of whom the long night of barbarism will descend unbroken even by a star
+  566.2   576.9 of hope. Unless we conquer, as conquer we must, as conquer we shall, today is Trinity Sunday.
+  578.4   584.4 Century-to-go words were written to be a call and a spur to the faithful servants
+  584.9   594.6 of truth and justice. Arm yourselves and be men of valor and be in readiness for the conflict,
+  595.3   600.8 for it is better for us to perish in battle than to look upon the outrage of our nation
+  600.8   608.3 and our altars as the will of God is in heaven. Even so, let him do.
