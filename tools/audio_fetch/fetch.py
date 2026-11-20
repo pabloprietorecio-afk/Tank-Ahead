@@ -28,10 +28,51 @@ FILES = {
     "plane_steady": ("Propeller-plane-flying-steady-01.wav", None, None),
     "plane_trimotor": ("EAA Ford TriMotor NC8407.ogg", None, None),
     "gun_sexton": ("Sexton artillery firing.oga", None, None),
+    # Cañón automático (Bofors de 40 mm), ambiente de cada frente, mar y gaviotas.
+    "gun_bofors": ("IJssellinie Olst Bofors 44 mm demo.ogv", None, None),
+    "gun_flab": ("Flabshoot.webm", None, None),
+    "amb_breeze_birds": ("Gentle breeze and birds singing.ogg", None, None),
+    "amb_skylark": ("Alauda arvensis - Eurasian Skylark XC484052.mp3", None, None),
+    "amb_crickets": ("Atmo – Grillen mit Vögel.mp3", None, None),
+    "amb_bushcricket": ("BioAcoustica 561 5 Metrioptera roeselli fedt 757r1.flac", None, [0, 90]),
+    "amb_sea": ("Sea waves.wav", None, None),
+    "amb_pebble_beach": ("On a pebble beach.ogg", None, None),
+    "gull_med": ("Yellow-legged Gull - Larus michahellis michahellis.ogg", None, None),
+    "gull_herring": ("XC707075 - European Herring Gull - Larus argentatus.mp3", None, None),
+}
+# Freesound (solo sonidos con licencia Creative Commons 0): id: página del sonido. Se baja la
+# escucha previa de alta calidad, que es pública (la descarga del original pide cuenta).
+FREESOUND = {
+    "splash_rock": "https://freesound.org/people/Fission9/sounds/583348/",
+    "amb_desert_wind": "https://freesound.org/people/Benbojangles/sounds/457159/",
+    "amb_desert_wind_2": "https://freesound.org/people/felix.blume/sounds/146914/",
 }
 
 os.makedirs("audio_raw", exist_ok=True)
 log = open("audio_raw/README.txt", "a")
+import re
+BROWSER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"}
+for key, page in FREESOUND.items():
+    if os.path.exists(f"audio_raw/{key}.ogg"):
+        continue
+    try:
+        html = urllib.request.urlopen(urllib.request.Request(page, headers=BROWSER), timeout=60).read().decode("utf-8", "replace")
+        found = re.search(r"https://cdn\.freesound\.org/previews/[0-9]+/[0-9_]+-hq\.mp3", html)
+        licence = "Creative Commons 0" in html
+        if not found or not licence:
+            raise RuntimeError("sin escucha previa" if not found else "la página no dice Creative Commons 0")
+        source = "source_" + key
+        with urllib.request.urlopen(urllib.request.Request(found.group(0), headers=BROWSER), timeout=180) as response, open(source, "wb") as out:
+            out.write(response.read())
+        out = f"audio_raw/{key}.ogg"
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, "-vn", "-ac", "1", "-ar", "32000", "-c:a", "libvorbis", "-q:a", "6", out], check=False)
+        duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True, text=True).stdout.strip()
+        print("OK", key, duration, flush=True)
+        log.write(f"{key}: {duration} s | Freesound, CC0 | {page}\n")
+    except Exception as error:
+        print("ERROR", key, error, flush=True)
+        log.write(f"{key}: NO DESCARGADO ({page}: {error})\n")
+    time.sleep(5)
 model = None
 for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][1] is not None):
     if os.path.exists(f"audio_raw/{key}.ogg"):
