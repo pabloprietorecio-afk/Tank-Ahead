@@ -110,7 +110,8 @@ func reserved_zones() -> Array[Rect2]:
 func start(player_tank: Tank, world_root: Node3D) -> void:
 	super.start(player_tank, world_root)
 	get_tree().call_group(&"voice", &"say", "mission_start", VoiceManager.Priority.HIGH)
-	var allies: int = mission.get("allies", 0) + EXTRA_ALLIES
+	# Una misión marcada `"solo": true` se juega sin aliados ni refuerzos propios.
+	var allies: int = 0 if mission.get("solo", false) else mission.get("allies", 0) + EXTRA_ALLIES
 	var spawn: Vector3 = player_spawn().origin
 	for i in allies:
 		# En abanico a los dos lados del jugador; cada pareja, un poco más atrás.

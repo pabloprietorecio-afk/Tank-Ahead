@@ -260,6 +260,9 @@ cañón casi fijo: entonces el casco gira solo hacia donde se apunta (`PlayerInp
 En la historia salen dos aliados más de los que marca cada misión (`StoryMode.EXTRA_ALLIES`), con el
 blindaje reforzado, y por cada uno que cae entra un refuerzo por el borde sur hasta agotar la reserva.
 Supervivencia no tiene aliados; captura la bandera sigue siendo 4 contra 4.
+Una misión marcada `"solo": true` en `data/missions/campaign.gd` se juega sin aliados ni refuerzos
+propios (y sin los botones de órdenes). En prueba en la segunda misión de cada bando en el Norte de
+África («Combustible enemigo» y «El aeródromo británico»), que resultaba demasiado fácil.
 
 Con la orden «todos conmigo» los aliados marchan en formación (`entities/enemies/ai/formation.gd`): una
 cuña abierta por detrás del jugador, con cada puesto a 18 m o más de los demás y del propio jugador,

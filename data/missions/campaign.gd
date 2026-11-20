@@ -60,7 +60,7 @@ const DATA: Dictionary = {
 		Fronts.Faction.ALLIES: [
 			{"title": "PATRULLA EN EL DESIERTO", "type": "assault", "count": 4, "allies": 1, "map": "wadi",
 				"briefing": "Desierto libio. Una avanzadilla enemiga se ha adelantado. Encuéntrala y destrúyela."},
-			{"title": "COMBUSTIBLE ENEMIGO", "type": "destroy", "count": 3, "allies": 1, "map": "oasis", "backdrop": {"villages": 1},
+			{"title": "COMBUSTIBLE ENEMIGO", "type": "destroy", "count": 3, "allies": 1, "solo": true, "map": "oasis", "backdrop": {"villages": 1},
 				"briefing": "Sin combustible no hay ofensiva. Destruye los tres depósitos de bidones del enemigo junto al oasis."},
 			{"title": "LA LÍNEA", "type": "defend", "time": 150, "allies": 2, "map": "alamein", "backdrop": {"sea": "n"},
 				"briefing": "Hemos fortificado una posición con sacos terreros. Resiste el asalto de los blindados enemigos."},
@@ -78,7 +78,7 @@ const DATA: Dictionary = {
 		Fronts.Faction.AXIS: [
 			{"title": "AVANCE SOBRE TOBRUK", "type": "assault", "count": 4, "allies": 1, "map": "wadi", "backdrop": {"sea": "n", "sea_extras": ["harbor"], "skyline": {"n": "tobruk"}, "smoke": 3},
 				"briefing": "Desierto libio. Los blindados británicos protegen el camino a Tobruk. Ábrete paso."},
-			{"title": "EL AERÓDROMO BRITÁNICO", "type": "sabotage", "target": "airfield", "allies": 1, "map": "desert",
+			{"title": "EL AERÓDROMO BRITÁNICO", "type": "sabotage", "target": "airfield", "allies": 1, "solo": true, "map": "desert",
 				"briefing": "Los aviones británicos atacan nuestras columnas desde un aeródromo del desierto. Destruye hangares, torre y aviones."},
 			{"title": "EL PASO", "type": "defend", "time": 150, "allies": 2, "map": "ridge", "backdrop": {"sea": "e"},
 				"briefing": "Controlamos un paso entre las dunas. Resiste el contraataque hasta que lleguen refuerzos."},

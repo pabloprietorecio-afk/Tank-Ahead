@@ -2298,6 +2298,17 @@ class Runner extends Node:
 		if _allies_alive().size() != expected - 1:
 			bad += 1
 		print("ALIADOS sin reserva: cae otro y quedan %d" % _allies_alive().size())
+		# Las misiones marcadas «solo» (la segunda de cada bando en África) no llevan aliados.
+		for faction: int in [Fronts.Faction.ALLIES, Fronts.Faction.AXIS]:
+			var hud: Hud = await _start_game(GameSession.Mode.STORY, Fronts.Id.AFRICA, faction, Weather.Kind.SUNNY, 1, 1)
+			mode = get_tree().current_scene.get_node("GameMode") as StoryMode
+			mode.set_process(false)
+			await _frames(4)
+			var orders_hidden: bool = hud == null or not hud._follow_button.visible
+			var alone: bool = bool(mode.mission.get("solo", false)) and _allies_alive().is_empty() and mode.allies_reserve == 0 and orders_hidden
+			if not alone:
+				bad += 1
+			print("ALIADOS en «%s»: %d aliados, reserva %d, botones de órdenes %s: %s" % [mode.mission["title"], _allies_alive().size(), mode.allies_reserve, "ocultos" if orders_hidden else "A LA VISTA", "bien" if alone else "MAL"])
 		print("ALIADOS RESULT fallos de aliados y refuerzos: ", bad)
 		GameSession.debug_bare = false
 		GameSession.debug_weather = -1
