@@ -643,7 +643,7 @@ func _page_premium(index: int = -1) -> void:
 		return
 	_clear(Loc.t("NIVEL PREMIUM"))
 	_showing_premium = true
-	var text := _label(Loc.t("Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque y quitar los anuncios."), 26, Color(0.85, 0.9, 0.85))
+	var text := _label(Loc.t("Las tres primeras misiones de cada frente son gratuitas. Hazte Premium para jugar el resto de la campaña, repetir las misiones superadas con cualquier otro tanque, seguir en el campo de batalla tras la victoria y quitar los anuncios."), 26, Color(0.85, 0.9, 0.85))
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.custom_minimum_size = Vector2(760.0, 0.0)
 	_content.add_child(text)
@@ -778,4 +778,5 @@ func _page_briefing(index: int) -> void:
 
 
 func _play() -> void:
-	get_tree().change_scene_to_file("res://levels/arena.tscn")
+	var heading: String = Loc.t(GameSession.current_mission()["title"]) if GameSession.mode == GameSession.Mode.STORY else ""
+	Loading.open(get_tree(), "res://levels/arena.tscn", heading)

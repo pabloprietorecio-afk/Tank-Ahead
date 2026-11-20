@@ -21,6 +21,27 @@
 - Estampido de la antiaérea (`flak.ogg`): un disparo de «Sexton artillery firing» de
   LouiseBrown1981 (Wikimedia Commons, **CC BY-SA 3.0**): cañón autopropulsado Sexton de 25 libras,
   de la Segunda Guerra Mundial, disparando en Fort Nelson. Recortado y ecualizado; misma licencia.
+- Cañón automático antiaéreo (`aa_burst.ogg`, `aa_fire.wav`, `aa_tail.ogg`): una ráfaga de «Flabshoot»
+  de Kobel (Wikimedia Commons, **CC BY-SA 3.0**), vídeo de un ejercicio de tiro de la antiaérea suiza
+  (la ficha no dice el modelo del cañón; cadencia medida, unos 17 disparos por segundo). Recorte, bucle
+  del tramo central y cola; misma licencia. La grabación satura en los disparos.
+- Chapuzón de un proyectil en el agua (`splash.ogg`): «Rock Splash» de Fission9 (Freesound 583348,
+  **CC0**): una piedra de 3 a 5 kg cayendo a un arroyo.
+- Ambiente de cada frente (bucles hechos con `tools/sound_gen/field_sounds.py`, que elige el tramo más
+  parejo de cada grabación):
+  - `amb_normandy.wav`: «Gentle breeze and birds singing» de ezwa (pdsounds, Wikimedia Commons,
+    **dominio público**): brisa con una curruca capirotada y un pinzón.
+  - `amb_africa.wav`: «Desert binaural Wind» de Benbojangles (Freesound 457159, **CC0**): viento que
+    arrastra arena en el desierto del interior de Fuerteventura.
+  - `amb_kursk.wav`: «Summer meadow - Houghton Lodge» de richwise (Freesound 815552, **CC0**): insectos
+    en la hierba alta y seca de un prado en verano, con algún pájaro y brisa.
+  - `amb_sea.wav`: «Waves On The Beach (Sand Wash)» de ralph.whitehead (Freesound 470648, **CC0**):
+    oleaje en una playa de arena del Atlántico (Falmouth).
+- Gaviotas: `gull_herring.ogg`, de «XC707075 - European Herring Gull - Larus argentatus» (Sonothèque
+  ADVL, Wikimedia Commons, **CC0**); `gull_med.ogg`, de «Yellow-legged Gull - Larus michahellis
+  michahellis» de Cedric Mroczko (Wikimedia Commons, **CC BY-SA 4.0**; recorte con la misma licencia).
+- De Freesound se usa la escucha previa de alta calidad (MP3), que es pública. Estas grabaciones se
+  eligieron por su ficha, su licencia y la forma de la onda, **sin oírlas**.
 - Voz de radio «air_phase» (aviso de ataque aéreo): Kokoro TTS, voz «em_santa», con efecto de radio.
 - Radio del menú, bando alemán, partes militares (`radio_de_0` a `radio_de_3`): textos originales
   locutados con la voz «Thorsten» (Thorsten-Voice, dataset CC0) y Piper TTS. No son grabaciones de época.

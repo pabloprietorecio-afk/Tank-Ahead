@@ -101,6 +101,12 @@ class Runner extends Node:
 			await _intro()
 		if only.contains("barcos"):
 			await _ships()
+		if only.contains("carga"):
+			await _loading()
+		if only.contains("seguir"):
+			await _stay()
+		if only.contains("aereo"):
+			await _air_phase()
 		if only.contains("nav"):
 			await _nav()
 		if only.contains("tutorial"):
@@ -929,6 +935,166 @@ class Runner extends Node:
 		GameSettings.difficulty = old_difficulty
 		GameSession.debug_weather = -1
 
+	## Pantalla de carga: al entrar en una partida como lo hace el menú, la pantalla tapa el
+	## montaje del campo (por pasos, con el árbol en pausa), se retira al acabar y deja la
+	## partida en marcha (o la entrada aérea, en la historia). Con gráficos (CARGA_FOTOS) guarda
+	## la pantalla a tres tamaños.
+	func _loading() -> void:
+		var bad: int = 0
+		if OS.get_environment("CARGA_FOTOS") != "":
+			for shape: Vector2i in [Vector2i(1280, 720), Vector2i(2340, 1080), Vector2i(1024, 768)]:
+				get_window().size = shape
+				await _frames(3)
+				var art := LoadingArt.new()
+				art.title = "EL PUERTO DE TOBRUK"
+				art.set_anchors_preset(Control.PRESET_FULL_RECT)
+				var layer := CanvasLayer.new()
+				layer.layer = 90
+				get_tree().root.add_child(layer)
+				layer.add_child(art)
+				art.goal = 0.62
+				for moment in 2:
+					await get_tree().create_timer(1.1).timeout
+					await _snap("carga_%dx%d_%d" % [shape.x, shape.y, moment])
+				layer.queue_free()
+			get_window().size = Vector2i(1280, 720)
+			await _frames(3)
+		for story: bool in [true, false]:
+			GameSession.mode = GameSession.Mode.STORY if story else GameSession.Mode.SURVIVAL
+			GameSession.front_choice = Fronts.Id.KURSK
+			GameSession.faction = Fronts.Faction.ALLIES
+			GameSession.mission_index = 1
+			GameSession.debug_weather = Weather.Kind.SUNNY
+			GameSession.skip_intro = false
+			Loading.open(get_tree(), "res://levels/arena.tscn", "PRUEBA")
+			await _frames(2)
+			var shown: bool = Loading.current != null and get_tree().paused
+			var frames: int = 0
+			var steps: int = 0
+			var last: float = -1.0
+			while Loading.current != null and frames < 2000:
+				if Loading.current._art.goal != last:
+					last = Loading.current._art.goal
+					steps += 1
+				await _frames(1)
+				frames += 1
+			GameSession.skip_intro = true
+			await _frames(3)
+			var arena: Node = get_tree().current_scene
+			var mode: GameMode = arena.get_node_or_null("GameMode")
+			var built: bool = mode != null and mode.player != null and arena.get_node_or_null("TrackMarks") != null and arena._hud != null
+			var intro: Node = arena.get_node_or_null("IntroFlight")
+			# En la historia sigue en pausa con la entrada aérea; en los demás modos, ya se juega.
+			var running: bool = (intro != null and get_tree().paused) if story else (intro == null and not get_tree().paused)
+			if not shown or not built or not running or steps < 6:
+				bad += 1
+			print("CARGA %s: pantalla puesta y árbol en pausa: %s | pasos repintados: %d | campo montado: %s | %s: %s" % ["historia" if story else "supervivencia", "sí" if shown else "NO", steps, "sí" if built else "NO", "empieza la entrada aérea" if story else "la partida arranca", "sí" if running else "NO"])
+			if intro != null:
+				(intro as IntroFlight).finish()
+			get_tree().paused = false
+			await _frames(2)
+		print("CARGA RESULT fallos: ", bad)
+		GameSession.debug_weather = -1
+
+	## Supervivencia: el ataque aéreo llega solo cada tres oleadas, no de golpe (hay un respiro
+	## tras el «oleada superada») y, al empezar, el cañón del jugador se levanta hacia el cielo.
+	func _air_phase() -> void:
+		var bad: int = 0
+		await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1)
+		var mode: SurvivalMode = get_tree().current_scene.get_node("GameMode")
+		mode.raid_interval = Vector2.ZERO
+		mode.player.health.invulnerable = true
+		var phases: Array[int] = []
+		for wave in range(1, 7):
+			mode.wave = wave
+			mode._wave_active = true
+			mode._end_wave()
+			var at_once: bool = mode.air_phase
+			await get_tree().create_timer(SurvivalMode.AIR_WARNING + 0.6).timeout
+			if at_once:
+				bad += 1
+			if mode.air_phase:
+				phases.append(wave)
+				if not mode.player.air_mode or mode.player.turret_controller._target_pitch < 0.2:
+					bad += 1
+					print("AEREO MAL: en la oleada %d el cañón no se levanta hacia el cielo" % wave)
+				mode._end_air_phase()
+				await _frames(2)
+				if mode.player.turret_controller._target_pitch > TurretController.MAX_PITCH + 0.001:
+					bad += 1
+					print("AEREO MAL: el cañón se queda mirando al cielo tras el ataque")
+		if phases != [3, 6]:
+			bad += 1
+		print("AEREO ataque aéreo tras las oleadas: %s (de 6) | nunca en el mismo instante que el fin de la oleada" % str(phases))
+		print("AEREO RESULT fallos: ", bad)
+		Engine.time_scale = 1.0
+		GameSession.debug_weather = -1
+
+	## Tras ganar, «SEGUIR EN EL CAMPO» cierra el menú de misión cumplida y deja jugar; el botón
+	## de pausa lo devuelve, y también vuelve solo si destruyen el tanque del jugador.
+	func _stay() -> void:
+		var bad: int = 0
+		var was_premium: bool = Premium.is_premium()
+		# Sin premium, la opción sale marcada y lleva a la pantalla premium del menú.
+		Premium.set_premium(false)
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 0)
+		var free_mode: StoryMode = get_tree().current_scene.get_node("GameMode")
+		var free_hud: Hud = get_tree().current_scene._hud
+		free_mode.player.health.invulnerable = true
+		free_mode._win("PRUEBA")
+		await get_tree().create_timer(1.6).timeout
+		var locked: Button = null
+		for node: Node in free_hud._end_panel.find_children("*", "Button", true, false):
+			if (node as Button).text == Loc.t("SEGUIR EN EL CAMPO (PREMIUM)"):
+				locked = node
+		GameSession.menu_page = ""
+		var asked: String = ""
+		var marked: bool = locked != null
+		if locked != null:
+			locked.pressed.emit()
+			asked = GameSession.menu_page
+		await _frames(4)
+		# (El menú consume `menu_page` al abrirse: se mira lo que pidió el botón.)
+		var to_premium: bool = marked and asked == "premium" and get_tree().current_scene.scene_file_path.ends_with("main_menu.tscn")
+		if not to_premium:
+			bad += 1
+		print("SEGUIR sin premium la opción lleva a la pantalla premium: %s" % ("sí" if to_premium else "NO (botón %s, pide «%s», escena %s)" % [marked, asked, get_tree().current_scene.scene_file_path]))
+		GameSession.menu_page = ""
+		Premium.set_premium(true)
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.NORMANDY, Fronts.Faction.ALLIES, Weather.Kind.SUNNY, 1, 0)
+		var arena: Node = get_tree().current_scene
+		var mode: StoryMode = arena.get_node("GameMode")
+		var hud: Hud = arena._hud
+		mode.player.health.invulnerable = true
+		mode._win("PRUEBA")
+		await get_tree().create_timer(1.6).timeout
+		var stay: Button = null
+		for node: Node in hud._end_panel.find_children("*", "Button", true, false):
+			if (node as Button).text == Loc.t("SEGUIR EN EL CAMPO"):
+				stay = node
+		var offered: bool = stay != null and hud._end_panel.visible
+		if stay != null:
+			stay.pressed.emit()
+		await _frames(2)
+		var closed: bool = not hud._end_panel.visible and not get_tree().paused
+		await get_tree().create_timer(0.5).timeout
+		hud._set_paused(true)
+		await _frames(2)
+		var back: bool = hud._end_panel.visible
+		if stay != null:
+			stay.pressed.emit()
+		await _frames(2)
+		mode.player.health.invulnerable = false
+		mode.player.health.apply_damage(99999.0, null)
+		await get_tree().create_timer(2.2).timeout
+		var back_dead: bool = hud._end_panel.visible
+		if not offered or not closed or not back or not back_dead:
+			bad += 1
+		print("SEGUIR la opción sale al ganar: %s | cierra el menú y la partida sigue: %s | la pausa lo devuelve: %s | vuelve solo si destruyen el tanque: %s" % ["sí" if offered else "NO", "sí" if closed else "NO", "sí" if back else "NO", "sí" if back_dead else "NO"])
+		print("SEGUIR RESULT fallos: ", bad)
+		Premium.set_premium(was_premium)
+		GameSession.debug_weather = -1
+
 	## La misión de hundir barcos (Tobruk): la flotilla está fondeada en el mar, fuera del campo y
 	## a tiro desde la orilla; zarpan de uno en uno; los proyectiles del jugador los alcanzan y
 	## los hunden; hundir los que se piden gana la misión, y dejar escapar demasiados la pierde.
@@ -1291,6 +1457,11 @@ class Runner extends Node:
 		if old_scene != null:
 			old_scene.queue_free()
 		await _frames(2)
+		# El escenario de esta prueba es llano: fuera las lomas y los ríos que haya dejado
+		# registrados la partida anterior (un tanque subiría por ellas).
+		Terrain.clear()
+		Water.clear()
+		Backdrop.sea_side = Vector2.ZERO
 		var stage := Node3D.new()
 		stage.name = "NavStage"
 		get_tree().root.add_child(stage)

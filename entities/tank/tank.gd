@@ -167,6 +167,9 @@ func set_air_mode(on: bool) -> void:
 	air_mode = on
 	set_binoculars(false)
 	turret_controller.max_pitch = deg_to_rad(60.0) if on else TurretController.MAX_PITCH
+	if not on:
+		# El cañón vuelve a su recorrido normal (y baja si se había quedado mirando al cielo).
+		turret_controller.add_aim(0.0, 0.0)
 	if on:
 		_view_before_zoom = _view
 		set_view(0)

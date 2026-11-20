@@ -41,10 +41,10 @@ jobs:
 
       - name: Misiones, navegación, tutorial, lomas, menús y tanques del jugador (sin gráficos)
         env:
-          SHOTS_ONLY: "story mapas rios asaltos nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion intro barcos"
+          SHOTS_ONLY: "story mapas rios asaltos nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion intro barcos carga seguir aereo"
         run: |
           timeout 1800 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
-          grep -E "^(VOZ|NAV|STORY|MAPA|RIO|ASALTO|INTRO|BARCOS|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
+          grep -E "^(VOZ|NAV|STORY|MAPA|RIO|ASALTO|INTRO|BARCOS|CARGA R|CARGA h|CARGA s|SEGUIR|AEREO|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
 
       - name: Anuncios coherentes (AdsConfig y android_export.cfg)
         run: |
@@ -75,6 +75,9 @@ jobs:
           grep -q "SKY RESULT derribos sobre tanques: 0 de" logic.log || { echo "Un avión derribado cae encima de un tanque"; exit 1; }
           grep -q "MAPAS RESULT inaccesibles: 0 | en el agua: 0 " logic.log || { echo "En algún trazado hay objetivos inaccesibles o cosas metidas en un río"; grep -E "^(MAPA MAL|REACH MAL|MAPAS)" logic.log; exit 1; }
           grep -q "ASALTO RESULT fallos: 0" logic.log || { echo "Las oleadas o los carros atrincherados de los asaltos no salen como deben"; grep "^ASALTO" logic.log; exit 1; }
+          grep -q "CARGA RESULT fallos: 0" logic.log || { echo "La pantalla de carga no tapa el montaje del campo o no deja la partida en marcha"; exit 1; }
+          grep -q "SEGUIR RESULT fallos: 0" logic.log || { echo "«Seguir en el campo» tras la victoria no funciona"; exit 1; }
+          grep -q "AEREO RESULT fallos: 0" logic.log || { echo "El ataque aéreo de supervivencia no entra como debe"; grep "^AEREO" logic.log; exit 1; }
           grep -q "BARCOS RESULT fallos: 0" logic.log || { echo "La misión de hundir barcos no sale como debe"; grep "^BARCOS" logic.log; exit 1; }
           grep -q "INTRO RESULT fallos: 0" logic.log || { echo "La entrada aérea de las misiones no empieza o no acaba como debe"; grep "^INTRO" logic.log; exit 1; }
           grep -q "RIO RESULT fallos: 0" logic.log || { echo "Los tanques no cruzan el río por los pasos, o lo cruzan por donde no hay paso"; grep "^RIO" logic.log; exit 1; }

@@ -19,8 +19,14 @@ var _seen_types: Dictionary = {}
 var _intro_queue: Array[TankStats] = []
 var _intro_timer: float = 0.0
 
-## Fase aérea entre oleadas (desde la oleada 3): cámara lenta y zoom durante 20 s.
+## Fase aérea: cada AIR_EVERY oleadas (tras la 3, la 6, la 9…), cámara lenta y zoom durante
+## 20 s. No entra de golpe: tras el «oleada superada» hay AIR_WARNING segundos de respiro y
+## entonces el aviso; al empezar, el cañón se levanta solo hacia el cielo.
 const AIR_PHASE_TIME: float = 20.0
+const AIR_EVERY: int = 3
+const AIR_WARNING: float = 3.5
+const AIR_GUN_LIFT: float = 0.3
+var _air_warning: float = -1.0
 const SLOW_MOTION: float = 0.45
 var air_phase: bool = false
 var _air_end_msec: int = 0
@@ -48,6 +54,12 @@ func _process(delta: float) -> void:
 		return
 	if air_phase:
 		_update_air_phase(delta)
+		return
+	if _air_warning >= 0.0:
+		_air_warning -= delta
+		if _air_warning < 0.0:
+			_air_warning = -1.0
+			_start_air_phase()
 		return
 	if not _wave_active:
 		_pause -= delta
@@ -141,8 +153,8 @@ func _end_wave() -> void:
 	GameSession.record_wave(wave)
 	message.emit(Loc.t("OLEADA %d SUPERADA  +%d  BLINDAJE REPARADO") % [wave, WAVE_BONUS], false)
 	get_tree().call_group(&"voice", &"say", "wave_clear", VoiceManager.Priority.HIGH)
-	if wave >= 3:
-		_start_air_phase()
+	if wave % AIR_EVERY == 0:
+		_air_warning = AIR_WARNING
 	# Cada 4 oleadas se repone el arsenal especial.
 	if wave % 4 == 0:
 		missiles = 2
@@ -157,7 +169,9 @@ func _start_air_phase() -> void:
 	_air_spawned = 0
 	Engine.time_scale = SLOW_MOTION
 	player.set_air_mode(true)
-	message.emit(Loc.t("¡ATAQUE AÉREO! DERRIBA CAZAS, AVIONES DE ATAQUE Y BOMBARDEROS"), true)
+	# El cañón mira al cielo: se ve a qué hay que disparar sin tener que leerlo.
+	player.turret_controller.add_aim(0.0, AIR_GUN_LIFT)
+	message.emit(Loc.t("¡ATAQUE AÉREO! APUNTA AL CIELO Y DISPARA A LOS AVIONES"), true)
 	get_tree().call_group(&"voice", &"say", "air_phase", VoiceManager.Priority.CRITICAL)
 
 

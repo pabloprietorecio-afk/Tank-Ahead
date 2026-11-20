@@ -138,6 +138,32 @@ desde 210 m, baja en picado y acaba en la cámara del tanque, con el título de 
 en pausa mientras dura (7,5 s) y se salta tocando la pantalla. Las pruebas la quitan con
 `GameSession.skip_intro`; la suya es `SHOTS_ONLY=intro`.
 
+## Sonido de ambiente y sonidos nuevos (grabaciones reales)
+`levels/ambience.gd` pone un fondo propio de cada frente (pájaros y brisa en Normandía, viento en el
+desierto, insectos de prado en Kursk; sin pájaros ni insectos con lluvia o nieve) y, en las misiones con
+mar, el oleaje (suena desde la orilla más cercana) y alguna gaviota. Los disparos al mar o a un río
+suenan a chapuzón y la cañonera de Tobruk dispara con una ráfaga real de cañón automático. Origen y
+licencias en `assets/audio/CREDITS.md`. Las grabaciones se buscan y se bajan con
+`.github/workflows/audio-fetch.yml` (`job=discover` busca en Wikimedia Commons; `job=fetch` baja las
+elegidas de Commons y de Freesound a la rama `audio-raw`) y se montan con
+`tools/sound_gen/field_sounds.py`. Commons exige un `User-Agent` con datos de contacto: sin él responde 429.
+
+## Pantalla de carga
+Al entrar en una partida (`ui/loading/`), una pantalla tapa el montaje del campo: un carro de perfil
+avanza por un terreno ondulado (ruedas, eslabones y polvo animados, dibujado por código en
+`LoadingArt`), con el título de la misión, «CARGANDO…» y una barra de avance. Montar el campo ocupa al
+juego entero, así que `Arena._ready` lo hace por pasos y cede un cuadro entre uno y otro
+(`await Loading.step(...)`); el dibujo usa el reloj de verdad y avanza aunque los cuadros lleguen a
+saltos. Mientras dura, el árbol está en pausa. Sin pantalla abierta (las pruebas) la arena se monta de
+una vez. `LOAD_TIMES=1` imprime lo que tarda cada paso. Prueba: `SHOTS_ONLY=carga`
+(`CARGA_FOTOS=1` guarda la pantalla a tres tamaños).
+
+## Seguir en el campo tras la victoria
+El menú de misión cumplida (y el de victoria en captura la bandera) ofrece «SEGUIR EN EL CAMPO»,
+solo con premium (sin premium sale marcada y lleva a la pantalla que lo explica): se
+cierra y la partida sigue donde estaba. El botón de pausa lo devuelve; si destruyen el tanque del
+jugador, vuelve solo. Prueba: `SHOTS_ONLY=seguir`.
+
 ## Hundir barcos: el puerto de Tobruk
 Misión de tipo `sink` (campaña del Eje en África). El 20 de junio de 1942 los carros alemanes llegaron al
 puerto de Tobruk y dispararon a los barcos que intentaban salir; el parte del Panzerarmee da por hundidos

@@ -17,8 +17,8 @@ const WOOD := Color(0.42, 0.32, 0.2)
 const SINK_TIME: float = 17.0
 ## Cañón automático de la cañonera: alcance (m), segundos entre ráfagas y disparos por ráfaga.
 const GUN_RANGE: float = 300.0
-const GUN_PAUSE: float = 3.2
-const GUN_BURST: int = 4
+const GUN_PAUSE: float = 3.6
+const GUN_BURST: int = 5
 const GUN_DAMAGE: float = 3.0
 const SHELL := preload("res://entities/projectiles/shell.tscn")
 
@@ -194,7 +194,7 @@ func _shoot(delta: float) -> void:
 	if _burst_left > 0:
 		_burst_due -= delta
 		if _burst_due <= 0.0:
-			_burst_due = 0.22
+			_burst_due = 0.24
 			_burst_left -= 1
 			_fire()
 		return
@@ -204,6 +204,8 @@ func _shoot(delta: float) -> void:
 	_gun_wait = GUN_PAUSE * randf_range(0.8, 1.3)
 	if is_instance_valid(target) and not target.is_destroyed and target.global_position.distance_to(global_position) < GUN_RANGE:
 		_burst_left = GUN_BURST
+		# Una ráfaga del cañón automático (dura lo que tardan en salir los disparos).
+		Sfx.play_at(self, Sfx.AA_BURST, global_transform * _muzzle, 7.0, 1.0)
 
 
 func _fire() -> void:
@@ -215,7 +217,6 @@ func _fire() -> void:
 	var shell: Projectile = Projectile.acquire(SHELL, scene if scene != null else get_tree().root)
 	shell.launch(from, (aim - from).normalized() * 190.0, GUN_DAMAGE, self, [], GameMode.ENEMY_TEAM)
 	Fx.on(self).pop(from, 0.7)
-	Sfx.play_at(self, Sfx.CANNON, from, 4.0, 1.7)
 
 
 func _destroy() -> void:
@@ -251,4 +252,5 @@ func _go_down(delta: float) -> void:
 	if _sink >= SINK_TIME:
 		# Lo último, un borbollón de espuma donde estaba.
 		fx.shell_water(global_position, 2.2)
+		Sfx.play_at(self, Sfx.SPLASH, global_position, 8.0, 0.8)
 		queue_free()

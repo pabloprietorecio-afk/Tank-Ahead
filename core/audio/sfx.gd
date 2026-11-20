@@ -20,6 +20,13 @@ const MISSILE := preload("res://assets/audio/missile.ogg")
 const THUNDER := preload("res://assets/audio/thunder.wav")
 ## Estampido de la antiaérea: disparo real de un cañón de 25 libras.
 const FLAK := preload("res://assets/audio/flak.ogg")
+## Chapuzón de un proyectil en el agua (una piedra grande cayendo a un río, grabación real).
+const SPLASH := preload("res://assets/audio/splash.ogg")
+## Cañón automático antiaéreo (grabación real de un ejercicio de tiro antiaéreo): una ráfaga entera, el
+## bucle del fuego sostenido y la cola al soltar el gatillo.
+const AA_BURST := preload("res://assets/audio/aa_burst.ogg")
+const AA_FIRE := preload("res://assets/audio/aa_fire.wav")
+const AA_TAIL := preload("res://assets/audio/aa_tail.ogg")
 
 
 static func play_at(host: Node, stream: AudioStream, point: Vector3, volume_db: float = 0.0, pitch: float = 1.0) -> void:

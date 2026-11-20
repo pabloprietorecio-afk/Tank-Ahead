@@ -23,6 +23,9 @@ var _message: Label
 var _end_panel: PanelContainer
 ## Hay una pausa publicitaria en curso (evita pulsar dos veces).
 var _ad_busy: bool = false
+## Tras ganar, el jugador ha elegido seguir en el campo: el menú de fin de misión está cerrado y
+## vuelve con el botón de pausa (o solo, si le destruyen el tanque).
+var _roaming: bool = false
 var _pause_panel: PanelContainer
 var _history_panel: PanelContainer
 var _history_button: Button
@@ -457,7 +460,11 @@ func _place_mask() -> void:
 
 ## Abrir el menú de opciones pone el juego en pausa; cerrarlo lo reanuda.
 func _set_paused(paused: bool) -> void:
+	if Loading.current != null:
+		return
 	if director.is_over:
+		if _roaming:
+			_show_end_panel()
 		return
 	get_tree().paused = paused
 	if paused and _refresh_effects.is_valid():
@@ -502,9 +509,9 @@ func _with_ad(action: Callable, with_ad: bool) -> void:
 
 
 func _restart() -> void:
-	get_tree().paused = false
 	Engine.time_scale = 1.0
-	get_tree().reload_current_scene()
+	var heading: String = Loc.t(GameSession.current_mission()["title"]) if GameSession.mode == GameSession.Mode.STORY else ""
+	Loading.open(get_tree(), get_tree().current_scene.scene_file_path, heading)
 
 
 func _to_menu() -> void:
@@ -569,15 +576,39 @@ func _on_ended(victory: bool, title_text: String, detail: String) -> void:
 			GameSession.menu_page = "briefing" if premium else "premium"
 			_to_menu())
 		box.add_child(other)
+	if victory:
+		# Quedarse en el campo ya ganado (premium): el menú se cierra y la partida sigue donde
+		# estaba. Sin premium lleva a la pantalla que lo explica.
+		var may_stay: bool = Premium.is_premium()
+		var stay := _button(Loc.t("SEGUIR EN EL CAMPO") if may_stay else Loc.t("SEGUIR EN EL CAMPO (PREMIUM)"))
+		stay.pressed.connect(func() -> void:
+			if may_stay:
+				_keep_playing()
+			else:
+				GameSession.menu_page = "premium"
+				_to_menu())
+		box.add_child(stay)
 	var menu := _button(Loc.t("MENÚ PRINCIPAL"))
 	# En supervivencia el anuncio sale también al volver al menú (es el final de la partida).
 	menu.pressed.connect(func() -> void:
 		_with_ad(_to_menu, director is SurvivalMode))
 	box.add_child(menu)
 	# Deja ver la escena unos instantes antes de mostrar el panel.
-	get_tree().create_timer(1.2).timeout.connect(func() -> void:
-		move_child(_end_panel, -1)
-		_end_panel.visible = true)
+	get_tree().create_timer(1.2).timeout.connect(_show_end_panel)
+
+
+func _show_end_panel() -> void:
+	_roaming = false
+	move_child(_end_panel, -1)
+	_end_panel.visible = true
+
+
+## Cierra el menú de misión cumplida y deja al jugador en el campo. Vuelve con el botón de pausa.
+func _keep_playing() -> void:
+	_end_panel.visible = false
+	_roaming = true
+	_show_message(Loc.t("SIGUES EN EL CAMPO. EL BOTÓN DE PAUSA VUELVE AL MENÚ DE LA MISIÓN"), false)
+	_message_time = 6.0
 
 
 ## Interruptor del menú de opciones (su tamaño lo pone _apply_menu_scale).
@@ -641,6 +672,10 @@ func _show_message(text: String, urgent: bool) -> void:
 
 func _process(delta: float) -> void:
 	_message_time = maxf(_message_time - delta, 0.0)
+	if _roaming and (not is_instance_valid(tank) or tank.is_destroyed):
+		# Le han destruido el tanque paseando por el campo ya ganado: vuelve el menú.
+		_roaming = false
+		get_tree().create_timer(1.5).timeout.connect(_show_end_panel)
 	_message.modulate.a = clampf(_message_time, 0.0, 1.0)
 	_flash = maxf(_flash - delta * 1.5, 0.0)
 	# Las esquinas oscurecidas solo se pintan con los efectos altos; el rojo del impacto, siempre.

@@ -157,9 +157,10 @@ func _impact(collider: Object, point: Vector3, normal: Vector3) -> void:
 		# Árboles, casas, vallas...: el propio objeto pone su polvo y sus cascotes.
 		collider.take_hit(damage, shooter, point)
 		fx.pop(point + normal * 0.2, power * 0.6)
-	elif Backdrop.in_sea(point.x, point.z):
-		# Al mar: surtidor de espuma, sin el golpe seco de la tierra.
+	elif Backdrop.in_sea(point.x, point.z) or (point.y < 0.8 and Water.deep_at(point.x, point.z, 0.0)):
+		# Al mar o al río: surtidor de espuma y chapuzón, sin el golpe seco de la tierra.
 		fx.shell_water(point, power * 1.3)
+		Sfx.play_at(self, Sfx.SPLASH, point, 6.0, randf_range(0.9, 1.05))
 		return
 	elif (normal.y > 0.6 and point.y < 1.0) or (collider is Node and (collider as Node).is_in_group(&"terrain")):
 		# En el llano o en la ladera de una loma: surtidor de tierra.

@@ -44,6 +44,7 @@ func _ready() -> void:
 		layout_name = Layouts.random_open(GameSession.front) if GameSession.debug_layout == "" else GameSession.debug_layout
 	_layout = Layouts.get_layout(GameSession.front, layout_name)
 	_build_environment()
+	await Loading.step(0.05, "entorno")
 	var far_spec: Dictionary = Backdrop.spec_for(GameSession.front, _mode.backdrop())
 	if Backdrop.SIDES.has(far_spec.get("sea", "")) and not GameSession.debug_bare:
 		# Junto al mar, la última franja del campo es la playa: arena despejada.
@@ -56,13 +57,16 @@ func _ready() -> void:
 	Backdrop.sea_side = _beach_dir
 	_build_ground()
 	_build_walls(far_spec.get("sea", ""))
+	await Loading.step(0.14, "suelo y borde")
 	if not GameSession.debug_bare:
 		# El paisaje de fuera del campo, hasta el horizonte.
 		var backdrop := Backdrop.new()
 		add_child(backdrop)
 		backdrop.build(GameSession.front, far_spec)
+	await Loading.step(0.32, "horizonte")
 	if _mode.wants_scenery() and not GameSession.debug_bare:
-		_build_scenery()
+		await _build_scenery()
+	await Loading.step(0.7, "decorado")
 	_spawn_player(spawn)
 	Fx.on(self).player = _player
 	_mode.is_free_point = func(p: Vector2) -> bool:
@@ -72,6 +76,7 @@ func _ready() -> void:
 		return true
 	add_child(_mode)
 	_build_weather()
+	await Loading.step(0.76, "jugador y clima")
 	if _mode.wants_scenery() and not GameSession.debug_bare:
 		# Aviones de paso, antiaérea y algún derribo lejano: solo ambiente.
 		var sky := SkyWar.new()
@@ -85,6 +90,15 @@ func _ready() -> void:
 		spawner.player = _player
 		spawner.is_free_point = _mode.is_free_point
 		add_child(spawner)
+	if _mode.wants_scenery() and not GameSession.debug_bare:
+		# Fondo sonoro del frente (pájaros, viento, grillos) y, si hay mar, oleaje y gaviotas.
+		var ambience := Ambience.new()
+		ambience.name = "Ambience"
+		ambience.player = _player
+		ambience.front = GameSession.front
+		ambience.weather = (get_node("Weather") as Weather).kind
+		ambience.sea_side = _beach_dir
+		add_child(ambience)
 	if not GameSession.debug_bare:
 		# Las huellas de las orugas; junto al mar el suelo es arena de playa y se marcan más.
 		var marks := TrackMarks.new()
@@ -92,6 +106,7 @@ func _ready() -> void:
 		add_child(marks)
 		marks.build(GameSession.front, _beach_dir, BEACH_FROM)
 	_build_ui()
+	await Loading.step(0.84, "interfaz")
 	var voice := VoiceManager.new()
 	voice.name = "VoiceManager"
 	voice.player = _player
@@ -99,8 +114,16 @@ func _ready() -> void:
 	var music := AudioSetup.music_player("res://assets/music/battle_theme.ogg")
 	music.volume_db = -6.0
 	add_child(music)
+	await Loading.step(0.88, "voz y música")
 	_mode.start(_player, self)
-	if GameSession.mode == GameSession.Mode.STORY and not GameSession.skip_intro and not GameSession.debug_bare:
+	var with_intro: bool = GameSession.mode == GameSession.Mode.STORY and not GameSession.skip_intro and not GameSession.debug_bare
+	if Loading.current != null:
+		# Con pantalla de carga: se retira cuando el campo ya está pintado debajo; la partida
+		# (en pausa mientras se montaba) arranca entonces, o lo hace la entrada aérea.
+		await Loading.close()
+		if not with_intro:
+			get_tree().paused = false
+	if with_intro:
 		# Entrada de la misión: barrido aéreo y picado hasta el tanque.
 		var intro := IntroFlight.new()
 		intro.name = "IntroFlight"
@@ -338,6 +361,7 @@ func _build_scenery() -> void:
 	# Lo que da forma al campo (río, vía, pueblo, trincheras) va lo primero: lo demás se
 	# reparte por los huecos que deja.
 	_build_layout()
+	await Loading.step(0.42, "trazado")
 	# Lomas suaves: relieve por el que los tanques sí suben. Van antes que el decorado suelto,
 	# que nunca se coloca encima de ellas. En el desierto son dunas y crestas alargadas; en la
 	# estepa y en Normandía, ondulaciones redondas del terreno.
@@ -354,6 +378,7 @@ func _build_scenery() -> void:
 			_scenery_kursk()
 		_:
 			_scenery_normandy()
+	await Loading.step(0.62, "paisaje del frente")
 	# Ruinas con bidones, rocas y depósitos de combustible abandonados en todos los frentes.
 	for r in 4:
 		var pos := _free_spot(8.0)
