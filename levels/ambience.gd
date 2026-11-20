@@ -10,7 +10,7 @@ extends Node
 ## Va bajo: es el fondo sobre el que suenan motores y cañonazos.
 
 const BEDS: Array[String] = ["res://assets/audio/amb_normandy.wav", "res://assets/audio/amb_africa.wav", "res://assets/audio/amb_kursk.wav"]
-const BED_DB: Array[float] = [-5.0, -4.0, -5.0]
+const BED_DB: Array[float] = [-2.0, -1.0, -2.0]
 const SEA := "res://assets/audio/amb_sea.wav"
 const GULLS: Array[String] = ["res://assets/audio/gull_herring.ogg", "res://assets/audio/gull_med.ogg", ""]
 const GULL_GAP := Vector2(11.0, 30.0)

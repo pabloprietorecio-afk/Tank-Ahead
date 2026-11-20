@@ -337,7 +337,9 @@ func _update_sound(delta: float) -> void:
 	_engine_sound.pitch_scale = _engine_pitch * (0.9 + 0.2 * _engine_level)
 	_engine_sound.volume_db = lerpf(-45.0, -7.0, sqrt(drive))
 	_idle_sound.pitch_scale = _engine_pitch * (1.0 + 0.12 * _engine_level)
-	_idle_sound.volume_db = lerpf(-9.0, -32.0, drive)
+	# El ralentí va bajo: con el tanque parado se oye el campo (pájaros, viento, oleaje). En
+	# marcha el motor lo tapa, como en un carro de verdad.
+	_idle_sound.volume_db = lerpf(-13.0, -32.0, drive)
 
 
 func _set_sound_running(running: bool) -> void:
