@@ -39,6 +39,12 @@ FILES = {
     "amb_pebble_beach": ("On a pebble beach.ogg", None, None),
     "gull_med": ("Yellow-legged Gull - Larus michahellis michahellis.ogg", None, None),
     "gull_herring": ("XC707075 - European Herring Gull - Larus argentatus.mp3", None, None),
+    # Candidatas para el cañonazo y las explosiones.
+    "gun_25pdr": ("25 pounder firing a blank.ogv", None, None),
+    "gun_salute": ("01 Salute Cannon Reveille.ogg", None, None),
+    "boom_single": ("Explosion-LS100155.ogg", None, None),
+    "boom_several": ("Explosions-LS100155.ogg", None, None),
+    "boom_several_2": ("Explosions-LS100150.ogg", None, None),
 }
 # Freesound (solo sonidos con licencia Creative Commons 0): id: página del sonido. Se baja la
 # escucha previa de alta calidad, que es pública (la descarga del original pide cuenta).
@@ -109,7 +115,20 @@ for key, (name, lang, window) in sorted(FILES.items(), key=lambda item: item[1][
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, *cut, "-vn", "-ac", "1", "-ar", "32000", "-c:a", "libvorbis", "-q:a", "5", out], check=False)
     duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True, text=True).stdout.strip()
     print("OK", key, duration, flush=True)
-    log.write(f"{key}: {duration} s | {name}\n")
+    # Ficha del archivo (qué es, de quién, licencia y categorías), para saber qué se ha bajado.
+    card = ""
+    try:
+        import json
+        query = urllib.parse.urlencode({"action": "query", "format": "json", "titles": "File:" + name, "prop": "imageinfo|categories", "iiprop": "extmetadata", "cllimit": "30"})
+        data = json.load(urllib.request.urlopen(urllib.request.Request("https://commons.wikimedia.org/w/api.php?" + query, headers=UA), timeout=40))
+        page = list(data["query"]["pages"].values())[0]
+        meta = (page.get("imageinfo") or [{}])[0].get("extmetadata", {})
+        clean = lambda key_name: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", meta.get(key_name, {}).get("value", ""))).strip()
+        cats = ", ".join(c["title"].replace("Category:", "") for c in page.get("categories", []) if "license" not in c["title"].lower() and "CC-" not in c["title"])
+        card = f" | {clean('LicenseShortName')} | {clean('Artist')[:60]} | {clean('ImageDescription')[:300]} | categorías: {cats[:300]}"
+    except Exception as error:
+        card = f" | ficha no leída: {error}"
+    log.write(f"{key}: {duration} s | {name}{card}\n")
     if lang:
         try:
             if model is None:
