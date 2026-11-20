@@ -67,6 +67,11 @@ FREESOUND = {
     "amb_countryside_dawn": ("https://freesound.org/s/275755/", [10, 150]),
     "gulls_a": ("https://freesound.org/s/377107/", None),
     "gulls_b": ("https://freesound.org/s/207130/", None),
+    # Cañonazos candidatos (para que el autor del juego los oiga antes de usarlos).
+    "gun_airshow": ("https://freesound.org/s/415293/", None),
+    "gun_salute_field": ("https://freesound.org/s/43783/", None),
+    "gun_reenactment": ("https://freesound.org/s/654077/", None),
+    "gun_canon_aif": ("https://freesound.org/s/14615/", None),
 }
 
 os.makedirs("audio_raw", exist_ok=True)
@@ -81,9 +86,12 @@ for key, (page, window) in FREESOUND.items():
         response_url = opened.geturl()
         html = opened.read().decode("utf-8", "replace")
         found = re.search(r"https://cdn\.freesound\.org/previews/[0-9]+/[0-9_]+-hq\.mp3", html)
-        licence = "Creative Commons 0" in html
+        # Solo licencias que dejan usarlo en un juego con anuncios: CC0 o Atribución (no las NC).
+        link = re.search(r"creativecommons\.org/(publicdomain/zero|licenses/[a-z\-]+)/([0-9.]+)", html)
+        kind = link.group(1).split("/")[-1] if link else ""
+        licence = {"zero": "CC0", "by": "CC BY " + (link.group(2) if link else "")}.get(kind, "")
         if not found or not licence:
-            raise RuntimeError("sin escucha previa" if not found else "la página no dice Creative Commons 0")
+            raise RuntimeError("sin escucha previa" if not found else f"licencia no admitida ({kind or 'no se ve'})")
         source = "source_" + key
         with urllib.request.urlopen(urllib.request.Request(found.group(0), headers=BROWSER), timeout=180) as response, open(source, "wb") as out:
             out.write(response.read())
@@ -93,7 +101,7 @@ for key, (page, window) in FREESOUND.items():
         duration = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", out], capture_output=True, text=True).stdout.strip()
         author = re.search(r"freesound\.org/people/([^/]+)/sounds", response_url)
         print("OK", key, duration, flush=True)
-        log.write(f"{key}: {duration} s | Freesound, CC0, autor {author.group(1) if author else '?'} | {response_url}\n")
+        log.write(f"{key}: {duration} s | Freesound, {licence}, autor {author.group(1) if author else '?'} | {response_url}\n")
     except Exception as error:
         print("ERROR", key, error, flush=True)
         log.write(f"{key}: NO DESCARGADO ({page}: {error})\n")
