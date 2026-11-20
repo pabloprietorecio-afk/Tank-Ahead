@@ -45,6 +45,13 @@ FILES = {
     "boom_single": ("Explosion-LS100155.ogg", None, None),
     "boom_several": ("Explosions-LS100155.ogg", None, None),
     "boom_several_2": ("Explosions-LS100150.ogg", None, None),
+    "boom_ww2_bomb": ("FliegerbombensprengungMuenchen2012.ogv", None, None),
+    "boom_vaires": ("Demolition of coal power plant Vaires D20101211 2 of 2.ogv", None, None),
+    "boom_bridge": ("Brückensprengung.ogv", None, None),
+    "gun_abrams_au": ("Australian M1 Abrams tank conducting target practice in May 2017.webm", None, None),
+    "gun_abrams_pl": ("B-Roll- Tank warfare demonstration features U S Army in Poland (970166).webm", None, None),
+    "gun_m60": ("Brazilian M60A3 TTS Live fire.webm", None, None),
+    "gun_tank_lfx": ("Soldiers Complete Tank Live Fire Training NiulEmTbG 0.webm", None, None),
 }
 # Freesound (solo sonidos con licencia Creative Commons 0): id: página del sonido. Se baja la
 # escucha previa de alta calidad, que es pública (la descarga del original pide cuenta).
