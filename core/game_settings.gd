@@ -4,8 +4,8 @@ extends RefCounted
 
 const PATH: String = "user://settings.cfg"
 
-## Fija la torreta sobre el enemigo una vez que la mira lo ha encontrado.
-static var aim_assist: bool = false
+## Fija la torreta sobre el enemigo una vez que la mira lo ha encontrado. Activado de entrada.
+static var aim_assist: bool = true
 ## La torreta gira 360º siempre. Si está activo, vuelve sola al frente al dejar de moverla.
 static var auto_recenter: bool = false
 
@@ -45,10 +45,16 @@ const SKILL_SIGHT: Array[float] = [0.85, 1.0, 1.1, 1.2]
 const SKILL_AIM_INTERVAL: Array[float] = [1.0, 0.6, 0.45, 0.3]
 static var difficulty: int = 1
 
-## Dibuja un borde amarillo alrededor de los tanques enemigos para verlos mejor.
-static var highlight_enemies: bool = false
+## Dibuja un borde amarillo alrededor de los tanques enemigos para verlos mejor. Activado de entrada.
+static var highlight_enemies: bool = true
 ## Dibuja un borde azul alrededor de los objetivos de la misión (edificios, comandante, bandera).
-static var highlight_objectives: bool = false
+## Activado de entrada.
+static var highlight_objectives: bool = true
+
+## Versión de los valores de entrada. Al subirla, las instalaciones que ya tenían ajustes
+## guardados reciben una vez los valores nuevos (ver `ensure_loaded`).
+## 2: apuntado automático y resaltado de enemigos y objetivos, activados (como el movimiento fácil).
+const DEFAULTS_VERSION: int = 2
 
 ## Micrófono de órdenes siempre abierto: escucha toda la partida sin pulsarlo y sin tocar el
 ## sonido (pensado para jugar con auriculares). Apagado, se pulsa antes de cada orden.
@@ -89,6 +95,14 @@ static func ensure_loaded() -> void:
 		auto_recenter = cfg.get_value("controls", "auto_recenter", auto_recenter)
 		language = str(cfg.get_value("game", "language", language))
 		voice_always_open = bool(cfg.get_value("controls", "voice_always_open", voice_always_open))
+		# Ajustes guardados con los valores de entrada antiguos: se ponen una vez las ayudas que
+		# ahora vienen activadas; quien las quite después, las conserva quitadas.
+		if int(cfg.get_value("game", "defaults_version", 1)) < 2:
+			aim_assist = true
+			easy_drive = true
+			highlight_enemies = true
+			highlight_objectives = true
+			save()
 	Loc.apply(language)
 	Fx.quality = effects
 
@@ -112,6 +126,7 @@ static func save() -> void:
 	cfg.set_value("controls", "auto_recenter", auto_recenter)
 	cfg.set_value("game", "language", language)
 	cfg.set_value("controls", "voice_always_open", voice_always_open)
+	cfg.set_value("game", "defaults_version", DEFAULTS_VERSION)
 	cfg.save(PATH)
 
 

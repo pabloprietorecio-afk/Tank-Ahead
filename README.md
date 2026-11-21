@@ -345,6 +345,9 @@ no pasa rozando a un compañero y se aparta si el jugador viene hacia él. Lejos
 para volver; cerca, sigue saliendo a por el enemigo que vea.
 
 ## Ayudas para ver mejor
+- **Vienen activadas de entrada**, igual que el movimiento fácil y el apuntado automático
+  (`GameSettings`); se quitan en Opciones o en la pausa. Las instalaciones que ya tenían ajustes
+  guardados las reciben activadas una vez (`GameSettings.DEFAULTS_VERSION`).
 - Opciones «Destacar enemigos (borde amarillo)» y «Destacar objetivos (borde azul)»: edificios objetivo,
   comandante enemigo, bandera enemiga y salida de las misiones de ruptura (`shaders/outline.gdshader`; el
   borde nunca baja de un píxel y medio de grosor, para que se vea de lejos).
