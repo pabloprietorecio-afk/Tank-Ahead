@@ -81,6 +81,7 @@ static func sunflower_field(size: Vector2) -> Node3D:
 	if not PropFactory._meshes.has(key):
 		var row := BoxMesh.new()
 		row.size = Vector3(size.x, 1.0, 0.45)
+		row.subdivide_width = maxi(int(size.x / PropFactory.CROP_SEGMENT) - 1, 0)
 		var stalks: Array = []
 		var heads: Array = []
 		var rows: int = maxi(int(size.y / 1.3), 1)
@@ -95,16 +96,20 @@ static func sunflower_field(size: Vector2) -> Node3D:
 	field.name = "Girasoles"
 	var green := MeshInstance3D.new()
 	green.mesh = PropFactory._meshes[key]
-	green.material_override = VectorMaterials.organic(Color(0.22, 0.36, 0.12), Color(0.14, 0.24, 0.08), 2, 0.5, 0.0, 0.01)
+	var stalk_look: ShaderMaterial = VectorMaterials.crop(Color(0.22, 0.36, 0.12), Color(0.14, 0.24, 0.08), 2, 0.5, 0.01)
+	green.material_override = stalk_look
 	green.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	field.add_child(green)
 	var yellow := MeshInstance3D.new()
 	yellow.mesh = PropFactory._meshes[key + "|heads"]
-	yellow.material_override = VectorMaterials.organic(Color(0.92, 0.72, 0.1), Color(0.36, 0.22, 0.08), 3, 1.6, 0.0, 0.01)
+	var head_look: ShaderMaterial = VectorMaterials.crop(Color(0.92, 0.72, 0.1), Color(0.36, 0.22, 0.08), 3, 1.6, 0.01)
+	yellow.material_override = head_look
 	yellow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	field.add_child(yellow)
 	field.add_to_group(&"crop_fields")
 	field.set_meta(&"size", size)
+	# Como el trigal, se aplasta al paso de los tanques: tallos tumbados y las cabezas por el suelo.
+	CropTrample.attach(field, size, maxi(int(size.y / 1.3), 1), 0.45, [[stalk_look, 0.08, Color(0.24, 0.27, 0.12)], [head_look, 0.12, Color(0.5, 0.4, 0.12)]])
 	return field
 
 

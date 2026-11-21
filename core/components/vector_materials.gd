@@ -112,6 +112,19 @@ static func organic(base: Color, detail: Color, pattern: int, scale: float, lump
 	return _textured[key]
 
 
+## Como `organic`, pero un material propio para cada cultivo: lleva su mapa de lo pisado
+## (`CropTrample`), así que no se puede compartir entre campos.
+static func crop(base: Color, detail: Color, pattern: int, scale: float, sway: float) -> ShaderMaterial:
+	var mat := _shader_material("res://shaders/textured_fill.gdshader")
+	mat.set_shader_parameter("base_color", base)
+	mat.set_shader_parameter("detail_color", detail)
+	mat.set_shader_parameter("pattern", pattern)
+	mat.set_shader_parameter("scale", scale)
+	mat.set_shader_parameter("lumpiness", 0.0)
+	mat.set_shader_parameter("sway", sway)
+	return mat
+
+
 static func flat(color: Color) -> ShaderMaterial:
 	var key: String = color.to_html()
 	if not _flat.has(key):

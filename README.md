@@ -344,6 +344,17 @@ acompasa su velocidad a la del jugador, se para cuando él se para, recula si el
 no pasa rozando a un compañero y se aparta si el jugador viene hacia él. Lejos de su puesto lo deja todo
 para volver; cerca, sigue saliendo a por el enemigo que vea.
 
+## Cultivos que se aplastan
+El trigal y los girasoles se tumban al paso de los tanques (el jugador, los aliados y los enemigos)
+y se quedan tumbados: cada tanque deja su calle. `CropTrample` (`entities/props/crop_trample.gd`)
+cuelga de cada campo con un mapa de lo pisado (un byte por cada medio metro) y cada décima de
+segundo estampa en él la huella (`Tank.footprint`) de los tanques que hay dentro. El material del
+cultivo (`VectorMaterials.crop`, uno por campo, sobre `textured_fill.gdshader`) lee el mapa en el
+sombreador de vértices: donde está pisado baja las hileras a un décimo de su altura, las ensancha
+para que tapen la calle entre hileras y las oscurece. Para poder tumbarse por tramos, las hileras
+van partidas cada 1,6 m (`PropFactory.CROP_SEGMENT`). El cambio ocurre bajo el casco, así que no
+se ve el momento. Prueba: `SHOTS_ONLY=trigo` (capturas `trigo_trigal_alto`, `trigo_girasoles_alto`).
+
 ## Ayudas para ver mejor
 - **Vienen activadas de entrada**, igual que el movimiento fácil y el apuntado automático
   (`GameSettings`); se quitan en Opciones o en la pausa. Las instalaciones que ya tenían ajustes

@@ -53,6 +53,8 @@ var health: HealthComponent
 var weapon: TankWeapon
 var turret_controller: TurretController
 var is_destroyed: bool = false
+## Ancho y largo de lo que pisa el tanque (m): lo usan los cultivos para aplastarse a su paso.
+var footprint: Vector2 = Vector2(3.0, 6.0)
 ## Enemigo fijado por la ayuda de apuntado (solo jugador).
 var aim_lock: Tank = null
 
@@ -586,6 +588,7 @@ func _build_body() -> void:
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
 	box.size = Vector3(model.hull_size.x + 1.0 * k, 1.4 * k, model.hull_size.z)
+	footprint = Vector2(box.size.x, box.size.z)
 	shape.shape = box
 	shape.position.y = 0.75 * k
 	add_child(shape)

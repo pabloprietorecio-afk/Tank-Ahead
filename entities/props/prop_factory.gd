@@ -845,14 +845,20 @@ static func revetment(soil: Color = Color(0.3, 0.24, 0.15)) -> Node3D:
 	return root
 
 
+## Largo de los tramos en que se parten las hileras de los cultivos (m): lo fino que se tumban.
+const CROP_SEGMENT: float = 1.6
+
+
 ## Trigal alto: no frena a los tanques ni para los disparos, pero tapa el casco y la vista a
 ## ras de suelo. Una sola malla de surcos mecidos por el viento.
 static func wheat_field(size: Vector2, ripe: Color = Color(0.74, 0.6, 0.26)) -> MeshInstance3D:
 	var key: String = "wheat|%d|%d" % [roundi(size.x), roundi(size.y)]
 	if not _meshes.has(key):
 		# Surcos estrechos con calles oscuras entre ellos, cada uno de una altura.
+		# Cada hilera va partida a lo largo, para que se pueda tumbar por tramos al pisarla.
 		var row := BoxMesh.new()
 		row.size = Vector3(size.x, 1.0, 0.5)
+		row.subdivide_width = maxi(int(size.x / CROP_SEGMENT) - 1, 0)
 		var parts: Array = []
 		var rows: int = maxi(int(size.y / 1.15), 1)
 		for i in rows:
@@ -863,10 +869,14 @@ static func wheat_field(size: Vector2, ripe: Color = Color(0.74, 0.6, 0.26)) -> 
 	var field := MeshInstance3D.new()
 	field.name = "Trigal"
 	field.mesh = _meshes[key]
-	field.material_override = VectorMaterials.organic(ripe, ripe.darkened(0.35), 6, 0.35, 0.0, 0.012)
+	var look: ShaderMaterial = VectorMaterials.crop(ripe, ripe.darkened(0.35), 6, 0.35, 0.012)
+	field.material_override = look
 	field.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	field.add_to_group(&"crop_fields")
 	field.set_meta(&"size", size)
+	# Se aplasta al paso de los tanques: paja tumbada y pisada, bastante más oscura que la espiga
+	# en pie para que la calle que deja el tanque se lea de lejos.
+	CropTrample.attach(field, size, maxi(int(size.y / 1.15), 1), 0.5, [[look, 0.1, ripe.darkened(0.42).lerp(Color(0.35, 0.27, 0.16), 0.4)]])
 	return field
 
 

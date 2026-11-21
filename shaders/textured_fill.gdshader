@@ -20,10 +20,22 @@ uniform float metallic_value = 0.0;
 // Deforma la malla con ruido (copas de árbol y rocas irregulares). 0 = sin deformar.
 uniform float lumpiness = 0.0;
 uniform float sway = 0.0;
+// Cultivos que se aplastan al paso de los tanques (CropTrample): mapa de lo pisado sobre el plano
+// XZ de la malla, que mide `trample_size` (0 = no es un cultivo). Donde está pisado, la malla se
+// queda a `trample_height` de su altura y toma `trample_color`.
+uniform sampler2D trample : filter_linear, repeat_disable, hint_default_black;
+uniform vec2 trample_size = vec2(0.0);
+uniform float trample_height = 0.1;
+uniform vec3 trample_color : source_color = vec3(0.5, 0.42, 0.25);
+// Hileras del cultivo a lo largo de Z y cuánto se ensanchan al tumbarse (para que la paja
+// tumbada tape la calle entre hileras y lo pisado se vea como una franja entera).
+uniform float trample_rows = 0.0;
+uniform float trample_spread = 1.0;
 
 varying vec3 lp;
 varying vec3 ln;
 varying float node_seed;
+varying float crushed;
 
 void vertex() {
 	node_seed = fract(sin(dot(NODE_POSITION_WORLD.xz, vec2(12.9898, 78.233))) * 43758.5453);
@@ -32,6 +44,16 @@ void vertex() {
 		vec2 key = dir.xz * 2.3 + dir.y * 1.7 + node_seed * 37.0;
 		float bulge = textureLod(noise_tex, (key + 0.5) / 64.0 * 3.0, 0.0).r;
 		VERTEX *= 1.0 + (bulge - 0.5) * lumpiness;
+	}
+	crushed = 0.0;
+	if (trample_size.x > 0.0) {
+		crushed = textureLod(trample, VERTEX.xz / trample_size + 0.5, 0.0).r;
+		VERTEX.y *= mix(1.0, trample_height, crushed);
+		if (trample_rows > 0.0) {
+			float row = (floor((VERTEX.z / trample_size.y + 0.5) * trample_rows) + 0.5) / trample_rows - 0.5;
+			float centre = row * trample_size.y;
+			VERTEX.z = centre + (VERTEX.z - centre) * mix(1.0, trample_spread, crushed);
+		}
 	}
 	if (sway > 0.0) {
 		float phase = TIME * 1.1 + NODE_POSITION_WORLD.x * 0.3 + NODE_POSITION_WORLD.z * 0.2;
@@ -157,6 +179,8 @@ void fragment() {
 		rough = 1.0;
 	}
 
+	// Lo aplastado: paja tumbada, más apagada y con vetas.
+	color = mix(color, trample_color * (0.75 + fine.r * 0.5), crushed * 0.9);
 	ALBEDO = color;
 	ROUGHNESS = rough;
 	METALLIC = metal;

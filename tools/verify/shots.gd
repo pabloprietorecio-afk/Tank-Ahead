@@ -119,6 +119,8 @@ class Runner extends Node:
 			await _open_border()
 		if only.contains("arranque"):
 			await _boot()
+		if only.contains("trigo"):
+			await _crops()
 		if only.contains("ametralla"):
 			await _strafe()
 		if only.contains("nav"):
@@ -1193,6 +1195,70 @@ class Runner extends Node:
 		print("AMETRALLA supervivencia: en la oleada 2 %s, en la 3 %s: %s" % ["sí" if wave2 else "no", "sí" if wave3 else "no", "bien" if not wave2 and wave3 else "MAL"])
 		print("AMETRALLA RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
+
+	## Cultivos: el trigal y los girasoles se aplastan al paso de un tanque (y se quedan así) por
+	## donde pasa y solo por ahí.
+	func _crops() -> void:
+		var bad: int = 0
+		await _start_game(GameSession.Mode.STORY, Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.SUNNY, 1, 1)
+		var player: Tank = _player_tank()
+		for kind: String in ["Trigal", "Girasoles"]:
+			var field: Node3D = null
+			for node: Node in get_tree().get_nodes_in_group(&"crop_fields"):
+				var pisadas := node.get_node_or_null("Pisadas") as CropTrample
+				if String(node.name).begins_with(kind) and pisadas != null and pisadas.crushed_share() == 0.0:
+					field = node
+					break
+			if field == null:
+				bad += 1
+				print("TRIGO %s: no hay ninguno sin pisar en el mapa: MAL" % kind)
+				continue
+			var trample := field.get_node("Pisadas") as CropTrample
+			var size: Vector2 = field.get_meta(&"size")
+			var mesh_node: MeshInstance3D = field as MeshInstance3D if field is MeshInstance3D else field.get_child(0) as MeshInstance3D
+			var look := mesh_node.material_override as ShaderMaterial
+			var wired: bool = look != null and look.get_shader_parameter("trample") != null and look.get_shader_parameter("trample_size") == size
+			var vertices: int = (mesh_node.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+			# El jugador cruza el campo por el centro, de oeste a este, a lo largo de 16 m.
+			player.global_rotation = Vector3(0.0, -PI * 0.5, 0.0)
+			for metre in 17:
+				player.global_position = field.global_position + Vector3(-8.0 + metre, 0.05, 0.0)
+				player.velocity = Vector3.ZERO
+				for tick in 7:
+					await get_tree().physics_frame
+			var lane: bool = true
+			for x: float in [-7.0, -3.0, 0.0, 4.0, 7.0]:
+				lane = lane and trample.crushed_at(Vector2(x, 0.0)) == 1.0
+			var beside: bool = trample.crushed_at(Vector2(0.0, 5.0)) == 0.0 and trample.crushed_at(Vector2(0.0, -5.0)) == 0.0 and trample.crushed_at(Vector2(size.x * 0.5 - 1.0, size.y * 0.5 - 1.0)) == 0.0
+			var share: float = trample.crushed_share()
+			# Queda aplastado: nada lo levanta después.
+			player.global_position = field.global_position + Vector3(0.0, 0.05, size.y * 0.5 + 12.0)
+			for tick in 20:
+				await get_tree().physics_frame
+			var stays: bool = trample.crushed_at(Vector2(0.0, 0.0)) == 1.0 and is_equal_approx(trample.crushed_share(), share)
+			var good: bool = wired and vertices > 2000 and lane and beside and stays and share > 0.02 and share < 0.4
+			if not good:
+				bad += 1
+			print("TRIGO %s de %.0f × %.0f m (%d vértices): material con su mapa de pisadas %s | aplastado por donde pasó el tanque %s | en pie a los lados %s | se queda aplastado %s | parte aplastada %.0f %% | %s" % [kind, size.x, size.y, vertices, "sí" if wired else "NO", "sí" if lane else "NO", "sí" if beside else "NO", "sí" if stays else "NO", share * 100.0, "bien" if good else "MAL"])
+			# Para las capturas: el tanque al final de la calle que ha abierto, visto desde lo alto
+			# y desde su propia cámara, mirando la calle.
+			player.global_position = field.global_position + Vector3(9.0, 0.05, 0.0)
+			player.global_rotation = Vector3(0.0, PI * 0.5, 0.0)
+			player.velocity = Vector3.ZERO
+			var above := Camera3D.new()
+			get_tree().current_scene.add_child(above)
+			above.global_position = field.global_position + Vector3(4.0, 9.0, 15.0)
+			above.look_at(field.global_position + Vector3(0.0, 0.0, -1.0))
+			above.current = true
+			await _frames(6)
+			await _snap("trigo_%s_alto" % kind.to_lower())
+			above.current = false
+			above.queue_free()
+			player.camera.current = true
+			await _frames(4)
+			await _snap("trigo_%s" % kind.to_lower())
+		print("TRIGO RESULT fallos: %d" % bad)
+
 
 	## Arranque: el juego abre con el vídeo de introducción; la primera vez se queda en el título
 	## con las banderas (el título se viste con la del idioma elegido, los textos cambian y
