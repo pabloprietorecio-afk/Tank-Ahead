@@ -408,7 +408,7 @@ Workflow `build-aab.yml` (Actions > *Build AAB (Google Play)* > *Run workflow*, 
 5. Los textos de la ficha (incluido el aviso de voces IA, obligatorio por la licencia de Supertonic) están en `store/`.
 
 ## Comprobación
-Cada push a una rama que no sea `main` ejecuta `verify.yml`: prueba las misiones nuevas, la navegación de los tanques aliados, su formación al seguir al jugador (recta, giros, media vuelta, marcha atrás, en campo abierto y entre casas) y el tutorial completo
+`verify.yml` se lanza a mano (Actions → Verify → Run workflow, o `gh workflow run verify.yml --ref RAMA`); ya no corre en cada push porque gastaba casi la mitad de los minutos de Actions del plan gratuito. Las mismas pruebas se pasan antes de subir con `SHOTS_ONLY="…" godot --headless --path . res://tools/verify/shots.tscn`. Prueba las misiones nuevas, la navegación de los tanques aliados, su formación al seguir al jugador (recta, giros, media vuelta, marcha atrás, en campo abierto y entre casas) y el tutorial completo
 (un jugador automático hace la acción correcta en cada lección) sin gráficos, y guarda capturas y registros en la rama `verify-shots`.
 También comprueba que los tanques suben y bajan las lomas (y siguen sin poder subir a las colinas), que el menú de opciones cabe en
 pantalla en los diez idiomas, las fichas de los tanques que puede llevar el jugador, los refuerzos aliados y los bordes de ayuda.

@@ -3,9 +3,11 @@ name: Verify
 # Comprobación visual en ramas de trabajo: ejecuta el juego con un renderizador por software
 # (con el mismo método de dibujo que usa el teléfono, «mobile»), guarda capturas de tanques,
 # escenarios y partidas, y falla si hay errores de scripts o shaders.
+#
+# Solo a mano (Actions > Verify > Run workflow, o `gh workflow run verify.yml --ref RAMA`): en cada
+# subida gastaba unos 900 minutos al mes de los 2.000 del plan gratuito. Las mismas pruebas se pasan
+# antes de subir, en el entorno de trabajo (ver README, «Comprobación»).
 on:
-  push:
-    branches-ignore: [main, audio, audio-raw, verify-shots, aab-setup, aab-report, billing-plugin, billing-plugin-out, admob-plugin, admob-plugin-out, store-shots, store-shots-out]
   workflow_dispatch:
 
 permissions:
