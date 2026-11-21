@@ -1,0 +1,7 @@
+## Diagnóstico de la clave (sin secretos)
+- base64 pegado: 3584 caracteres (esperado según el archivo original: 5800)
+- keystore decodificado: 2686 bytes, sha256 2aa16445416586d7
+- alias recibido: 'atankstory-upload' (17 caracteres)
+- contraseña recibida: 28 caracteres
+- keytool abre el almacén con esa contraseña: SÍ
+- entradas: atankstory-upload 
