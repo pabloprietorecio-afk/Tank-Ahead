@@ -1,4 +1,4 @@
-"""Completa el fogonazo final del vídeo y añade el título «A / TANK / STORY», una palabra por
+"""Completa el fogonazo final del vídeo y añade el título «A TANK / STORY», una palabra por
 cañonazo. Uso: make_intro.py VIDEO FUENTE.ttf CARPETA_AUDIO SALIDA.mp4
 
 VIDEO: el clip de la pantalla de carga convertida en carro real que acaba al empezar el fogonazo
@@ -81,11 +81,26 @@ for n in range(DECAY):
 title_start = len(frames)
 
 # 2) El título: una palabra por cañonazo, a máquina.
+# En dos renglones: «A TANK» arriba y «STORY» debajo. Cada palabra tiene su sitio (el centro de
+# su tinta) y su cañonazo. ui/intro/title_card.gd repite estas medidas: si cambian aquí, allí.
 WORDS = ["A", "TANK", "STORY"]
-SIZE = 176
+SIZE = 200
 font = ImageFont.truetype(FONT, SIZE)
-LINE = 172
-tops = [H / 2 + (i - 1) * LINE for i in range(3)]
+LINE = 204
+GAP = 50          # hueco entre «A» y «TANK»: algo menos de media letra, para que se lean juntas
+
+def ink_width(text):
+    box = font.getbbox(text)
+    return box[2] - box[0]
+
+_top = ink_width("A") + GAP + ink_width("TANK")
+SPOTS = [
+    (W / 2 - _top / 2 + ink_width("A") / 2, H / 2 - LINE / 2),
+    (W / 2 + _top / 2 - ink_width("TANK") / 2, H / 2 - LINE / 2),
+    (W / 2, H / 2 + LINE / 2),
+]
+print("título:", [(w, round(x - W / 2, 1), round(y - H / 2, 1)) for w, (x, y) in zip(WORDS, SPOTS)],
+    "bloque", max(_top, ink_width("STORY")), file=sys.stderr)
 
 def word_layer(text, scale):
     f = ImageFont.truetype(FONT, int(SIZE * scale))
@@ -117,7 +132,7 @@ for n in range(TITLE_FRAMES):
         punch = math.exp(-k / 1.5)
         layer = word_layer(WORDS[i], 1.0 + 0.2 * punch)
         lh, lw = layer.shape
-        cx, cy = W / 2, tops[i]
+        cx, cy = SPOTS[i]
         x, y = int(cx - lw / 2), int(cy - lh / 2)
         xa, ya, xb, yb = max(x, 0), max(y, 0), min(x + lw, W), min(y + lh, H)
         part = layer[ya - y:yb - y, xa - x:xb - x]

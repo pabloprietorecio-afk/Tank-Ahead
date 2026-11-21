@@ -263,7 +263,7 @@ El juego abre en `ui/intro/intro.tscn` (`Intro`), no en el menú:
 
 - **Vídeo de introducción** (`assets/video/intro.ogv`, 9,5 s): la pantalla de carga se vuelve un
   carro de verdad, gira la torreta hacia el espectador, dispara y, sobre el fogonazo, queda el
-  título «A / TANK / STORY» a máquina, una palabra por cañonazo. Cubre la pantalla entera (se
+  título «A TANK / STORY» a máquina, una palabra por cañonazo. Cubre la pantalla entera (se
   recorta lo que sobre) y se salta tocando. Cómo está hecho: `assets/video/CREDITS.md`.
 - **La primera vez** (`GameSession.language_chosen`), al acabar el vídeo se queda en esa misma
   imagen: `TitleCard` pinta el título con las mismas letras y medidas (coincide al píxel), lo

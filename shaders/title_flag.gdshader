@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-// Título «A / TANK / STORY» de la portada. Con `tint` a 0 es tinta crema, como en el vídeo de
+// Título «A TANK / STORY» de la portada. Con `tint` a 0 es tinta crema, como en el vídeo de
 // introducción; con `tint` a 1 las letras se visten con la bandera del idioma elegido: la
 // bandera se extiende por todo el bloque del título y cada letra enseña el trozo que le toca.
 // Al cambiar de idioma se pasa de una bandera a otra con `blend`.
@@ -29,5 +29,9 @@ void fragment() {
 	flag = mix(flag, ink, 0.1);
 	vec3 body = mix(ink, flag, tint);
 	float is_fill = step(0.5, fill);
-	COLOR = vec4(mix(ink, body, is_fill), COLOR.a * mix(0.6 * tint, 1.0, is_fill));
+	// El perfil se marca más cuanto más oscuro es el color que rodea (el negro de Alemania no se
+	// leería sobre el fondo); en los claros queda en un filo suave.
+	float dark = 1.0 - smoothstep(0.08, 0.38, dot(flag, vec3(0.299, 0.587, 0.114)));
+	float rim = tint * mix(0.5, 1.0, dark);
+	COLOR = vec4(mix(ink, body, is_fill), COLOR.a * mix(rim, 1.0, is_fill));
 }

@@ -11,8 +11,8 @@ const VIDEO: String = "res://assets/video/intro.ogv"
 const VIDEO_SIZE: Vector2 = Vector2(1280.0, 720.0)
 const MENU: String = "res://levels/main_menu.tscn"
 ## Dónde queda el título al dejar sitio a las banderas (fracción del ancho) y cuánto se encoge.
-const TITLE_AT: float = 0.235
-const TITLE_SHRINK: float = 0.76
+const TITLE_AT: float = 0.24
+const TITLE_SHRINK: float = 0.7
 const PANEL_FROM: float = 0.455
 
 enum Stage { VIDEO, LANGUAGE, LEAVING }

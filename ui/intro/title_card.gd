@@ -1,18 +1,20 @@
 class_name TitleCard
 extends Control
-## El título «A / TANK / STORY» a máquina, tal como queda al final del vídeo de introducción
+## El título «A TANK / STORY» a máquina, tal como queda al final del vídeo de introducción
 ## (mismas letras, mismo tamaño y mismo sitio), para seguir desde ahí sin que se note el corte.
 ## Puede moverse y encogerse, y vestirse con la bandera de un idioma (ver title_flag.gdshader).
 
 const WORDS: Array[String] = ["A", "TANK", "STORY"]
 const FONT_PATH: String = "res://assets/fonts/SpecialElite-Regular.ttf"
-## Medidas del título en el vídeo (1280 × 720): cuerpo de la letra y separación entre renglones.
-const SIZE: float = 176.0
-const LINE: float = 172.0
+## Medidas del título en el vídeo (1280 × 720), las de tools/film/make_intro.py: cuerpo de la
+## letra y dónde cae el centro de cada palabra respecto al centro del bloque («A TANK» arriba,
+## «STORY» debajo).
+const SIZE: float = 200.0
+const SPOTS: Array[Vector2] = [Vector2(-258.0, -102.0), Vector2(80.5, -102.0), Vector2(0.0, 102.0)]
 ## Del centro de la tinta de un renglón a su línea base, en cuerpos de letra (medido en la fuente).
 const BASELINE: float = 0.345
-## Ancho y alto del bloque entero, en píxeles del vídeo (lo ocupa «STORY» y los tres renglones).
-const BLOCK: Vector2 = Vector2(540.0, 478.0)
+## Ancho y alto del bloque entero, en píxeles del vídeo (lo ocupa «A TANK» y los dos renglones).
+const BLOCK: Vector2 = Vector2(627.0, 352.0)
 ## La tinta crema del vídeo, tal como queda en él tras el desgaste y la compresión.
 const INK := Color(0.8, 0.775, 0.69)
 
@@ -88,7 +90,7 @@ func _draw() -> void:
 		for i in WORDS.size():
 			var word: String = WORDS[i]
 			var width: float = _font.get_string_size(word, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x
-			var at := Vector2(center.x - width * 0.5, center.y + (i - 1) * LINE * zoom + BASELINE * font_size)
+			var at := Vector2(center.x + SPOTS[i].x * zoom - width * 0.5, center.y + SPOTS[i].y * zoom + BASELINE * font_size)
 			if pass_fill:
 				draw_string(_font, at, word, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, Color.WHITE)
 			else:

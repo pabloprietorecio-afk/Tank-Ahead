@@ -13,4 +13,4 @@ Las dos se usan sin modificar su nombre ni vender las fuentes por separado, como
 
 `SpecialElite-Regular.ttf`: tipografía de máquina de escribir de **Astigmatic** (Brian J.
 Bonislawsky), de Google Fonts, con licencia **Apache 2.0** (`SpecialElite-LICENSE.txt`). Es la
-letra del título «A / TANK / STORY» del vídeo de introducción y de la pantalla de idioma.
+letra del título «A TANK / STORY» del vídeo de introducción y de la pantalla de idioma.

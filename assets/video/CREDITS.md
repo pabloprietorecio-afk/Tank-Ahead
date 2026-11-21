@@ -8,7 +8,7 @@
    pantalla de poca resolución (zona útil de 480 × 254), ampliada; conviene rehacerlo con el
    original descargado de PixVerse. **Pendiente de confirmar que el plan de PixVerse con el que se
    generó permite el uso comercial.**
-2. **El fogonazo completo y el título «A / TANK / STORY», una palabra por cañonazo.** Añadido con
+2. **El fogonazo completo y el título «A TANK / STORY», una palabra por cañonazo.** Añadido con
    `tools/film/make_intro.py`: tipografía Special Elite (ver `assets/fonts/CREDITS.md`) y los
    sonidos del propio juego (`cannon.ogg`, `distant_gun_1.ogg`, `explosion_real.ogg`; sus créditos,
    en `assets/audio/CREDITS.md`).
