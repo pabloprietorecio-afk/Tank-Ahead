@@ -32,6 +32,11 @@ PERMS=$(echo "$MANIFEST" | grep -o 'uses-permission[^>]*android:name="[^"]*"' | 
 say "- Permisos declarados: $(echo $PERMS | tr '\n' ' ')"
 UNEXPECTED=$(echo "$PERMS" | grep -v -E '^(android.permission.(INTERNET|VIBRATE|ACCESS_NETWORK_STATE|WAKE_LOCK|ACCESS_ADSERVICES_ATTRIBUTION|ACCESS_ADSERVICES_AD_ID|ACCESS_ADSERVICES_TOPICS|AD_ID|FOREGROUND_SERVICE|RECORD_AUDIO)|com.android.vending.BILLING|com.google.android.gms.permission.AD_ID)$' || true)
 if [ -n "$UNEXPECTED" ]; then bad "Permisos no previstos: $(echo $UNEXPECTED | tr '\n' ' ')"; else ok "Solo permisos previstos"; fi
+# Hardware que Google Play daría por obligatorio (y dejaría fuera dispositivos) si no se declara opcional.
+for FEATURE in android.hardware.microphone android.hardware.screen.landscape; do
+  LINE=$(echo "$MANIFEST" | grep "uses-feature" | grep "android:name=\"$FEATURE\"" | head -1 || true)
+  if grep -q 'android:required="false"' <<<"$LINE"; then ok "$FEATURE declarado como opcional"; else bad "$FEATURE no está declarado como opcional: Google Play excluirá dispositivos"; fi
+done
 
 say
 say "## Librerías nativas (alineación 16 KB)"
