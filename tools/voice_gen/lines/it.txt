@@ -44,7 +44,7 @@ tut_fire_a|Mira a una sagoma e premi il pulsante di fuoco.
 tut_fire_b|Il cannone sta ricaricando. La barra sotto il mirino si riempie. Quando diventa verde, spara fino a distruggere una sagoma.
 tut_easy_a|Movimento facile. Quando avanzi, lo scafo segue il cannone. Mira alla boa e spingi solo in avanti.
 tut_easy_b|Si disattiva nelle impostazioni, sotto movimento facile. Vai allo stesso modo fino alla seconda boa.
-tut_camera|Premi il pulsante della videocamera per cambiare vista: cabina, posteriore e posteriore lontana.
+tut_camera|Premi il pulsante della videocamera per cambiare vista: cabina ed esterna. Fai scorrere la freccia sopra il pulsante di fuoco per inclinare la videocamera.
 tut_radar|Il radar. I punti sono nemici. I quadrati blu, alleati. Il rombo, il tuo obiettivo. Gli anelli sono edifici con bonus e le croci sono bonus. Vai fino al rombo.
 tut_enemy_a|Carro nemico di addestramento, fermo. Distruggilo. Serviranno più colpi.
 tut_enemy_b|Ora uno in movimento. Mira un po' davanti e distruggilo.

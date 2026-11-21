@@ -14,6 +14,10 @@ static var easy_drive: bool = true
 
 ## Vista: 0 = cabina, 1 = detrás cerca, 2 = detrás lejos.
 static var camera_view: int = 0
+## Picado de la vista exterior (0 = rasante, 1 = lo más picado); lo mueve la flecha de encima de
+## FIRE. 0,35 equivale a la antigua vista «trasera lejana».
+static var camera_tilt: float = 0.0
+const FAR_VIEW_TILT: float = 0.35
 
 ## Sombras en tiempo real (desactivar en móviles lentos).
 static var shadows: bool = true
@@ -79,7 +83,14 @@ static func ensure_loaded() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) == OK:
 		aim_assist = cfg.get_value("controls", "aim_assist", aim_assist)
-		camera_view = cfg.get_value("controls", "camera_view", camera_view)
+		camera_view = int(cfg.get_value("controls", "camera_view", camera_view))
+		camera_tilt = clampf(float(cfg.get_value("controls", "camera_tilt", camera_tilt)), 0.0, 1.0)
+		# Ajustes de cuando había tres vistas: la «trasera lejana» (2) es ahora la exterior con
+		# su picado.
+		if camera_view >= 2:
+			camera_view = 1
+			if not cfg.has_section_key("controls", "camera_tilt"):
+				camera_tilt = FAR_VIEW_TILT
 		shadows = cfg.get_value("graphics", "shadows", shadows)
 		effects = clampi(cfg.get_value("graphics", "effects", effects), 0, 2)
 		music_volume = cfg.get_value("audio", "music", music_volume)
@@ -111,6 +122,7 @@ static func save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("controls", "aim_assist", aim_assist)
 	cfg.set_value("controls", "camera_view", camera_view)
+	cfg.set_value("controls", "camera_tilt", camera_tilt)
 	cfg.set_value("graphics", "shadows", shadows)
 	cfg.set_value("graphics", "effects", effects)
 	cfg.set_value("audio", "music", music_volume)

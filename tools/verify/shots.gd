@@ -121,6 +121,8 @@ class Runner extends Node:
 			await _boot()
 		if only.contains("trigo"):
 			await _crops()
+		if only.contains("camara"):
+			await _camera_tilt()
 		if only.contains("ametralla"):
 			await _strafe()
 		if only.contains("nav"):
@@ -731,7 +733,7 @@ class Runner extends Node:
 		var mode: TutorialMode = await _start_tutorial()
 		await get_tree().create_timer(2.0).timeout
 		await _snap("tutorial_01_mover")
-		for spec in [[2, "tutorial_03_torreta"], [3, "tutorial_04_disparo"], [6, "tutorial_07_radar"], [8, "tutorial_09_fijar"], [11, "tutorial_12_avion"], [13, "tutorial_14_dano"], [14, "tutorial_15_final"]]:
+		for spec in [[2, "tutorial_03_torreta"], [3, "tutorial_04_disparo"], [5, "tutorial_06_camara"], [6, "tutorial_07_radar"], [8, "tutorial_09_fijar"], [11, "tutorial_12_avion"], [13, "tutorial_14_dano"], [14, "tutorial_15_final"]]:
 			mode.goto_lesson(spec[0])
 			if spec[0] == 11:
 				mode.player.set_binoculars(true)
@@ -1197,6 +1199,126 @@ class Runner extends Node:
 		print("AMETRALLA RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
 
+	## Cámara exterior con picado regulable: la flecha de encima de FIRE la sube y la inclina
+	## (de unos 5º a unos 45º), CÁM alterna cabina y exterior, y la flecha solo sale en la exterior.
+	func _camera_tilt() -> void:
+		var bad: int = 0
+		# El recorrido de la cámara: cada vez más picada y más alta, de rasante a 45º.
+		var low: float = rad_to_deg(Tank.chase_pitch(0.0))
+		var far: float = rad_to_deg(Tank.chase_pitch(GameSettings.FAR_VIEW_TILT))
+		var high: float = rad_to_deg(Tank.chase_pitch(1.0))
+		var rising: bool = true
+		for step in 20:
+			rising = rising and Tank.chase_pitch((step + 1) / 20.0) > Tank.chase_pitch(step / 20.0) and Tank.chase_frame((step + 1) / 20.0).y > Tank.chase_frame(step / 20.0).y
+		var path_ok: bool = low > 4.0 and low < 6.0 and far > 9.0 and far < 10.5 and high > 44.0 and high < 46.0 and rising and is_equal_approx(Tank.chase_frame(GameSettings.FAR_VIEW_TILT).x, 20.0)
+		if not path_ok:
+			bad += 1
+		print("CAMARA recorrido: %.1fº abajo, %.1fº en la antigua «lejana», %.1fº arriba, siempre a más: %s" % [low, far, high, "bien" if path_ok else "MAL"])
+		# Ajustes de cuando había tres vistas: la 2 pasa a exterior con el picado de la «lejana».
+		var kept: String = FileAccess.get_file_as_string(GameSettings.PATH) if FileAccess.file_exists(GameSettings.PATH) else ""
+		var old := ConfigFile.new()
+		old.load(GameSettings.PATH)
+		old.set_value("controls", "camera_view", 2)
+		if old.has_section_key("controls", "camera_tilt"):
+			old.erase_section_key("controls", "camera_tilt")
+		old.save(GameSettings.PATH)
+		GameSettings._loaded = false
+		GameSettings.camera_tilt = 0.0
+		GameSettings.ensure_loaded()
+		var migrated: bool = GameSettings.camera_view == 1 and is_equal_approx(GameSettings.camera_tilt, GameSettings.FAR_VIEW_TILT)
+		if not migrated:
+			bad += 1
+		print("CAMARA ajustes antiguos con la vista «trasera lejana»: vista %d, picado %.2f: %s" % [GameSettings.camera_view, GameSettings.camera_tilt, "bien" if migrated else "MAL"])
+		GameSettings.camera_tilt = 0.0
+		var hud: Hud = await _start_game(GameSession.Mode.SURVIVAL, Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.SUNNY, 1)
+		var player: Tank = _player_tank()
+		var slider: TiltSlider = hud.tilt_slider
+		await _frames(4)
+		# Cabe entre el radar y el botón FIRE sin pisar ninguno.
+		var radar: Radar = null
+		for node: Node in hud.get_parent().get_children():
+			if node is Radar:
+				radar = node
+		var clear: bool = radar != null and not slider.get_global_rect().intersects(radar.get_global_rect()) and slider.get_global_rect().end.y < hud.touch.fire_center().y - TouchControls.FIRE_RADIUS * 1.25
+		var shown: bool = slider.visible and slider.value == 0.0 and clear
+		# Un dedo que empieza sobre la flecha y sube: mueve el marcador y la cámara, no la torreta.
+		var yaw_before: float = player.turret_controller.world_yaw
+		var rect: Rect2 = slider.get_global_rect()
+		var from: Vector2 = Vector2(rect.get_center().x, rect.end.y - TiltSlider.PAD - 2.0)
+		var to: Vector2 = Vector2(rect.get_center().x + 30.0, rect.position.y + TiltSlider.PAD + 2.0)
+		_touch(hud, 5, from, true)
+		await _frames(2)
+		for step in 10:
+			var at: Vector2 = from.lerp(to, (step + 1) / 10.0)
+			_drag(hud, 5, at, (to - from) / 10.0)
+			await _frames(1)
+		_touch(hud, 5, to, false)
+		for tick in 50:
+			await get_tree().process_frame
+		var raised: bool = slider.value > 0.97 and GameSettings.camera_tilt > 0.97 and player.camera_tilt > 0.97
+		var pitch: float = rad_to_deg(-player.camera.global_rotation.x)
+		var height: float = player.camera.global_position.y - player.global_position.y
+		var looks_down: bool = pitch > 40.0 and pitch < 47.0 and height > 27.0
+		var turret_still: bool = absf(angle_difference(player.turret_controller.world_yaw, yaw_before)) < 0.02 and not hud.touch.fire_held
+		await _snap("camara_picado")
+		# A media altura, y de vuelta abajo.
+		slider.value = 0.5
+		slider.changed.emit(0.5)
+		for tick in 50:
+			await get_tree().process_frame
+		await _snap("camara_media")
+		slider.value = 0.0
+		slider.changed.emit(0.0)
+		for tick in 50:
+			await get_tree().process_frame
+		var back_down: bool = rad_to_deg(-player.camera.global_rotation.x) < 8.0
+		await _snap("camara_rasante")
+		# CÁM: cabina (sin flecha) y de vuelta a la exterior (con ella). Con el zoom, tampoco.
+		(hud.controls["cam"] as Button).pressed.emit()
+		await _frames(3)
+		var cabin: bool = GameSettings.camera_view == 0 and not slider.visible
+		(hud.controls["cam"] as Button).pressed.emit()
+		await _frames(3)
+		var outside: bool = GameSettings.camera_view == 1 and slider.visible
+		player.set_binoculars(true)
+		await _frames(3)
+		var zoom_hides: bool = not slider.visible
+		player.set_binoculars(false)
+		await _frames(3)
+		var good: bool = shown and raised and looks_down and turret_still and back_down and cabin and outside and zoom_hides and slider.visible
+		if not good:
+			bad += 1
+		print("CAMARA flecha a la vista en la exterior %s | al deslizar arriba, marcador y ajuste arriba %s, cámara a %.0fº y %.0f m de alto %s, sin mover la torreta ni disparar %s | abajo vuelve a rasante %s | CÁM: cabina sin flecha %s, exterior con ella %s | con el zoom se esconde %s | %s" % ["sí" if shown else "NO", "sí" if raised else "NO", pitch, height, "sí" if looks_down else "NO", "sí" if turret_still else "NO", "sí" if back_down else "NO", "sí" if cabin else "NO", "sí" if outside else "NO", "sí" if zoom_hides else "NO", "bien" if good else "MAL"])
+		# Se deja todo como estaba.
+		if kept != "":
+			var file := FileAccess.open(GameSettings.PATH, FileAccess.WRITE)
+			file.store_string(kept)
+			file.close()
+		GameSettings._loaded = false
+		GameSettings.ensure_loaded()
+		print("CAMARA RESULT fallos: %d" % bad)
+
+
+	## Un dedo en la pantalla (en coordenadas de la interfaz), tal como les llega a la flecha del
+	## picado y a los controles táctiles.
+	func _touch(hud: Hud, index: int, at: Vector2, pressed: bool) -> void:
+		var event := InputEventScreenTouch.new()
+		event.index = index
+		event.position = at
+		event.pressed = pressed
+		hud.tilt_slider._input(event)
+		hud.touch._input(event)
+
+
+	func _drag(hud: Hud, index: int, at: Vector2, relative: Vector2) -> void:
+		var event := InputEventScreenDrag.new()
+		event.index = index
+		event.position = at
+		event.relative = relative
+		hud.tilt_slider._input(event)
+		hud.touch._input(event)
+
+
 	## Cultivos: el trigal y los girasoles se aplastan al paso de un tanque (y se quedan así) por
 	## donde pasa y solo por ahí.
 	func _crops() -> void:
@@ -1204,17 +1326,20 @@ class Runner extends Node:
 		await _start_game(GameSession.Mode.STORY, Fronts.Id.KURSK, Fronts.Faction.AXIS, Weather.Kind.SUNNY, 1, 1)
 		var player: Tank = _player_tank()
 		for kind: String in ["Trigal", "Girasoles"]:
+			# El campo menos pisado (algún tanque puede haber nacido dentro de uno): se deja en
+			# pie para la prueba.
 			var field: Node3D = null
 			for node: Node in get_tree().get_nodes_in_group(&"crop_fields"):
 				var pisadas := node.get_node_or_null("Pisadas") as CropTrample
-				if String(node.name).begins_with(kind) and pisadas != null and pisadas.crushed_share() == 0.0:
+				if String(node.name).begins_with(kind) and pisadas != null and (field == null or pisadas.crushed_share() < (field.get_node("Pisadas") as CropTrample).crushed_share()):
 					field = node
-					break
 			if field == null:
 				bad += 1
-				print("TRIGO %s: no hay ninguno sin pisar en el mapa: MAL" % kind)
+				print("TRIGO %s: no hay ninguno en el mapa: MAL" % kind)
 				continue
 			var trample := field.get_node("Pisadas") as CropTrample
+			trample._data.fill(0)
+			trample._last.clear()
 			var size: Vector2 = field.get_meta(&"size")
 			var mesh_node: MeshInstance3D = field as MeshInstance3D if field is MeshInstance3D else field.get_child(0) as MeshInstance3D
 			var look := mesh_node.material_override as ShaderMaterial
@@ -2274,7 +2399,9 @@ class Runner extends Node:
 			GameSession.front_choice = spec[0]
 			GameSession.faction = spec[1]
 			GameSession.debug_weather = spec[2]
-			GameSettings.camera_view = spec[3]
+			# (La antigua vista 2, «trasera lejana», es ahora la exterior con algo de picado.)
+			GameSettings.camera_view = mini(spec[3], 1)
+			GameSettings.camera_tilt = GameSettings.FAR_VIEW_TILT if spec[3] == 2 else 0.0
 			get_tree().change_scene_to_file("res://levels/arena.tscn")
 			await _frames(4)
 			var arena: Node = get_tree().current_scene

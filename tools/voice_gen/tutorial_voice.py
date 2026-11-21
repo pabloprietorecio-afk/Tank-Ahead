@@ -27,7 +27,7 @@ LINES = {
     "fire_b": "El cañón está recargando. La barra bajo la mira se llena. Cuando esté verde, dispara hasta destruir una diana.",
     "easy_a": "Movimiento fácil. Al avanzar, el casco sigue al cañón. Apunta a la baliza y empuja solo hacia delante.",
     "easy_b": "Se desactiva en ajustes, movimiento fácil. Ve del mismo modo hasta la segunda baliza.",
-    "camera": "Pulsa el botón de cámara para cambiar de vista: cabina, trasera y trasera lejana.",
+    "camera": "Pulsa el botón de cámara para cambiar de vista: cabina y exterior. Desliza la flecha de encima del botón de disparo para inclinar la cámara.",
     "radar": "El radar. Los puntos son enemigos. Los cuadros azules, aliados. El rombo, tu objetivo. Los anillos son edificios con premio y las cruces, premios. Ve hasta el rombo.",
     "enemy_a": "Tanque enemigo de prácticas, parado. Destrúyelo. Harán falta varios disparos.",
     "enemy_b": "Ahora uno en movimiento. Apunta un poco por delante y destrúyelo.",

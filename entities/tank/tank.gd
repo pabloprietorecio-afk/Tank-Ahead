@@ -15,8 +15,12 @@ const LAYER_WATER: int = 32
 const MAX_SLOPE_DEG: float = 10.0
 ## Capa visual de las piezas del propio jugador (la cámara en primera persona no las ve).
 const VISUAL_LAYER_OWN: int = 2
-## Distancia hacia atrás y altura de las vistas exteriores [cerca, lejos].
-const CHASE_OFFSETS: Array[Vector2] = [Vector2(10.0, 4.5), Vector2(20.0, 9.0)]
+## Vista exterior: la cámara va detrás y por encima del tanque, más o menos picada según
+## `camera_tilt`. Puntos de paso [tilt, metros hacia atrás, altura, metros por delante del tanque a
+## los que mira]: de rasante y cerca (unos 5º de picado) a unos 45º desde 30 m de altura, pasando
+## por la antigua «trasera lejana». A 45º aún se ven unos 200 m de campo por delante; más picado,
+## los enemigos lejanos y la mira se saldrían de la pantalla.
+const CHASE_PATH: Array = [[0.0, 10.0, 4.5, 25.0], [0.35, 20.0, 9.0, 25.0], [1.0, 16.0, 30.0, 12.5]]
 ## Segundos que arden los restos de un tanque de la máquina antes de hundirse y desaparecer.
 const WRECK_TIME: float = 25.0
 const WRECK_SINK: float = 2.5
@@ -61,6 +65,9 @@ var aim_lock: Tank = null
 var _scale_factor: float = 1.0
 var _shake: float = 0.0
 var _view: int = 0
+## Picado de la vista exterior: 0 = rasante, 1 = lo más picado (ver CHASE_PATH). Lo mueve la
+## flecha de la interfaz (TiltSlider).
+var camera_tilt: float = 0.0
 var _meshes: Array[MeshInstance3D] = []
 ## Mejoras temporales activas: nombre → segundos restantes.
 var buffs: Dictionary = {}
@@ -194,7 +201,7 @@ func set_binoculars(on: bool) -> void:
 		set_view(_view_before_zoom)
 
 
-## 0 = cabina, 1 = detrás cerca, 2 = detrás lejos.
+## 0 = cabina, 1 = exterior (detrás y por encima, con el picado de `camera_tilt`).
 func set_view(view: int) -> void:
 	if camera == null:
 		return
@@ -212,12 +219,33 @@ func set_view(view: int) -> void:
 func _chase_transform() -> Transform3D:
 	# Con un tanque grande (los pesados que se pueden elegir con premium) la cámara se aleja
 	# un poco para que quepa igual en pantalla.
-	var offset: Vector2 = CHASE_OFFSETS[clampi(_view - 1, 0, 1)] * (1.0 + 0.6 * maxf(_scale_factor - 1.0, 0.0))
+	var frame: Vector3 = chase_frame(camera_tilt)
+	var offset: Vector2 = Vector2(frame.x, frame.y) * (1.0 + 0.6 * maxf(_scale_factor - 1.0, 0.0))
 	var yaw: float = turret_controller.world_yaw
 	var forward := Vector3(-sin(yaw), 0.0, -cos(yaw))
 	var eye: Vector3 = global_position - forward * offset.x + Vector3.UP * offset.y
-	var look: Vector3 = global_position + forward * 25.0 + Vector3.UP * 1.5
+	var look: Vector3 = global_position + forward * frame.z + Vector3.UP * 1.5
 	return Transform3D(Basis.looking_at(look - eye, Vector3.UP), eye)
+
+
+## Dónde va la cámara exterior con el picado `tilt` (0..1): x = metros hacia atrás, y = altura,
+## z = metros por delante del tanque a los que mira.
+static func chase_frame(tilt: float) -> Vector3:
+	tilt = clampf(tilt, 0.0, 1.0)
+	for i in range(1, CHASE_PATH.size()):
+		var to: Array = CHASE_PATH[i]
+		if tilt <= to[0]:
+			var from: Array = CHASE_PATH[i - 1]
+			var t: float = (tilt - from[0]) / (to[0] - from[0])
+			return Vector3(lerpf(from[1], to[1], t), lerpf(from[2], to[2], t), lerpf(from[3], to[3], t))
+	var last: Array = CHASE_PATH[-1]
+	return Vector3(last[1], last[2], last[3])
+
+
+## Picado de la cámara exterior con `tilt` (rad, hacia abajo).
+static func chase_pitch(tilt: float) -> float:
+	var frame: Vector3 = chase_frame(tilt)
+	return atan2(frame.y - 1.5, frame.x + frame.z)
 
 
 func _process(delta: float) -> void:

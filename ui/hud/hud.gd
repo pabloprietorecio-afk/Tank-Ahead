@@ -24,6 +24,8 @@ var _end_panel: PanelContainer
 ## Hay una pausa publicitaria en curso (evita pulsar dos veces).
 var _ad_busy: bool = false
 var _view_button: Button
+## La flecha con la que se inclina la cámara exterior.
+var tilt_slider: TiltSlider
 ## Dónde se pinta la mira del cañón. Con un objetivo fijado sigue a su punto con un pelo de
 ## amortiguación, para que no tiemble con cada corrección de la torreta.
 var _reticle_at: Vector2
@@ -98,12 +100,27 @@ func _build_settings() -> void:
 	view_button.offset_top = 14.0
 	view_button.offset_bottom = 90.0
 	view_button.pressed.connect(func() -> void:
-		GameSettings.camera_view = (GameSettings.camera_view + 1) % 3
+		GameSettings.camera_view = (GameSettings.camera_view + 1) % 2
 		GameSettings.save()
 		tank.set_view(GameSettings.camera_view)
-		_show_message([Loc.t("VISTA CABINA"), Loc.t("VISTA TRASERA"), Loc.t("VISTA TRASERA LEJANA")][GameSettings.camera_view], false))
+		_show_message([Loc.t("VISTA CABINA"), Loc.t("VISTA TRASERA")][GameSettings.camera_view], false))
 	add_child(view_button)
+	GameSettings.camera_view = mini(GameSettings.camera_view, 1)
+	tank.camera_tilt = GameSettings.camera_tilt
 	tank.set_view.call_deferred(GameSettings.camera_view)
+	# La flecha del picado de la cámara exterior: encima de FIRE, pegada al borde derecho.
+	tilt_slider = TiltSlider.new()
+	tilt_slider.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	tilt_slider.offset_left = -20.0 - TiltSlider.WIDTH
+	tilt_slider.offset_right = -20.0
+	tilt_slider.offset_top = -276.0 - TiltSlider.HEIGHT
+	tilt_slider.offset_bottom = -276.0
+	tilt_slider.value = GameSettings.camera_tilt
+	tilt_slider.changed.connect(func(value: float) -> void:
+		GameSettings.camera_tilt = value
+		tank.camera_tilt = value)
+	tilt_slider.released.connect(GameSettings.save)
+	add_child(tilt_slider)
 
 	_release = Button.new()
 	_release.text = Loc.t("LIBERAR\nOBJETIVO")
@@ -123,7 +140,7 @@ func _build_settings() -> void:
 	controls["cam"] = view_button
 	controls["release"] = _release
 	if touch != null:
-		touch.exclusions.append_array([gear, view_button, _release])
+		touch.exclusions.append_array([gear, view_button, _release, tilt_slider])
 
 
 func _button(text: String, font_size: int = 26) -> Button:
@@ -724,6 +741,9 @@ func _process(delta: float) -> void:
 	_release.visible = tank.aim_lock != null and not director.is_over and AaBattery.active == null
 	_zoom_button.visible = AaBattery.active == null
 	_view_button.visible = AaBattery.active == null
+	# La flecha del picado solo tiene sentido en la vista exterior.
+	tilt_slider.visible = GameSettings.camera_view == 1 and AaBattery.active == null and not tank.binoculars and not tank.air_mode and not director.is_over
+	tilt_slider.locked = focus_active and not focus.has("cam")
 	_history_button.visible = _release.visible and not get_tree().paused
 	_missile_button.text = Loc.t("MISIL %d") % director.missiles
 	_missile_button.disabled = director.missiles <= 0

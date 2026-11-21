@@ -44,7 +44,7 @@ tut_fire_a|Mire em um alvo e aperte o botão de disparo.
 tut_fire_b|O canhão está recarregando. A barra sob a mira vai enchendo. Quando ficar verde, atire até destruir um alvo.
 tut_easy_a|Movimento fácil. Ao avançar, o casco acompanha o canhão. Mire na baliza e empurre apenas para a frente.
 tut_easy_b|Dá para desativar nas configurações, em movimento fácil. Vá do mesmo jeito até a segunda baliza.
-tut_camera|Aperte o botão de câmera para mudar a vista: cabine, traseira e traseira distante.
+tut_camera|Aperte o botão de câmera para mudar a vista: cabine e externa. Deslize a seta acima do botão de disparo para inclinar a câmera.
 tut_radar|O radar. Os pontos são inimigos. Os quadrados azuis, aliados. O losango, o seu objetivo. Os anéis são prédios com prêmio, e as cruzes, prêmios. Vá até o losango.
 tut_enemy_a|Tanque inimigo de treino, parado. Destrua-o. Vão ser necessários vários disparos.
 tut_enemy_b|Agora, um tanque em movimento. Mire um pouco à frente e destrua-o.

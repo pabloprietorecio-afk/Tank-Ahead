@@ -96,8 +96,13 @@ func _do_easy() -> void:
 		_drive_to(beacon.point())
 
 
+## Pulsa CÁM dos veces (cabina y de vuelta a la exterior) y luego desliza la flecha del picado.
 func _do_camera() -> void:
-	_press("cam")
+	if mode._cam_presses < 2:
+		_press("cam")
+	elif hud.tilt_slider.is_visible_in_tree() and not hud.tilt_slider.locked:
+		hud.tilt_slider.value = 0.6
+		hud.tilt_slider.changed.emit(0.6)
 
 
 func _do_radar() -> void:

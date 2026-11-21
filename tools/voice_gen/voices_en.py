@@ -68,7 +68,7 @@ LINES = {
     "tut_fire_b": (RADIO, "The cannon is reloading. The bar under the crosshair fills up. When it turns green, fire until you destroy a target."),
     "tut_easy_a": (RADIO, "Easy driving. When you move forward, the hull follows the gun. Aim at the beacon and push straight forward."),
     "tut_easy_b": (RADIO, "You can turn it off in the settings, under easy driving. Go the same way to the second beacon."),
-    "tut_camera": (RADIO, "Press the camera button to change view: cockpit, rear and far rear."),
+    "tut_camera": (RADIO, "Press the camera button to change view: cockpit and outside. Slide the arrow above the fire button to tilt the camera."),
     "tut_radar": (RADIO, "The radar. Dots are enemies. Blue squares, allies. The diamond, your objective. Rings are buildings with rewards, and crosses are rewards. Go to the diamond."),
     "tut_enemy_a": (RADIO, "Stationary enemy practice tank. Destroy it. It will take several shots."),
     "tut_enemy_b": (RADIO, "Now one that is moving. Aim a little ahead and destroy it."),

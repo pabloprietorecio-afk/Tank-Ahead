@@ -55,8 +55,8 @@ const STEPS: Dictionary = {
 	],
 	"camera": [
 		{"id": "camera", "show": ["cam"],
-			"text": "PULSA CÁM PARA CAMBIAR DE VISTA:\nCABINA, TRASERA Y TRASERA LEJANA",
-			"hint": "CÁM ESTÁ ARRIBA A LA DERECHA.\nPÚLSALO TRES VECES PARA VER LAS TRES VISTAS"},
+			"text": "PULSA CÁM PARA CAMBIAR DE VISTA: CABINA Y EXTERIOR.\nDESLIZA LA FLECHA DE ENCIMA DE FIRE PARA INCLINAR LA CÁMARA",
+			"hint": "CÁM ESTÁ ARRIBA A LA DERECHA: PÚLSALO DOS VECES.\nLUEGO DESLIZA LA FLECHA, ARRIBA O ABAJO"},
 	],
 	"radar": [
 		{"id": "radar", "show": ["radar"],
@@ -202,6 +202,8 @@ var _shots: int = 0
 var _reloaded: bool = false
 var _targets_destroyed: int = 0
 var _cam_presses: int = 0
+## Veces que se ha movido la flecha del picado de la cámara en la lección de CÁM.
+var _tilt_moves: int = 0
 var _release_presses: int = 0
 var _mover_time: float = 0.0
 var _missile_ok: bool = false
@@ -265,7 +267,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	if _saved.is_empty():
 		_saved = {
 			"easy_drive": GameSettings.easy_drive, "aim_assist": GameSettings.aim_assist,
-			"auto_recenter": GameSettings.auto_recenter, "camera_view": GameSettings.camera_view,
+			"auto_recenter": GameSettings.auto_recenter, "camera_view": GameSettings.camera_view, "camera_tilt": GameSettings.camera_tilt,
 		}
 	GameSettings.auto_recenter = false
 	# El tutorial empieza con la cámara fuera del tanque (vista trasera); la lección de CÁM la cambia.
@@ -287,6 +289,7 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		layer.move_child(overlay, hud.get_index())
 		hud.focus_active = true
 		(hud.controls["cam"] as Button).pressed.connect(func() -> void: _cam_presses += 1)
+		hud.tilt_slider.changed.connect(func(_value: float) -> void: _tilt_moves += 1)
 		(hud.controls["release"] as Button).pressed.connect(func() -> void: _release_presses += 1)
 	else:
 		add_child(overlay)
@@ -306,6 +309,7 @@ func _exit_tree() -> void:
 	GameSettings.aim_assist = _saved["aim_assist"]
 	GameSettings.auto_recenter = _saved["auto_recenter"]
 	GameSettings.camera_view = _saved["camera_view"]
+	GameSettings.camera_tilt = _saved["camera_tilt"]
 	GameSettings.save()
 	_saved = {}
 
@@ -738,10 +742,12 @@ func _check_easy(_delta: float) -> bool:
 
 func _setup_camera() -> void:
 	_cam_presses = 0
+	_tilt_moves = 0
 
 
+## Dos pulsaciones de CÁM (cabina y de vuelta a la exterior) y la flecha del picado movida.
 func _check_camera(_delta: float) -> bool:
-	return _cam_presses >= 3
+	return _cam_presses >= 2 and _tilt_moves >= 1
 
 
 func _setup_radar() -> void:

@@ -44,7 +44,7 @@ tut_fire_a|Visez une cible et appuyez sur le bouton de tir.
 tut_fire_b|Le canon recharge. La barre sous le viseur se remplit. Quand elle devient verte, tirez jusqu'à détruire une cible.
 tut_easy_a|Déplacement facile. En avançant, la coque suit le canon. Visez la balise et poussez simplement vers l'avant.
 tut_easy_b|On peut le désactiver dans les réglages, sous déplacement facile. Allez de la même façon jusqu'à la deuxième balise.
-tut_camera|Appuyez sur le bouton caméra pour changer de vue : cabine, arrière et arrière éloignée.
+tut_camera|Appuyez sur le bouton caméra pour changer de vue : cabine et extérieure. Glissez la flèche au-dessus du bouton de tir pour incliner la caméra.
 tut_radar|Le radar. Les points sont des ennemis. Les carrés bleus, des alliés. Le losange, votre objectif. Les anneaux sont des bâtiments avec bonus, et les croix, des bonus. Allez jusqu'au losange.
 tut_enemy_a|Char ennemi d'entraînement, immobile. Détruisez-le. Il faudra plusieurs tirs.
 tut_enemy_b|Maintenant, un char en mouvement. Visez un peu devant et détruisez-le.

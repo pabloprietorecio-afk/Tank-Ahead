@@ -192,6 +192,25 @@ invasión o un puerto. En supervivencia el mar puede quedar a cualquier lado y n
 (`edge_point` salta ese borde); en captura la bandera queda al este o al oeste, igual para las dos bases.
 En Kursk no hay costa. `GameSession.debug_coast` la fija en las pruebas (`SHOTS_ONLY=costa`).
 
+## Cámara: cabina y exterior con picado regulable
+`CÁM` alterna dos vistas: cabina y exterior. En la exterior, la cámara va detrás y por encima del
+tanque y su **picado se regula con la flecha vertical de doble sentido** que hay encima de FIRE,
+pegada al borde derecho, entre el radar y el botón (`TiltSlider`, `ui/hud/tilt_slider.gd`): el
+marcador indica el picado; al deslizarlo hacia arriba la cámara sube y mira más desde lo alto.
+
+- El recorrido (`Tank.CHASE_PATH`, `Tank.chase_frame`) va de rasante y cerca (unos 5º, la antigua
+  «trasera») a unos 45º desde 30 m de altura, pasando por la antigua «trasera lejana» (0,35). El
+  tope es 45º porque ahí aún se ven unos 200 m de campo por delante; más picado, los enemigos
+  lejanos y la mira (que marca el punto de impacto) se saldrían de la pantalla.
+- La flecha solo responde a un dedo que empiece sobre ella y lo sigue por su índice, así que no
+  interfiere con apuntar (`TouchControls` la tiene entre sus exclusiones). Se esconde en cabina,
+  con el zoom y en la batería antiaérea.
+- El picado se guarda (`GameSettings.camera_tilt`). Los ajustes de cuando había tres vistas se
+  convierten: la «trasera lejana» pasa a exterior con picado 0,35.
+- El tutorial (lección de CÁM) pide pulsar CÁM dos veces y mover la flecha.
+
+Prueba: `SHOTS_ONLY=camara` (capturas `camara_rasante`, `camara_media`, `camara_picado`).
+
 ## Mira con objetivo fijado
 Con la cámara por detrás del tanque, la mira se pinta donde la línea del cañón pasa a la distancia del
 objetivo fijado (`Hud._aim_screen_point`), con una amortiguación ligera. Antes se pintaba en lo primero

@@ -44,7 +44,7 @@ tut_fire_a|Zielen Sie auf eine Scheibe und drücken Sie die Feuertaste.
 tut_fire_b|Die Kanone lädt nach. Der Balken unter dem Fadenkreuz füllt sich. Wenn er grün ist, schießen Sie, bis eine Scheibe zerstört ist.
 tut_easy_a|Einfache Fahrt. Beim Vorwärtsfahren folgt die Wanne dem Rohr. Zielen Sie auf die Bake und schieben Sie einfach nach vorn.
 tut_easy_b|Man kann sie in den Einstellungen unter einfache Fahrt ausschalten. Fahren Sie genauso zur zweiten Bake.
-tut_camera|Drücken Sie die Kamerataste, um die Ansicht zu wechseln: Kabine, Heck und weites Heck.
+tut_camera|Drücken Sie die Kamerataste, um die Ansicht zu wechseln: Kabine und Außenansicht. Schieben Sie den Pfeil über der Feuertaste, um die Kamera zu neigen.
 tut_radar|Das Radar. Die Punkte sind Feinde. Die blauen Quadrate sind Verbündete. Die Raute ist Ihr Ziel. Ringe sind Gebäude mit Belohnung, Kreuze sind Belohnungen. Fahren Sie zur Raute.
 tut_enemy_a|Feindlicher Übungspanzer, stillstehend. Zerstören Sie ihn. Dafür sind mehrere Schüsse nötig.
 tut_enemy_b|Jetzt ein fahrender Panzer. Zielen Sie ein Stück voraus und zerstören Sie ihn.

@@ -44,7 +44,7 @@ tut_fire_a|Bidik satu sasaran dan tekan tombol tembak.
 tut_fire_b|Meriam sedang diisi ulang. Bilah di bawah bidik terisi. Saat sudah hijau, tembak sampai satu sasaran hancur.
 tut_easy_a|Gerak mudah. Saat maju, badan tank mengikuti meriam. Bidik tanda dan cukup dorong ke depan.
 tut_easy_b|Bisa dimatikan di pengaturan, di bagian gerak mudah. Pergilah dengan cara yang sama ke tanda kedua.
-tut_camera|Tekan tombol kamera untuk mengganti tampilan: kabin, belakang, dan belakang jauh.
+tut_camera|Tekan tombol kamera untuk mengganti tampilan: kabin dan luar. Geser panah di atas tombol tembak untuk memiringkan kamera.
 tut_radar|Radar. Titik adalah musuh. Kotak biru adalah sekutu. Belah ketupat adalah sasaran Anda. Cincin adalah bangunan berhadiah, dan tanda silang adalah hadiah. Pergilah ke belah ketupat.
 tut_enemy_a|Tank musuh latihan, diam. Hancurkan. Perlu beberapa tembakan.
 tut_enemy_b|Sekarang tank yang bergerak. Bidik sedikit di depannya dan hancurkan.
