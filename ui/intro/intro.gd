@@ -141,6 +141,15 @@ func _show_languages() -> void:
 	move.tween_property(title, "zoom", fit * TITLE_SHRINK, 0.6)
 	_build_panel()
 	_panel.modulate.a = 0.0
+	# Las rayas, las motas y el parpadeo de la película siguen por encima, como en el vídeo.
+	var film := ColorRect.new()
+	film.name = "Pelicula"
+	film.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	film.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var damage := ShaderMaterial.new()
+	damage.shader = load("res://shaders/old_film.gdshader")
+	film.material = damage
+	add_child(film)
 	move.tween_property(_panel, "modulate:a", 1.0, 0.5).set_delay(0.35)
 	title.wear(GameSettings.language, 0.9)
 

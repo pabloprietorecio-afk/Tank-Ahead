@@ -15,8 +15,9 @@ const SPOTS: Array[Vector2] = [Vector2(-258.0, -102.0), Vector2(80.5, -102.0), V
 const BASELINE: float = 0.345
 ## Ancho y alto del bloque entero, en píxeles del vídeo (lo ocupa «A TANK» y los dos renglones).
 const BLOCK: Vector2 = Vector2(627.0, 352.0)
-## La tinta crema del vídeo, tal como queda en él tras el desgaste y la compresión.
-const INK := Color(0.8, 0.775, 0.69)
+## La tinta crema del vídeo, tal como queda en él tras el desgaste, el revelado de película
+## antigua y la compresión (medida en sus últimos fotogramas).
+const INK := Color(0.788, 0.741, 0.62)
 
 ## Centro del bloque (en este control) y píxeles de pantalla por píxel del vídeo.
 var center: Vector2 = Vector2.ZERO:

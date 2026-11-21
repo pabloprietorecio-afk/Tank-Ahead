@@ -265,6 +265,10 @@ El juego abre en `ui/intro/intro.tscn` (`Intro`), no en el menú:
   carro de verdad, gira la torreta hacia el espectador, dispara y, sobre el fogonazo, queda el
   título «A TANK / STORY» a máquina, una palabra por cañonazo. Cubre la pantalla entera (se
   recorta lo que sobre) y se salta tocando. Cómo está hecho: `assets/video/CREDITS.md`.
+- **Aire de película de guerra antigua**: casi en blanco y negro tirando a sepia, con grano,
+  parpadeo, rayas y motas. Va en el propio vídeo y la pantalla de idioma lo continúa (el fondo y
+  el título repiten tono y grano; `shaders/old_film.gdshader` pone las rayas y el parpadeo). Las
+  banderas y los colores del título se quedan en color.
 - **La primera vez** (`GameSession.language_chosen`), al acabar el vídeo se queda en esa misma
   imagen: `TitleCard` pinta el título con las mismas letras y medidas (coincide al píxel), lo
   aparta a la izquierda y salen las diez banderas. Al tocar una cambia el idioma y **el título se

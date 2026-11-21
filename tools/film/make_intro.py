@@ -59,6 +59,17 @@ def noise_field(scale, seed):
 SMOKE = 0.55 * noise_field(190, 1) + 0.3 * noise_field(90, 2) + 0.15 * noise_field(40, 3)
 vignette = 1.0 - 0.55 * np.clip(((xs - W / 2) / (W * 0.62)) ** 2 + ((ys - H / 2) / (H * 0.62)) ** 2, 0, 1)[..., None]
 
+def shifted(img, dx, dy):
+    """La imagen desplazada; el hueco se rellena con el borde, sin dar la vuelta."""
+    if not (dx or dy):
+        return img
+    img = np.roll(img, (dy, dx), axis=(0, 1))
+    if dy > 0: img[:dy] = img[dy:dy + 1]
+    if dy < 0: img[dy:] = img[dy - 1:dy]
+    if dx > 0: img[:, :dx] = img[:, dx:dx + 1]
+    if dx < 0: img[:, dx:] = img[:, dx - 1:dx]
+    return img
+
 frames = [f for f in src]
 
 # 1) El fogonazo se abre hasta llenar la pantalla…
@@ -158,15 +169,69 @@ for n in range(TITLE_FRAMES):
     img = np.clip(canvas, 0, 255).astype(np.uint8)
     dx, dy = int(round(shake[0])), int(round(shake[1]))
     if dx or dy:
-        # Sacudida: se desplaza la imagen y el hueco se rellena con el borde, sin dar la vuelta.
-        img = np.roll(img, (dy, dx), axis=(0, 1))
-        if dy > 0: img[:dy] = img[dy:dy + 1]
-        if dy < 0: img[dy:] = img[dy - 1:dy]
-        if dx > 0: img[:, :dx] = img[:, dx:dx + 1]
-        if dx < 0: img[:, dx:] = img[:, dx - 1:dx]
+        img = shifted(img, dx, dy)       # sacudida del cañonazo
     if FADE > 0 and n >= TITLE_FRAMES - FADE:
         img = (img.astype(np.float32) * ((TITLE_FRAMES - 1 - n) / FADE)).astype(np.uint8)
     frames.append(img)
+
+# 3) Aire de noticiario de guerra: casi en blanco y negro y tirando a sepia, negros lavados,
+# grano gordo, parpadeo, rayas y motas de la película y el baile de la ventanilla del proyector.
+# INTRO_RETRO lo gradúa (0 lo quita). El último cuadro queda sin bailar: ahí sigue la pantalla del
+# juego, que repite el tono (ui/intro/title_card.gd, shaders/intro_backdrop.gdshader) y el grano
+# (shaders/old_film.gdshader).
+RETRO = float(os.environ.get("INTRO_RETRO", "1"))
+SEPIA = np.array([1.06, 1.0, 0.84], dtype=np.float32)
+LUMA = np.array([0.299, 0.587, 0.114], dtype=np.float32)
+EDGE = np.clip(((xs - W / 2) / (W * 0.6)) ** 2 + ((ys - H / 2) / (H * 0.6)) ** 2, 0, 1)[..., None]
+
+def grade(img):
+    lum = (img * LUMA).sum(axis=2, keepdims=True)
+    out = lum + (img - lum) * (1.0 - 0.8 * RETRO)
+    out = out * (1.0 + (SEPIA - 1.0) * RETRO)
+    out = 9.0 * RETRO + out * (1.0 - 16.0 * RETRO / 255.0)
+    return out * (1.0 - 0.22 * RETRO * EDGE)
+
+def old_film(clean):
+    r = np.random.default_rng(1943)
+    count = len(clean)
+    jumps = set(int(v) for v in r.choice(max(count - 24, 1), 3, replace=False))
+    scratches = []
+    out = []
+    for n, frame in enumerate(clean):
+        img = grade(frame.astype(np.float32))
+        img *= 1.0 + RETRO * (r.normal(0, 0.028) - (0.09 if r.random() < 0.04 else 0.0))      # parpadeo
+        # Grano gordo (de tres píxeles): es el de la película y, además, el que aguanta la compresión.
+        # Cambia cada dos cuadros (12 veces por segundo): se ve igual de vivo y ocupa la mitad.
+        if n % 2 == 0:
+            coarse = r.normal(0, 9.0 * RETRO, (H // 3, W // 3 + 1)).astype(np.float32)
+        img += np.repeat(np.repeat(coarse, 3, axis=0), 3, axis=1)[:H, :W, None]
+        if r.random() < 0.1 * RETRO:
+            scratches.append([r.uniform(0.04, 0.96) * W, int(r.integers(3, 22)), 1.0 if r.random() < 0.75 else -1.0, r.uniform(0.12, 0.3)])
+        for scratch in scratches:                                                                # rayas
+            scratch[0] += r.normal(0, 0.8)
+            scratch[1] -= 1
+            x = int(scratch[0])
+            if 0 <= x < W - 1:
+                run = (np.repeat(r.random(H // 24 + 1), 24)[:H] > 0.25).astype(np.float32)[:, None]
+                img[:, x] += run * 255.0 * scratch[2] * scratch[3]
+                img[:, x + 1] += run * 255.0 * scratch[2] * scratch[3] * 0.45
+        scratches = [scratch for scratch in scratches if scratch[1] > 0]
+        for _ in range(r.poisson(1.3 * RETRO)):                                                  # motas
+            cx, cy, rad = int(r.integers(0, W)), int(r.integers(0, H)), r.uniform(1.0, 4.5)
+            xa, xb, ya, yb = max(cx - 6, 0), min(cx + 7, W), max(cy - 6, 0), min(cy + 7, H)
+            dot = np.clip(1.2 - ((xs[ya:yb, xa:xb] - cx) ** 2 + (ys[ya:yb, xa:xb] - cy) ** 2) / (rad * rad), 0, 1)[..., None] * 0.85
+            img[ya:yb, xa:xb] = img[ya:yb, xa:xb] * (1 - dot) + (20.0 if r.random() < 0.7 else 235.0) * dot
+        img = np.clip(img, 0, 255).astype(np.uint8)
+        calm = min((count - 1 - n) / 10.0, 1.0)                                                  # baile
+        dy = int(round(RETRO * calm * (1.2 * math.sin(n * 0.9) + r.normal(0, 0.5)))) + (int(r.choice([-9, 7])) if n in jumps else 0)
+        dx = int(round(RETRO * calm * r.normal(0, 0.4)))
+        out.append(shifted(img, dx, dy))
+    return out
+
+if RETRO > 0:
+    frames = old_film(frames)
+    print("tono del título tras el revelado: fondo", np.round(grade(np.tile(BG, (H, W, 1)))[H // 2, W // 2] / 255.0, 3),
+        "tinta", np.round(grade(np.tile(INK, (H, W, 1)))[H // 2, W // 2] / 255.0, 3), file=sys.stderr)
 
 total = len(frames)
 print("cuadros:", total, "duración", round(total / FPS, 2), "s")
