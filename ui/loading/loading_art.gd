@@ -26,6 +26,10 @@ var title: String = ""
 ## Hasta dónde debe llegar la barra (0..1); la barra se acerca a ese punto con suavidad.
 var goal: float = 0.0
 
+## Sin título, «CARGANDO…» ni barra: solo el carro y el paisaje (para filmar una lámina limpia).
+var captions: bool = true
+## Reloj propio (s) para filmar la pantalla cuadro a cuadro; negativo, el reloj de verdad.
+var clock: float = -1.0
 var _shown: float = 0.0
 var _travel: float = 0.0
 var _last: int = 0
@@ -36,7 +40,7 @@ var _track_length: float = 0.0
 
 func _ready() -> void:
 	_font = get_theme_default_font()
-	_last = Time.get_ticks_msec()
+	_last = _now_msec()
 	_track = _track_loop()
 	for i in _track.size():
 		_track_length += _track[i].distance_to(_track[(i + 1) % _track.size()])
@@ -45,12 +49,16 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	# Con el reloj de verdad: aunque el juego esté ocupado montando el campo y los cuadros
 	# lleguen a saltos, el carro ha avanzado lo que toca.
-	var now: int = Time.get_ticks_msec()
+	var now: int = _now_msec()
 	var passed: float = minf((now - _last) / 1000.0, 0.5)
 	_last = now
 	_travel += SPEED * passed
 	_shown = move_toward(_shown, goal, passed * 0.9) if _shown < goal else goal
 	queue_redraw()
+
+
+func _now_msec() -> int:
+	return int(clock * 1000.0) if clock >= 0.0 else Time.get_ticks_msec()
 
 
 ## Altura del terreno (píxeles hacia arriba, a tamaño 1) en el punto `x` del recorrido.
@@ -82,7 +90,8 @@ func _draw() -> void:
 	draw_polyline(profile, INK_SOFT, 2.0 * unit, true)
 	_roadside(area, center, ground_y, unit)
 	_tank(center, unit)
-	_caption(area, ground_y, unit)
+	if captions:
+		_caption(area, ground_y, unit)
 
 
 func _hills(area: Vector2, base: float, parallax: float, wave: float, tall: float, color: Color, unit: float) -> void:
@@ -291,7 +300,7 @@ func _caption(area: Vector2, ground_y: float, unit: float) -> void:
 
 
 func _dots(pen: Vector2, unit: float) -> void:
-	var beat: float = fposmod(Time.get_ticks_msec() / 1000.0 * 1.6, 4.0)
+	var beat: float = fposmod(_now_msec() / 1000.0 * 1.6, 4.0)
 	for i in 3:
 		draw_circle(pen + Vector2((i + 0.5) * 13.0 * unit, -2.5 * unit), 2.4 * unit, Color(INK, 1.0 if beat > i + 1.0 else 0.25))
 
