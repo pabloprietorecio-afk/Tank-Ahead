@@ -1,0 +1,2485 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (140 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | AdCache[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | AdmobAndroidExportConfig[39m[0m
+[   1% ] [90m[1mupdate_scripts_classes[22m | AdmobExportConfig[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | AdmobIosExportConfig[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | AdapterResponseInfo[39m[0m
+[   3% ] [90m[1mupdate_scripts_classes[22m | AdapterStatus[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | AdError[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | AdInfo[39m[0m
+[   5% ] [90m[1mupdate_scripts_classes[22m | AdmobConfig[39m[0m
+[   6% ] [90m[1mupdate_scripts_classes[22m | AdmobSettings[39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | AdSize[39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | ConsentRequestParameters[39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | FormError[39m[0m
+[   9% ] [90m[1mupdate_scripts_classes[22m | InitializationStatus[39m[0m
+[   9% ] [90m[1mupdate_scripts_classes[22m | LoadAdError[39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | LoadAdRequest[39m[0m
+[  11% ] [90m[1mupdate_scripts_classes[22m | MediationNetwork[39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | NetworkExtras[39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | NetworkPrivacySettings[39m[0m
+[  13% ] [90m[1mupdate_scripts_classes[22m | ResponseInfo[39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | RewardItem[39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | UserConsent[39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | Admob[39m[0m
+[  16% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | InlineAdaptiveBanner[39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | GmpLogger[39m[0m
+[  18% ] [90m[1mupdate_scripts_classes[22m | SpmDependency[39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | BillingClient[39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | AudioSetup[39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | Sfx[39m[0m
+[  22% ] [90m[1mupdate_scripts_classes[22m | VoiceManager[39m[0m
+[  23% ] [90m[1mupdate_scripts_classes[22m | HealthComponent[39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | Hurtbox[39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | MeshKit[39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | NavGrid[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | VectorMaterials[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | Blaze[39m[0m
+[  27% ] [90m[1mupdate_scripts_classes[22m | Fx[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | FxCpuFamily[39m[0m
+[  29% ] [90m[1mupdate_scripts_classes[22m | FxVent[39m[0m
+[  29% ] [90m[1mupdate_scripts_classes[22m | EnglishTable[39m[0m
+[  30% ] [90m[1mupdate_scripts_classes[22m | FrenchTable[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | GermanTable[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | HindiTable[39m[0m
+[  32% ] [90m[1mupdate_scripts_classes[22m | IndonesianTable[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | ItalianTable[39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | JapaneseTable[39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | Loc[39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | PortugueseTable[39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | RussianTable[39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | State[39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | StateMachine[39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | AdsConfig[39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | GameSession[39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | GameSettings[39m[0m
+[  41% ] [90m[1mupdate_scripts_classes[22m | Premium[39m[0m
+[  41% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | TankStats[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | Fronts[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | Campaign[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | Aircraft[39m[0m
+[  45% ] [90m[1mupdate_scripts_classes[22m | AirStrike[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | AirTarget[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | FlybySound[39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | Strafe[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | Explosion[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | AttackState[39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | ChaseState[39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | DestroyedState[39m[0m
+[  51% ] [90m[1mupdate_scripts_classes[22m | IdleState[39m[0m
+[  51% ] [90m[1mupdate_scripts_classes[22m | PatrolState[39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | RetreatState[39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | SearchState[39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | AIBrain[39m[0m
+[  54% ] [90m[1mupdate_scripts_classes[22m | EnemyState[39m[0m
+[  55% ] [90m[1mupdate_scripts_classes[22m | Formation[39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | Perception[39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | Pickup[39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | PickupSpawner[39m[0m
+[  58% ] [90m[1mupdate_scripts_classes[22m | PlayerInputSource[39m[0m
+[  58% ] [90m[1mupdate_scripts_classes[22m | Missile[39m[0m
+[  59% ] [90m[1mupdate_scripts_classes[22m | Projectile[39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | AaBattery[39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | Destructible[39m[0m
+[  61% ] [90m[1mupdate_scripts_classes[22m | FrontProps[39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | PropFactory[39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | Remains[39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | Ship[39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | StructureFactory[39m[0m
+[  65% ] [90m[1mupdate_scripts_classes[22m | Tank[39m[0m
+[  65% ] [90m[1mupdate_scripts_classes[22m | TankModel[39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | TankMovement[39m[0m
+[  67% ] [90m[1mupdate_scripts_classes[22m | TankWeapon[39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | TurretController[39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | Backdrop[39m[0m
+[  69% ] [90m[1mupdate_scripts_classes[22m | Blocks[39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | Skylines[39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | PracticeProps[39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | TutorialMode[39m[0m
+[  72% ] [90m[1mupdate_scripts_classes[22m | TutorialOverlay[39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | CtfMode[39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | Flag[39m[0m
+[  74% ] [90m[1mupdate_scripts_classes[22m | GameMode[39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | StoryMode[39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | SurvivalMode[39m[0m
+[  76% ] [90m[1mupdate_scripts_classes[22m | CloudDome[39m[0m
+[  77% ] [90m[1mupdate_scripts_classes[22m | LightningBolt[39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | SkyDome[39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | SkyWar[39m[0m
+[  79% ] [90m[1mupdate_scripts_classes[22m | Weather[39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | Ambience[39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  81% ] [90m[1mupdate_scripts_classes[22m | CoverDiorama[39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | IntroFlight[39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | Layouts[39m[0m
+[  83% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | Ribbon[39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | Terrain[39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | TrackMarks[39m[0m
+[  86% ] [90m[1mupdate_scripts_classes[22m | Water[39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  88% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  89% ] [90m[1mupdate_scripts_classes[22m | CommandButton[39m[0m
+[  90% ] [90m[1mupdate_scripts_classes[22m | Hud[39m[0m
+[  90% ] [90m[1mupdate_scripts_classes[22m | Radar[39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | VoiceOrders[39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | Intro[39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | TitleCard[39m[0m
+[  93% ] [90m[1mupdate_scripts_classes[22m | Loading[39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | LoadingArt[39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | TouchControls[39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | FlagButton[39m[0m
+[  96% ] [90m[1mupdate_scripts_classes[22m | TankViewer[39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | UiKit[39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | VehicleGallery[39m[0m
+[  98% ] [90m[1mupdate_scripts_classes[22m | VolumeSliders[39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (787 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | icon.png[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | aa_burst.ogg[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | aa_fire.wav[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | aa_tail.ogg[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | amb_africa.wav[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | amb_kursk.wav[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | amb_normandy.wav[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | amb_sea.wav[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | bell.ogg[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | cannon.ogg[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | distant_gun_1.ogg[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | distant_gun_2.ogg[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | distant_gun_3.ogg[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | distant_gun_4.ogg[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | engine_drive.wav[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | engine_heavy.wav[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | engine_idle.wav[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | engine_tank.wav[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | explosion.ogg[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | explosion_real.ogg[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | flak.ogg[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | gull_herring.ogg[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | gull_med.ogg[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | hit.ogg[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | hit_tank.ogg[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | plane_bomber.wav[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | plane_fighter.wav[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | rain.wav[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | splash.ogg[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | thunder.wav[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | NotoSansDevanagari-Medium.ttf[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | NotoSansJP-Subset.otf[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | SpecialElite-Regular.ttf[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | battle_theme.ogg[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | menu_theme.ogg[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | radio_al_0.ogg[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | radio_al_1.ogg[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | radio_al_2.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_al_3.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_al_4.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_al_5.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_al_6.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_al_7.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_al_8.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_de_0.ogg[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | radio_de_1.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | radio_de_2.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | radio_de_3.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | radio_de_4.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | radio_de_5.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | radio_de_6.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | radio_de_7.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  53% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_assist_a.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_assist_b.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_assist_c.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_camera.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_damage_a.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_damage_b.ogg[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | tut_damage_c.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_easy_a.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_easy_b.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_end.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_enemy_a.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_enemy_b.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_final.ogg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | tut_fire_a.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_fire_b.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_focus_a.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_focus_b.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_follow_a.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_follow_b.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_missile.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_move_a.ogg[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | tut_move_b.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_radar.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_raid.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_strike_a.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_strike_b.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_strike_c.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_turn.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_turret.ogg[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | tut_zoom_a.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | tut_zoom_b.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | air_clear.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | air_phase.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | armor_low.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | bonus.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | cease_fire.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | commander.ogg[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | flag_capture.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | flag_lost.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | flag_taken.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | focus_fire.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | focus_none.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | follow_off.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | follow_on.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | hit_1.ogg[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | hit_2.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | kill_1.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | kill_2.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | kill_3.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | liberation.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | locked.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | missile.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | mission_fail.ogg[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | mission_start.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | mission_win.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | objective.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | pickup.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | radar_1.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | radar_2.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | raid_1.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | raid_2.ogg[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | reinforcements.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | shot_down_1.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | shot_down_2.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | strafe_e.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | strafe_n.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | strafe_s.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | strafe_w.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | strike_1.ogg[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | strike_2.ogg[39m[0m
+[  99% ] [90m[1m_update_scan_actions[22m | strike_denied.ogg[39m[0m
+[  99% ] [90m[1m_update_scan_actions[22m | wave_clear.ogg[39m[0m
+[  99% ] [90m[1m_update_scan_actions[22m | wave_start.ogg[39m[0m
+[  99% ] [90m[1m_update_scan_actions[22m | icon.png[39m[0m
+[  99% ] [90m[1m_update_scan_actions[22m | splash.png[39m[0m
+[  99% ] [90m[1m_update_scan_actions[22m | icon.svg[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (763 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   2% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   5% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   7% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  10% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  12% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  87% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  89% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  92% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  94% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  97% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  98% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  99% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  99% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  99% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  99% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  99% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  99% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing pre-reimport operations...[39m[0m
+[   0% ] [90m[1mreimport[22m | NotoSansDevanagari-Medium.ttf[39m[0m
+[   0% ] [90m[1mreimport[22m | NotoSansJP-Subset.otf[39m[0m
+[   0% ] [90m[1mreimport[22m | SpecialElite-Regular.ttf[39m[0m
+[   0% ] [90m[1mreimport[22m | NotoSansDevanagari-Medium.ttf[39m[0m
+[   0% ] [90m[1mreimport[22m | NotoSansJP-Subset.otf[39m[0m
+[   0% ] [90m[1mreimport[22m | SpecialElite-Regular.ttf[39m[0m
+[   0% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[   0% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[   1% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[   2% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[   3% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[   4% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[   5% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[   6% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[   7% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[   8% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[   9% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  10% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  11% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  12% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  13% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  14% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  15% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  16% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  17% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  18% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  19% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  20% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  21% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  22% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  23% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  24% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  25% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  26% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  27% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  28% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  29% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  30% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  31% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  32% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  33% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  34% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  35% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  36% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  37% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  38% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  39% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  40% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  41% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  42% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  43% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  44% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  45% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  46% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  47% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  48% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  49% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  50% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  51% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  52% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  53% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  54% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  55% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  56% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  57% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  58% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  59% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  60% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  61% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  62% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  63% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  64% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | gull_herring.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | gull_med.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  65% ] [90m[1mreimport[22m | battle_theme.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | menu_theme.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | radio_al_0.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | radio_al_1.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | radio_al_2.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | radio_al_3.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | radio_al_4.ogg[39m[0m
+[  66% ] [90m[1mreimport[22m | radio_al_5.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_al_6.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_al_7.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_al_8.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_de_0.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_de_1.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_de_2.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_de_3.ogg[39m[0m
+[  67% ] [90m[1mreimport[22m | radio_de_4.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | radio_de_5.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | radio_de_6.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | radio_de_7.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  68% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  69% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  70% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  71% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  72% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  73% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  74% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  75% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  76% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  77% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  78% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  79% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  80% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  81% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  82% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | tut_final.ogg[39m[0m
+[  83% ] [90m[1mreimport[22m | tut_fire_a.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_fire_b.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  84% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  85% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | focus_none.ogg[39m[0m
+[  86% ] [90m[1mreimport[22m | follow_off.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | follow_on.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | hit_1.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | hit_2.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | kill_1.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | kill_2.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | kill_3.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | liberation.ogg[39m[0m
+[  87% ] [90m[1mreimport[22m | locked.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | missile.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | mission_fail.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | mission_start.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | mission_win.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | objective.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | pickup.ogg[39m[0m
+[  88% ] [90m[1mreimport[22m | radar_1.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | radar_2.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | raid_1.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | raid_2.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | reinforcements.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | shot_down_1.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | shot_down_2.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  89% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  90% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  91% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | flag_lost.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | flag_taken.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | focus_fire.ogg[39m[0m
+[  92% ] [90m[1mreimport[22m | tut_focus_a.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_focus_b.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_follow_a.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_follow_b.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_missile.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_move_a.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_move_b.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_radar.ogg[39m[0m
+[  93% ] [90m[1mreimport[22m | tut_raid.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_strike_a.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_strike_b.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_strike_c.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_turn.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_turret.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_zoom_a.ogg[39m[0m
+[  94% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | air_phase.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | armor_low.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | bonus.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | cease_fire.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | commander.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | flag_capture.ogg[39m[0m
+[  95% ] [90m[1mreimport[22m | strafe_e.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | strafe_n.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | strafe_s.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | strafe_w.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | strike_1.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | strike_2.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | strike_denied.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | wave_clear.ogg[39m[0m
+[  96% ] [90m[1mreimport[22m | wave_start.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_assist_a.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_assist_b.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_assist_c.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_camera.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_damage_a.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_damage_b.ogg[39m[0m
+[  97% ] [90m[1mreimport[22m | tut_damage_c.ogg[39m[0m
+[  98% ] [90m[1mreimport[22m | tut_easy_a.ogg[39m[0m
+[  98% ] [90m[1mreimport[22m | tut_easy_b.ogg[39m[0m
+[  98% ] [90m[1mreimport[22m | tut_end.ogg[39m[0m
+[  98% ] [90m[1mreimport[22m | tut_enemy_a.ogg[39m[0m
+[  98% ] [90m[1mreimport[22m | tut_enemy_b.ogg[39m[0m
+[  98% ] [90m[1mreimport[22m | NotoSansDevanagari-Medium.ttf[39m[0m
+[  98% ] [90m[1mreimport[22m | NotoSansJP-Subset.otf[39m[0m
+[  98% ] [90m[1mreimport[22m | SpecialElite-Regular.ttf[39m[0m
+[  99% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  99% ] [90m[1mreimport[22m | NotoSansDevanagari-Medium.ttf[39m[0m
+[  99% ] [90m[1mreimport[22m | NotoSansJP-Subset.otf[39m[0m
+[  99% ] [90m[1mreimport[22m | SpecialElite-Regular.ttf[39m[0m
+[  99% ] [90m[1mreimport[22m | tut_zoom_b.ogg[39m[0m
+[  99% ] [90m[1mreimport[22m | air_clear.ogg[39m[0m
+[  99% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (763 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m
+cannot connect to daemon at tcp:5037: Connection refused

@@ -1,0 +1,14 @@
+run.log:161:ERROR: Pages in use exist at exit in PagedAllocator: N33RendererSceneRenderImplementation19RenderForwardMobile32GeometryInstanceSurfaceDataCacheE
+run.log:163:ERROR: Pages in use exist at exit in PagedAllocator: N33RendererSceneRenderImplementation19RenderForwardMobile29GeometryInstanceForwardMobileE
+run.log:165:ERROR: 1 shaders of type SceneForwardMobileShaderRD were never freed
+run.log:177:ERROR: 7 resources still in use at exit (run with --verbose for details).
+run.log:179:ERROR: 1 RID allocations of type 'N10RendererRD11MeshStorage4MeshE' were leaked at exit.
+run.log:180:ERROR: 1 RID allocations of type 'N10RendererRD15MaterialStorage8MaterialE' were leaked at exit.
+run.log:181:ERROR: 1 RID allocations of type 'N10RendererRD15MaterialStorage6ShaderE' were leaked at exit.
+run.log:182:ERROR: 1 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.
+logic.log:330:ERROR: Pages in use exist at exit in PagedAllocator: N20RasterizerSceneDummy21GeometryInstanceDummyE
+logic.log:336:ERROR: 3 resources still in use at exit (run with --verbose for details).
+logic.log:338:ERROR: 1 RID allocations of type 'N13RendererDummy15MaterialStorage13DummyMaterialE' were leaked at exit.
+logic.log:339:ERROR: 1 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.
+logic.log:340:ERROR: 1 RID allocations of type 'N13RendererDummy9DummyMeshE' were leaked at exit.
+logic.log:341:ERROR: 4 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.

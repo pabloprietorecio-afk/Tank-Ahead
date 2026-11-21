@@ -1,0 +1,182 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.4.335 - Forward Mobile - Using Device #0: Unknown - llvmpipe (LLVM 21.1.8, 256 bits)
+
+VOZ RESULT fallos: 0 de 25
+SHOT tank_m4_sherman
+SHOT tank_t34_76
+SHOT tank_cromwell
+SHOT tank_m10_wolverine
+SHOT tank_churchill
+SHOT tank_is2
+SHOT tank_m26_pershing
+SHOT tank_kv1
+SHOT tank_t34_85
+SHOT tank_su85
+SHOT tank_crusader
+SHOT tank_tiger1
+SHOT tank_panther
+SHOT tank_panzer4
+SHOT tank_stug3
+SHOT tank_tiger2
+SHOT tank_panzer3
+SHOT tank_elefant
+SHOT tank_marder3
+SHOT tank_m8_greyhound
+SHOT tank_ba64
+SHOT tank_puma
+SHOT tank_wreck
+SHOT angle_sherman_low
+SHOT angle_tiger_side
+SHOT angle_t34_rear
+SHOT angle_panther_top
+SHOT angle_tiger_tracks
+SHOT angle_player_rear
+SHOT lineup
+SHOT boom_0_0
+SHOT boom_0_1
+SHOT boom_0_2
+SHOT boom_0_3
+SHOT boom_0_4
+SHOT boom_0_5
+SHOT boom_0_6
+SHOT boom_0_7
+SHOT boom_0_8
+SHOT boom_1_0
+SHOT boom_1_1
+SHOT boom_1_2
+SHOT boom_1_3
+SHOT boom_1_4
+SHOT boom_1_5
+SHOT boom_1_6
+SHOT boom_1_7
+SHOT boom_1_8
+SHOT props_0_wide
+SHOT props_0_house
+SHOT props_0_right
+SHOT props_0_back
+SHOT props_0_hill
+SHOT props_0_fire
+SHOT props_0_collapse
+SHOT props_0_rubble
+SHOT props_1_wide
+SHOT props_1_house
+SHOT props_1_right
+SHOT props_1_back
+SHOT props_1_hill
+SHOT props_1_fire
+SHOT props_1_collapse
+SHOT props_1_rubble
+SHOT props_2_wide
+SHOT props_2_house
+SHOT props_2_right
+SHOT props_2_back
+SHOT props_2_hill
+SHOT props_2_fire
+SHOT props_2_collapse
+SHOT props_2_rubble
+SHOT arena_0_chase
+SHOT arena_0_player
+SHOT arena_0_high
+SHOT arena_0_outline
+SHOT options_menu
+SHOT options_vehicles
+SHOT zoom_buttons
+SHOT arena_0_view0
+SHOT arena_0_view1
+SHOT arena_0_view2
+SHOT arena_0_view3
+SHOT arena_1_chase
+SHOT arena_1_player
+SHOT arena_1_high
+SHOT arena_1_outline
+SHOT arena_1_view0
+SHOT arena_1_view1
+SHOT arena_1_view2
+SHOT arena_1_view3
+SHOT arena_2_chase
+SHOT arena_2_player
+SHOT arena_2_high
+SHOT arena_2_outline
+SHOT arena_2_view0
+SHOT arena_2_view1
+SHOT arena_2_view2
+SHOT arena_2_view3
+SHOT menu_oferta_tutorial
+SHOT menu
+SHOT tutorial_01_mover
+SHOT tutorial_03_torreta
+SHOT tutorial_04_disparo
+SHOT tutorial_07_radar
+SHOT tutorial_09_fijar
+SHOT tutorial_12_avion
+SHOT tutorial_14_dano
+SHOT tutorial_15_final
+SHOT tutorial_resumen
+SHOT sky_b17_formacion
+SHOT sky_bf109_formacion
+SHOT sky_fase_antiaerea
+SHOT sky_bombardeo_aliado
+SHOT sky_antiaerea_lejana
+SHOT ctf_marcador
+SHOT clima_normandia_soleado
+SHOT clima_normandia_soleado_cabina
+SHOT clima_normandia_nubes
+SHOT clima_normandia_nubes_cabina
+SHOT clima_normandia_atardecer
+SHOT clima_normandia_atardecer_cabina
+SHOT clima_africa_soleado
+SHOT clima_africa_soleado_cabina
+SHOT clima_africa_nubes
+SHOT clima_africa_nubes_cabina
+SHOT clima_kursk_soleado
+SHOT clima_kursk_soleado_cabina
+SHOT clima_kursk_nubes
+SHOT clima_kursk_nubes_cabina
+SHOT loma_0_jugador
+SHOT loma_0_lado
+SHOT loma_0_cerca
+SHOT loma_0_alto
+SHOT loma_1_jugador
+SHOT loma_1_lado
+SHOT loma_1_cerca
+SHOT loma_1_alto
+SHOT halo_aerodromo_cerca
+SHOT halo_aerodromo_lejos
+SHOT halo_comandante_cerca
+SHOT halo_comandante_lejos
+SHOT halo_alambradas_cerca
+SHOT halo_alambradas_lejos
+SHOT halo_bandera
+SOMBRAS píxeles que cambian junto a los tanques (los propios bordes): 963
+SOMBRAS RESULT píxeles que cambian lejos de los tanques al poner bordes y contornos: 0 (OK)
+UI menú de opciones a escala 0.88 en una pantalla de (1280.0, 720.0)
+SHOT ui_opciones_pausa
+SHOT ui_fin_victoria
+SHOT ui_mision
+SHOT ui_mision_lista_0
+SHOT ui_mision_lista_1
+SHOT ui_inicio_supervivencia
+SHOT ui_opciones_menu
+SHOTS DONE
+ERROR: Pages in use exist at exit in PagedAllocator: N33RendererSceneRenderImplementation19RenderForwardMobile32GeometryInstanceSurfaceDataCacheE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: Pages in use exist at exit in PagedAllocator: N33RendererSceneRenderImplementation19RenderForwardMobile29GeometryInstanceForwardMobileE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+ERROR: 1 shaders of type SceneForwardMobileShaderRD were never freed
+   at: ~ShaderRD (servers/rendering/renderer_rd/shader_rd.cpp:1236)
+WARNING: Leaked instance dependency: Bug - did not call instance_notify_deleted when freeing.
+   at: ~Dependency (servers/rendering/storage/utilities.cpp:56)
+WARNING: Leaked instance dependency: Bug - did not call instance_notify_deleted when freeing.
+   at: ~Dependency (servers/rendering/storage/utilities.cpp:56)
+WARNING: 1 RID of type "UniformBuffer" was leaked.
+   at: _free_rids (servers/rendering/rendering_device.cpp:8684)
+WARNING: 2 RIDs of type "VertexBuffer" were leaked.
+   at: _free_rids (servers/rendering/rendering_device.cpp:8686)
+WARNING: 16 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 7 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 1 RID allocations of type 'N10RendererRD11MeshStorage4MeshE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N10RendererRD15MaterialStorage8MaterialE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N10RendererRD15MaterialStorage6ShaderE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.

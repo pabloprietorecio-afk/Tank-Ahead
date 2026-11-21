@@ -1,0 +1,341 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+VOZ RESULT fallos: 0 de 25
+FIT RESULT páginas del menú que no caben en pantalla: 0 de 109 (la más alta: 720 de 720)
+ADS diagnóstico: «Anuncios APAGADOS · de PRUEBA de Google · premium: no / aún no han arrancado (esperan unos segundos al abrir; con premium no arrancan) / finales de partida: 0 · próximo intersticial: tras 1 más y no antes de 15 s»
+ADS DIAG RESULT fallos del diagnóstico oculto de anuncios: 0
+CAMPAIGN OK 48
+PREMIUM RESULT campañas con un reparto de gratuitas incorrecto: 0
+ADS RESULT fallos de anuncios y desbloqueo: 0
+STORY OPERACIÓN COBRA | OPERACIÓN COBRA   SALIDA A 315 m | ["▢ ALCANZAR LA SALIDA (NORTE)"] | bando propio 5 enemigos 12
+REACH OPERACIÓN COBRA: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY EL CRUCE DEL PSEL | EL CRUCE DEL PSEL   SALIDA A 315 m | ["▢ ALCANZAR LA SALIDA (NORTE)"] | bando propio 5 enemigos 12
+REACH EL CRUCE DEL PSEL: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY SIDI REZEGH | SIDI REZEGH   OBJETIVOS 0 / 9 | ["▢ HANGAR 1", "▢ HANGAR 2", "▢ TORRE DE CONTROL", "▢ AVIÓN 1", "▢ AVIÓN 2", "▢ AVIÓN 3", "▢ ANTIAÉREO (SECUNDARIO)", "▢ ANTENA (SECUNDARIO)", "▢ PUESTO AVANZADO (SECUNDARIO)"] | bando propio 5 enemigos 12
+REACH SIDI REZEGH: 31 puntos comprobados, 0 inaccesibles; 4 montañas, 0 puntos del muro bajo una montaña
+STORY TEL EL AQQAQIR | TEL EL AQQAQIR   RESISTE 174 s | [] | bando propio 5 enemigos 1
+REACH TEL EL AQQAQIR: 11 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY COMBUSTIBLE ENEMIGO | COMBUSTIBLE ENEMIGO   OBJETIVOS 0 / 5 | ["▢ DEPÓSITO 1", "▢ DEPÓSITO 2", "▢ DEPÓSITO 3", "▢ DEPÓSITO 4", "▢ DEPÓSITO 5"] | bando propio 1 enemigos 8
+REACH COMBUSTIBLE ENEMIGO: 19 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY EL PUESTO DE MANDO | EL PUESTO DE MANDO   OBJETIVOS 0 / 8 | ["▢ BÚNKER DE MANDO", "▢ ANTENA DE RADIO", "▢ BARRACÓN 1", "▢ BARRACÓN 2", "▢ DEPÓSITO DE COMBUSTIBLE", "▢ ANTIAÉREO (SECUNDARIO)", "▢ ANTENA (SECUNDARIO)", "▢ PUESTO AVANZADO (SECUNDARIO)"] | bando propio 4 enemigos 12
+REACH EL PUESTO DE MANDO: 30 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY VILLERS-BOCAGE | VILLERS-BOCAGE   ENEMIGOS RESTANTES 12 | [] | bando propio 4 enemigos 3
+REACH VILLERS-BOCAGE: 13 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY LA ACERÍA DE COLOMBELLES | LA ACERÍA DE COLOMBELLES   OBJETIVOS 0 / 7 | ["▢ NAVE 1", "▢ NAVE 2", "▢ CHIMENEA", "▢ DEPÓSITO DE AGUA", "▢ ANTIAÉREO (SECUNDARIO)", "▢ ANTENA (SECUNDARIO)", "▢ PUESTO AVANZADO (SECUNDARIO)"] | bando propio 5 enemigos 12
+REACH LA ACERÍA DE COLOMBELLES: 29 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY DEPÓSITOS SOVIÉTICOS | DEPÓSITOS SOVIÉTICOS   OBJETIVOS 0 / 5 | ["▢ DEPÓSITO 1", "▢ DEPÓSITO 2", "▢ DEPÓSITO 3", "▢ DEPÓSITO 4", "▢ DEPÓSITO 5"] | bando propio 4 enemigos 8
+REACH DEPÓSITOS SOVIÉTICOS: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+STORY LA LIBERACIÓN | LA LIBERACIÓN   OBJETIVOS 0 / 11 | ["▢ ALAMBRADA 1", "▢ ALAMBRADA 2", "▢ ALAMBRADA 3", "▢ ALAMBRADA 4", "▢ ALAMBRADA 5", "▢ ALAMBRADA 6", "▢ ALAMBRADA 7", "▢ ALAMBRADA 8", "▢ ANTIAÉREO (SECUNDARIO)", "▢ ANTENA (SECUNDARIO)", "▢ PUESTO AVANZADO (SECUNDARIO)"] | bando propio 5 enemigos 11
+REACH LA LIBERACIÓN: 36 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+REACH RESULT inaccesibles: 0
+MAPA TRAS LA PLAYA | trazado «coast» | edificios 14 | cauces 1, pasos 0 | enemigos 0
+REACH TRAS LA PLAYA: 11 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL AERÓDROMO DE CARPIQUET | trazado «plain_village» | edificios 18 | cauces 0, pasos 0 | enemigos 12
+REACH EL AERÓDROMO DE CARPIQUET: 31 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PUENTE | trazado «bridge» | edificios 4 | cauces 1, pasos 5 | enemigos 0
+REACH EL PUENTE: 11 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA ACERÍA DE COLOMBELLES | trazado «river» | edificios 21 | cauces 1, pasos 4 | enemigos 12
+REACH LA ACERÍA DE COLOMBELLES: 30 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA CAZA AL TIGRE | trazado «bocage_dense» | edificios 4 | cauces 0, pasos 0 | enemigos 0
+REACH CAZA AL TIGRE: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN GOODWOOD | trazado «plain_village» | edificios 19 | cauces 0, pasos 0 | enemigos 0
+REACH OPERACIÓN GOODWOOD: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN COBRA | trazado «town» | edificios 41 | cauces 0, pasos 0 | enemigos 12
+REACH OPERACIÓN COBRA: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA COTA 262 | trazado «ridge» | edificios 6 | cauces 0, pasos 0 | enemigos 0
+REACH LA COTA 262: 11 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA PATRULLA EN EL DESIERTO | trazado «wadi» | edificios 15 | cauces 1, pasos 0 | enemigos 0
+REACH PATRULLA EN EL DESIERTO: 9 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA COMBUSTIBLE ENEMIGO | trazado «oasis» | edificios 23 | cauces 1, pasos 0 | enemigos 8
+REACH COMBUSTIBLE ENEMIGO: 19 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA LÍNEA | trazado «alamein» | edificios 19 | cauces 0, pasos 0 | enemigos 0
+REACH LA LÍNEA: 10 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PUERTO DE SUMINISTRO | trazado «town» | edificios 41 | cauces 0, pasos 0 | enemigos 12
+REACH EL PUERTO DE SUMINISTRO: 29 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL COMANDANTE DEL DESIERTO | trazado «ridge» | edificios 16 | cauces 0, pasos 0 | enemigos 0
+REACH EL COMANDANTE DEL DESIERTO: 11 puntos comprobados, 0 inaccesibles; 4 montañas, 0 puntos del muro bajo una montaña
+MAPA SIDI REZEGH | trazado «ridge» | edificios 17 | cauces 0, pasos 0 | enemigos 12
+REACH SIDI REZEGH: 31 puntos comprobados, 0 inaccesibles; 2 montañas, 0 puntos del muro bajo una montaña
+MAPA ALAM EL HALFA | trazado «ridge» | edificios 17 | cauces 0, pasos 0 | enemigos 0
+REACH ALAM EL HALFA: 11 puntos comprobados, 0 inaccesibles; 4 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN SUPERCHARGE | trazado «box» | edificios 17 | cauces 0, pasos 0 | enemigos 12
+REACH OPERACIÓN SUPERCHARGE: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA ESTEPA ARDE | trazado «defences» | edificios 13 | cauces 0, pasos 0 | enemigos 2
+REACH LA ESTEPA ARDE: 13 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PUESTO DE MANDO | trazado «woods» | edificios 9 | cauces 1, pasos 0 | enemigos 12
+REACH EL PUESTO DE MANDO: 30 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA PROJOROVKA | trazado «town_center» | edificios 25 | cauces 0, pasos 0 | enemigos 0
+REACH PROJOROVKA: 14 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL ELEFANTE | trazado «rails» | edificios 15 | cauces 0, pasos 0 | enemigos 0
+REACH EL ELEFANTE: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA LIBERACIÓN | trazado «woods» | edificios 9 | cauces 1, pasos 0 | enemigos 11
+REACH LA LIBERACIÓN: 36 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA ESTACIÓN DE PONYRI | trazado «town_center» | edificios 27 | cauces 0, pasos 0 | enemigos 0
+REACH LA ESTACIÓN DE PONYRI: 14 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN KUTÚZOV | trazado «river» | edificios 8 | cauces 1, pasos 3 | enemigos 12
+REACH OPERACIÓN KUTÚZOV: 25 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN RUMIÁNTSEV | trazado «villages» | edificios 25 | cauces 1, pasos 0 | enemigos 0
+REACH OPERACIÓN RUMIÁNTSEV: 13 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA CONTRAATAQUE | trazado «coast» | edificios 14 | cauces 1, pasos 0 | enemigos 0
+REACH CONTRAATAQUE: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PUERTO ARTIFICIAL | trazado «bocage» | edificios 9 | cauces 1, pasos 0 | enemigos 12
+REACH EL PUERTO ARTIFICIAL: 29 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA DEFENDER LA ALDEA | trazado «town_center» | edificios 27 | cauces 0, pasos 0 | enemigos 0
+REACH DEFENDER LA ALDEA: 11 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA SUMINISTROS ALIADOS | trazado «bocage_dense» | edificios 9 | cauces 0, pasos 0 | enemigos 8
+REACH SUMINISTROS ALIADOS: 23 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL COMANDANTE | trazado «bocage» | edificios 7 | cauces 1, pasos 0 | enemigos 0
+REACH EL COMANDANTE: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA VILLERS-BOCAGE | trazado «town» | edificios 38 | cauces 0, pasos 0 | enemigos 0
+REACH VILLERS-BOCAGE: 10 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA COTA 112 | trazado «ridge» | edificios 6 | cauces 0, pasos 0 | enemigos 0
+REACH LA COTA 112: 10 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN LÜTTICH | trazado «river» | edificios 28 | cauces 1, pasos 4 | enemigos 12
+REACH OPERACIÓN LÜTTICH: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA AVANCE SOBRE TOBRUK | trazado «wadi» | edificios 17 | cauces 1, pasos 0 | enemigos 0
+REACH AVANCE SOBRE TOBRUK: 9 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL AERÓDROMO BRITÁNICO | trazado «desert» | edificios 23 | cauces 0, pasos 0 | enemigos 12
+REACH EL AERÓDROMO BRITÁNICO: 27 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PASO | trazado «ridge» | edificios 16 | cauces 0, pasos 0 | enemigos 0
+REACH EL PASO: 10 puntos comprobados, 0 inaccesibles; 3 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PUERTO DE TOBRUK | trazado «harbour» | edificios 33 | cauces 0, pasos 0 | enemigos 6
+REACH EL PUERTO DE TOBRUK: 23 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA COLUMNA | trazado «wadi» | edificios 19 | cauces 1, pasos 0 | enemigos 0
+REACH LA COLUMNA: 11 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA BIR HAKEIM | trazado «box» | edificios 14 | cauces 0, pasos 0 | enemigos 12
+REACH BIR HAKEIM: 30 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA SIDI BOU ZID | trazado «djebel» | edificios 38 | cauces 1, pasos 0 | enemigos 12
+REACH SIDI BOU ZID: 23 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA TEL EL AQQAQIR | trazado «box» | edificios 17 | cauces 0, pasos 0 | enemigos 0
+REACH TEL EL AQQAQIR: 10 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA OPERACIÓN CIUDADELA | trazado «defences» | edificios 8 | cauces 0, pasos 0 | enemigos 3
+REACH OPERACIÓN CIUDADELA: 14 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA CENTRAL ELÉCTRICA | trazado «steppe» | edificios 9 | cauces 0, pasos 0 | enemigos 12
+REACH LA CENTRAL ELÉCTRICA: 30 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA COTA | trazado «ridge» | edificios 3 | cauces 0, pasos 0 | enemigos 0
+REACH LA COTA: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA DEPÓSITOS SOVIÉTICOS | trazado «villages» | edificios 24 | cauces 1, pasos 0 | enemigos 8
+REACH DEPÓSITOS SOVIÉTICOS: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL PESADO SOVIÉTICO | trazado «steppe» | edificios 13 | cauces 0, pasos 0 | enemigos 0
+REACH EL PESADO SOVIÉTICO: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA ASALTO A PONYRI | trazado «town» | edificios 33 | cauces 0, pasos 0 | enemigos 0
+REACH ASALTO A PONYRI: 13 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA EL CRUCE DEL PSEL | trazado «river» | edificios 8 | cauces 1, pasos 3 | enemigos 12
+REACH EL CRUCE DEL PSEL: 24 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPA LA LÍNEA HAGEN | trazado «defences» | edificios 8 | cauces 0, pasos 0 | enemigos 0
+REACH LA LÍNEA HAGEN: 12 puntos comprobados, 0 inaccesibles; 0 montañas, 0 puntos del muro bajo una montaña
+MAPAS RESULT inaccesibles: 0 | en el agua: 0 | misiones con río: 5 | con pueblo: 26
+RIO TIGER I: cruza en 58 s
+RIO PANZER III: cruza en 49 s
+RIO STUG III: cruza en 41 s
+RIO STUG III: cruza en 51 s
+RIO el jugador empuja contra el río en x=150 desde z=-76.1: llega hasta z=-81.7 (el cauce pasa entre z=-94.1 y z=-91.1) y no pasa
+RIO RESULT fallos: 0
+ASALTO objetivo: «DESTRUYE 21 BLINDADOS» (se esperaban 21) | atrincherados al empezar: 3
+ASALTO primera oleada: 4 carros, a 24 m como mucho unos de otros
+ASALTO a los 46 s: los atrincherados se han movido 0.0 m como mucho | enemigos vivos 11 (tope 8 sueltos + 3 en posición)
+ASALTO RESULT fallos: 0
+INTRO entera: empieza en pausa y desde 210 m de altura: sí | acaba con la partida en marcha y la cámara del tanque: sí
+INTRO saltada con un toque: empieza en pausa y desde 210 m de altura: sí | acaba con la partida en marcha y la cámara del tanque: sí
+INTRO RESULT fallos: 0
+BARCOS hundir: 7 barcos, hay que hundir 5 | en el mar y fuera del campo: 7 | a tiro desde la orilla: 7
+BARCOS el primero zarpa y navega: sí (8.1 m en 3 s)
+BARCOS hundir: a cañonazos sí | hundidos 5 | la misión acaba en victoria: sí | ["✔ TRANSPORTE 1", "✔ TRANSPORTE 2", "✔ TRANSPORTE 3", "✔ CAÑONERA", "✔ TRANSPORTE 4", "▢ TRANSPORTE 5", "▢ TRANSPORTE 6"]
+BARCOS escapar: 7 barcos, hay que hundir 5 | en el mar y fuera del campo: 7 | a tiro desde la orilla: 7
+BARCOS escapar: escapados 3 | la misión acaba en derrota: sí | ["✘ TRANSPORTE 1", "✘ TRANSPORTE 2", "✘ TRANSPORTE 3", "▢ CAÑONERA", "▢ TRANSPORTE 4", "▢ TRANSPORTE 5", "▢ TRANSPORTE 6"]
+BARCOS RESULT fallos: 0
+CARGA historia: pantalla puesta y árbol en pausa: sí | pasos repintados: 11 | campo montado: sí | empieza la entrada aérea: sí
+CARGA supervivencia: pantalla puesta y árbol en pausa: sí | pasos repintados: 11 | campo montado: sí | la partida arranca: sí
+CARGA RESULT fallos: 0
+SEGUIR sin premium la opción lleva a la pantalla premium: sí
+SEGUIR la opción sale al ganar: sí | cierra el menú y la partida sigue: sí | la pausa lo devuelve: sí | vuelve solo si destruyen el tanque: sí
+SEGUIR RESULT fallos: 0
+AEREO oleada 3: batería OERLIKON DE 20 mm a 28 m del tanque, despejada: sí | la vista llega al apuntador: sí | derriba un avión a ráfagas (12 disparos): sí | 3 derribos reponen el bombardeo: sí | la vista vuelve al tanque: sí
+AEREO oleada 6: batería OERLIKON DE 20 mm a 28 m del tanque, despejada: sí | la vista llega al apuntador: sí | derriba un avión a ráfagas (19 disparos): sí | 3 derribos reponen el bombardeo: sí | la vista vuelve al tanque: sí
+AEREO ataque aéreo tras las oleadas: [3, 6] (de 6) | nunca en el mismo instante que el fin de la oleada
+AEREO RESULT fallos: 0
+COSTA supervivencia en NORMANDÍA 1944, pedida «s»: mar hacia (0.0, 1.0) | entradas por el lado del mar: 0 de 60 | bien
+COSTA supervivencia en NORTE DE ÁFRICA, pedida «n»: mar hacia (0.0, -1.0) | entradas por el lado del mar: 0 de 60 | bien
+COSTA captura la bandera en NORMANDÍA 1944, pedida «e»: mar hacia (1.0, 0.0) | entradas por el lado del mar: 0 de 60 | bien
+COSTA captura la bandera en NORTE DE ÁFRICA, pedida «n»: mar hacia (1.0, 0.0) | entradas por el lado del mar: 0 de 60 | bien
+COSTA supervivencia en KURSK 1943, pedida «s»: mar hacia (0.0, 0.0) | entradas por el lado del mar: 0 de 60 | bien
+COSTA RESULT fallos: 0
+MIRA vista 1: la mira fijada se separa del objetivo como mucho 0.6 px y tiembla 0.00 px por cuadro (con el cálculo de antes quedaba a 6 px): bien
+MIRA vista 2: la mira fijada se separa del objetivo como mucho 0.5 px y tiembla 0.00 px por cuadro (con el cálculo de antes quedaba a 47 px): bien
+MIRA RESULT fallos: 0
+SONIDO duración: explosión real 2.80 s: bien
+SONIDO cañonazo 1.50 s, cañones lejanos 4, el duelo de artillería lejano suena con uno de ellos sí: bien
+SONIDO ajuste encendido: explosión real, cañonazo sin cambios sí, impacto sin cambios sí: bien
+SONIDO ajuste apagado: explosión de siempre, cañonazo sin cambios sí, impacto sin cambios sí: bien
+SONIDO interruptor de la pausa: visible sí, lo enciende sí, guardado sí, muestra sonando en pausa 1: bien
+SONIDO RESULT fallos: 0
+LIMITE desierto: lados con valla 0 de 4, aviso lejos del límite no, aviso en el límite sí: bien
+LIMITE estepa: lados con valla 4 de 4, aviso lejos del límite no, aviso en el límite no: bien
+LIMITE RESULT fallos: 0
+ARRANQUE el juego abre con el vídeo sí, puesto y cubriendo la pantalla sí, título debajo en tinta sí: bien
+ARRANQUE primera vez: banderas 10, título apartado y vestido con la de «es» sí: bien
+ARRANQUE al tocar una bandera cambian el idioma, la bandera del título y el botón: 4 de 4 (en inglés, «START THE BATTLE»): bien
+ARRANQUE «empezar la batalla»: en el menú sí, idioma guardado sí: bien
+ARRANQUE segunda vez: del vídeo al menú sí: bien
+ARRANQUE RESULT fallos: 0
+AMETRALLA historia: en la segunda misión no, en la tercera sí: bien
+AMETRALLA quieto en el pasillo: aviso sí, pasillo por el jugador y de norte a sur sí, 5 s de margen, blindaje perdido 30 (una pasada quita 30): bien
+AMETRALLA saliendo de lado: blindaje perdido 0 (aliados que se quedaron dentro y lo pagaron: 1), la pasada anterior se retira sí: bien
+AMETRALLA de 120 ataques aéreos: 57 ametrallamientos y 63 bombardeos: bien
+AMETRALLA supervivencia: en la oleada 2 no, en la 3 sí: bien
+AMETRALLA RESULT fallos: 0
+NAV muro          m4_sherman CON RODEO  llega en 15.9 s  mínima distancia 4.5 m  desatascos 0
+NAV muro          churchill  CON RODEO  llega en 21.7 s  mínima distancia 4.9 m  desatascos 0
+NAV muro          m4_sherman ANTIGUA    NO LLEGA  mínima distancia 37.4 m  desatascos 0
+NAV muro          churchill  ANTIGUA    NO LLEGA  mínima distancia 38.8 m  desatascos 0
+NAV recinto en U  m4_sherman CON RODEO  llega en 16.2 s  mínima distancia 3.9 m  desatascos 0
+NAV recinto en U  churchill  CON RODEO  llega en 28.7 s  mínima distancia 3.9 m  desatascos 0
+NAV recinto en U  m4_sherman ANTIGUA    NO LLEGA  mínima distancia 31.4 m  desatascos 0
+NAV recinto en U  churchill  ANTIGUA    NO LLEGA  mínima distancia 32.9 m  desatascos 0
+NAV bloques       m4_sherman CON RODEO  llega en 15.2 s  mínima distancia 3.7 m  desatascos 0
+NAV bloques       churchill  CON RODEO  llega en 28.4 s  mínima distancia 4.4 m  desatascos 0
+NAV bloques       m4_sherman ANTIGUA    NO LLEGA  mínima distancia 54.8 m  desatascos 0
+NAV bloques       churchill  ANTIGUA    NO LLEGA  mínima distancia 56.2 m  desatascos 0
+NAV RESULT fallos de la navegación con rodeo: 0
+CLIMB RESULT altura máxima alcanzada empujando contra una colina y una duna: 0.20 m (OK)
+TUTORIAL lección  1 move     OK en   3.9 s
+TUTORIAL lección  2 turn     OK en   8.3 s
+TUTORIAL lección  3 turret   OK en   3.7 s
+TUTORIAL lección  4 fire     OK en   8.6 s
+TUTORIAL lección  5 easy     OK en   7.3 s
+TUTORIAL lección  6 camera   OK en   1.3 s
+TUTORIAL lección  7 radar    OK en   4.1 s
+TUTORIAL   aviso (lección 8, 4.1 s): PANZER III DESTRUIDO  +100
+TUTORIAL   aviso (lección 8, 6.7 s): PANZER III DESTRUIDO  +100
+TUTORIAL lección  8 enemy    OK en   6.8 s
+TUTORIAL lección  9 assist   OK en   0.4 s
+TUTORIAL lección 10 zoom     OK en   1.3 s
+TUTORIAL   aviso (lección 11, 0.1 s): MISIL LANZADO — QUEDAN 2
+TUTORIAL   aviso (lección 11, 1.1 s): PANZER III DESTRUIDO  +100
+TUTORIAL lección 11 missile  OK en   1.2 s
+TUTORIAL   aviso (lección 12, 0.2 s): DEMASIADO CERCA PARA BOMBARDEAR: APUNTA MÁS LEJOS
+TUTORIAL   aviso (lección 12, 1.3 s): BOMBARDEO ALIADO EN CAMINO
+TUTORIAL lección 12 strike   OK en   4.3 s
+TUTORIAL   aviso (lección 13, 6.1 s): ¡BOMBARDEO ENEMIGO! SAL DE LA ZONA ROJA
+TUTORIAL lección 13 raid     OK en  10.1 s
+TUTORIAL   aviso (lección 14, 6.3 s): PREMIO: REPARACIÓN +35
+TUTORIAL   aviso (lección 14, 7.9 s): PREMIO: RECARGA RÁPIDA 20 s
+TUTORIAL lección 14 damage   OK en   7.9 s
+TUTORIAL   aviso (lección 15, 0.4 s): TODOS CONMIGO: TUS ALIADOS TE SIGUEN
+TUTORIAL lección 15 follow   OK en   7.6 s
+TUTORIAL   aviso (lección 16, 1.2 s): TODOS CONTRA PANZER III
+TUTORIAL lección 16 focus    OK en  19.0 s
+TUTORIAL lección 17 voice    OK en   0.1 s
+TUTORIAL   aviso (lección 18, 2.6 s): SD.KFZ. 234 PUMA DESTRUIDO  +80
+TUTORIAL lección 18 final    OK en  20.9 s
+TUTORIAL completado: true | guardado en el progreso: true | resumen visible: true
+TUTORIAL ajustes del jugador restaurados al salir: OK
+TUTORIAL RESULT lecciones sin completar: 0
+AI tapado por una casa    ve al atacante: a los 5 s | devuelve el fuego: a los 7 s | el vecino se da por avisado: a los 0 s | estado final Attack
+AI atacado desde 175 m    ve al atacante: a los 0 s | devuelve el fuego: a los 32 s | el vecino se da por avisado: a los 0 s | estado final Attack
+AI RESULT tanques que no reaccionan al fuego: 0
+CTF NORMANDÍA 1944 («ridge») en 300 s: capturas aliadas 0, enemigas 1 | banderas cogidas hasta ahora 0 y 2
+CTF KURSK 1943 («defences») en 300 s: capturas aliadas 0, enemigas 0 | banderas cogidas hasta ahora 2 y 2
+CTF NORTE DE ÁFRICA («wadi») en 300 s: capturas aliadas 2, enemigas 0 | banderas cogidas hasta ahora 8 y 5
+CTF banderas cogidas: bando del jugador 8, bando enemigo 5 | capturas 2 y 1
+CTF RESULT la máquina juega a capturar: OK
+SKY blancos de la fase antiaérea: ["FW 190", "FW 190 F", "JU 88", "P-51 MUSTANG", "HAWKER TYPHOON", "B-26 MARAUDER", "BF 109", "JU 87 STUKA", "JU 88", "HURRICANE", "HURRICANE IID", "BLENHEIM", "FW 190", "JU 87 STUKA", "HE 111", "LA-5", "IL-2 SHTURMOVIK", "PE-2"]
+SKY aviones de bombardeo: ["B-26 MARAUDER", "JU 88", "JU 88", "B-26 MARAUDER", "BLENHEIM", "JU 88", "JU 88", "BLENHEIM", "PE-2", "HE 111", "HE 111", "PE-2"]
+SKY modelos vistos: ["P-51 MUSTANG", "BF 109", "LA-5", "FW 190", "P-40 KITTYHAWK", "HAWKER TYPHOON", "JU 88", "IL-2 SHTURMOVIK", "HURRICANE", "JU 87 STUKA", "HE 111", "YAK-9", "SPITFIRE", "B-17", "B-26 MARAUDER"]
+SKY RESULT derribos sobre tanques: 0 de 58 (dentro del campo, a la vista: 45)
+SKY bombas sobre el terreno lejano: 117 (dentro del campo: 0)
+SKY derribos caídos delante de la cámara: 27 de 58
+LOMA cima 2.68 m | el tanque sube a 2.63 m con el chasis inclinado hasta 10.6 grados y baja por el otro lado
+LOMA la máquina la cruza: a los 24 s (sube a 2.42 m) | tapa la vista: true | para el disparo: true
+LOMA puntería de un tanque inclinado 8.2 grados: se desvía 0.00 grados del blanco
+LOMA con la base del cuerpo fuera de escala, como tras mucho girar: el chasis se inclina 7.6 grados
+LOMA RESULT los tanques suben y bajan las lomas: OK
+PAUSA es  1280x720: escala 0.88, ocupa 1149x691  1600x720: escala 0.88, ocupa 1149x691
+PAUSA en  1280x720: escala 0.88, ocupa 1125x691  1600x720: escala 0.88, ocupa 1125x691
+PAUSA fr  1280x720: escala 0.88, ocupa 1229x691  1600x720: escala 0.88, ocupa 1229x691
+PAUSA it  1280x720: escala 0.88, ocupa 1193x691  1600x720: escala 0.88, ocupa 1193x691
+PAUSA ja  1280x720: escala 0.88, ocupa 1035x693  1600x720: escala 0.94, ocupa 1544x688
+PAUSA pt  1280x720: escala 0.82, ocupa 1204x655  1600x720: escala 0.88, ocupa 1259x691
+PAUSA id  1280x720: escala 0.88, ocupa 1226x691  1600x720: escala 0.88, ocupa 1542x643
+PAUSA hi  1280x720: escala 0.88, ocupa 1063x691  1600x720: escala 0.94, ocupa 1517x685
+PAUSA de  1280x720: escala 0.82, ocupa 1208x655  1600x720: escala 0.88, ocupa 1254x691
+PAUSA ru  1280x720: escala 0.88, ocupa 1135x691  1600x720: escala 0.88, ocupa 1135x691
+PAUSA RESULT menús de opciones que no caben en pantalla: 0 (escala mínima 0.82)
+TANQUES NORMANDÍA 1944   ALIADOS    M8 GREYHOUND   blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.75
+TANQUES NORMANDÍA 1944   ALIADOS    M4 SHERMAN     blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES NORMANDÍA 1944   ALIADOS    CROMWELL       blindaje 100  ataque 25  recarga 1.20 s  58 km/h  giro 1.30  escala 1.00
+TANQUES NORMANDÍA 1944   ALIADOS    M10 WOLVERINE  blindaje  96  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00
+TANQUES NORMANDÍA 1944   ALIADOS    CHURCHILL      blindaje 159  ataque 35  recarga 1.32 s  41 km/h  giro 1.01  escala 1.25
+TANQUES NORMANDÍA 1944   ALIADOS    M26 PERSHING   blindaje 234  ataque 39  recarga 1.20 s  36 km/h  giro 0.87  escala 1.50
+TANQUES NORMANDÍA 1944   ALEMANIA   SD.KFZ. 234 PUMA blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.75
+TANQUES NORMANDÍA 1944   ALEMANIA   PANZER IV      blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES NORMANDÍA 1944   ALEMANIA   STUG III       blindaje  96  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00  casamata
+TANQUES NORMANDÍA 1944   ALEMANIA   TIGER I        blindaje 159  ataque 35  recarga 1.32 s  41 km/h  giro 1.01  escala 1.35
+TANQUES NORMANDÍA 1944   ALEMANIA   PANTHER        blindaje 121  ataque 27  recarga 0.96 s  65 km/h  giro 1.64  escala 1.05
+TANQUES NORMANDÍA 1944   ALEMANIA   TIGER II       blindaje 234  ataque 39  recarga 1.20 s  36 km/h  giro 0.87  escala 1.50
+TANQUES NORTE DE ÁFRICA  ALIADOS    CRUSADER       blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.85
+TANQUES NORTE DE ÁFRICA  ALIADOS    M8 GREYHOUND   blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.75
+TANQUES NORTE DE ÁFRICA  ALIADOS    M4 SHERMAN     blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES NORTE DE ÁFRICA  ALIADOS    M10 WOLVERINE  blindaje  96  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00
+TANQUES NORTE DE ÁFRICA  ALIADOS    CHURCHILL      blindaje 159  ataque 35  recarga 1.32 s  41 km/h  giro 1.01  escala 1.25
+TANQUES NORTE DE ÁFRICA  ALEMANIA   SD.KFZ. 234 PUMA blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.75
+TANQUES NORTE DE ÁFRICA  ALEMANIA   PANZER III     blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES NORTE DE ÁFRICA  ALEMANIA   PANZER IV      blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES NORTE DE ÁFRICA  ALEMANIA   MARDER III     blindaje  87  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00  casamata
+TANQUES NORTE DE ÁFRICA  ALEMANIA   STUG III       blindaje  96  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00  casamata
+TANQUES NORTE DE ÁFRICA  ALEMANIA   TIGER I        blindaje 159  ataque 35  recarga 1.32 s  41 km/h  giro 1.01  escala 1.35
+TANQUES KURSK 1943       ALIADOS    BA-64          blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.75
+TANQUES KURSK 1943       ALIADOS    T-34/76        blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES KURSK 1943       ALIADOS    SU-85          blindaje  96  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00  casamata
+TANQUES KURSK 1943       ALIADOS    KV-1           blindaje 159  ataque 35  recarga 1.32 s  41 km/h  giro 1.01  escala 1.25
+TANQUES KURSK 1943       ALIADOS    T-34/85        blindaje 121  ataque 27  recarga 0.96 s  65 km/h  giro 1.64  escala 1.05
+TANQUES KURSK 1943       ALIADOS    IS-2           blindaje 234  ataque 39  recarga 1.20 s  36 km/h  giro 0.87  escala 1.50
+TANQUES KURSK 1943       ALEMANIA   SD.KFZ. 234 PUMA blindaje  76  ataque 18  recarga 0.96 s  75 km/h  giro 1.84  escala 0.75
+TANQUES KURSK 1943       ALEMANIA   PANZER III     blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES KURSK 1943       ALEMANIA   PANZER IV      blindaje 100  ataque 25  recarga 1.20 s  50 km/h  giro 1.30  escala 1.00
+TANQUES KURSK 1943       ALEMANIA   STUG III       blindaje  96  ataque 37  recarga 1.43 s  48 km/h  giro 1.23  escala 1.00  casamata
+TANQUES KURSK 1943       ALEMANIA   TIGER I        blindaje 159  ataque 35  recarga 1.32 s  41 km/h  giro 1.01  escala 1.35
+TANQUES KURSK 1943       ALEMANIA   PANTHER        blindaje 121  ataque 27  recarga 0.96 s  65 km/h  giro 1.64  escala 1.05
+TANQUES KURSK 1943       ALEMANIA   ELEFANT        blindaje 234  ataque 39  recarga 1.20 s  36 km/h  giro 0.87  escala 1.50  casamata
+TANQUES RESULT fichas de jugador fuera de lo previsto: 0
+TANQUES casamata (StuG III, el cañón gira 10 grados a cada lado): con la mira 90 grados a la izquierda el casco queda a 88.5 y el cañón a 90.0; giro máximo usado 10.0: OK
+TANQUES RESULT el casco de un cazacarros sigue a la mira: OK
+ALIADOS al empezar: 4 (la misión marca 2) | con blindaje reforzado: 4 | refuerzos en reserva: 4
+ALIADOS tras perder 2: quedan 2 | al rato vuelven a ser 4, 2 de ellos recién llegados por el sur | reserva: 2
+ALIADOS sin reserva: cae otro y quedan 3
+ALIADOS en «COMBUSTIBLE ENEMIGO»: 0 aliados, reserva 0, botones de órdenes ocultos: bien
+ALIADOS en «EL AERÓDROMO BRITÁNICO»: 0 aliados, reserva 0, botones de órdenes ocultos: bien
+ALIADOS RESULT fallos de aliados y refuerzos: 0
+HALO aeródromo: 9 objetivos con 45 mallas | sin ayuda, sin borde: 45 | con ayuda, borde azul: 45
+HALO al destruir un objetivo de 2 mallas: de 45 mallas con borde azul quedan 43
+HALO tanques sin ayudas (contorno fino en los de la máquina, nada en el del jugador): true | con ayudas (comandante azul, escolta amarilla, aliado con contorno): true | destruido, sin borde: true
+HALO RESULT fallos de los bordes de ayuda: 0
+FORMACION puestos para 1 a 8 aliados: separación mínima 18.4 m, ninguno delante ni en la calle del centro  OK
+FORMACION campo abierto recta             entre aliados 17.2 m | al líder de 20.1 a 42.9 m | delante 0 | aún moviéndose 0  OK
+FORMACION campo abierto giro a la derecha entre aliados 17.6 m | al líder de 19.8 a 42.4 m | delante 0 | aún moviéndose 0  OK
+FORMACION campo abierto otro giro         entre aliados 17.6 m | al líder de 19.7 a 42.6 m | delante 0 | aún moviéndose 0  OK
+FORMACION campo abierto media vuelta      entre aliados 17.8 m | al líder de 20.2 a 42.3 m | delante 0 | aún moviéndose 0  OK
+FORMACION campo abierto avance corto      entre aliados 17.0 m | al líder de 20.2 a 42.3 m | delante 0 | aún moviéndose 0  OK
+FORMACION campo abierto marcha atrás      entre aliados 18.3 m | al líder de 16.3 a 38.2 m | delante 0 | aún moviéndose 0  OK
+FORMACION campo abierto por el camino: mínimo entre aliados 7.4 m, al líder 10.8 m | pegados 0.0 s | desatascos 0  OK
+FORMACION entre casas   recta             entre aliados 21.0 m | al líder de 16.7 a 42.9 m | delante 0 | aún moviéndose 0  OK
+FORMACION entre casas   giro a la derecha entre aliados 18.3 m | al líder de 14.8 a 43.8 m | delante 0 | aún moviéndose 0  OK
+FORMACION entre casas   otro giro         entre aliados 14.4 m | al líder de 18.4 a 42.8 m | delante 0 | aún moviéndose 0  OK
+FORMACION entre casas   media vuelta      entre aliados 18.4 m | al líder de 19.8 a 42.6 m | delante 0 | aún moviéndose 0  OK
+FORMACION entre casas   avance corto      entre aliados 14.5 m | al líder de 19.7 a 45.1 m | delante 0 | aún moviéndose 0  OK
+FORMACION entre casas   marcha atrás      entre aliados 16.4 m | al líder de 18.9 a 38.9 m | delante 0 | aún moviéndose 0  OK
+FORMACION entre casas   por el camino: mínimo entre aliados 6.1 m, al líder 7.0 m | pegados 1.2 s | desatascos 0  OK
+FORMACION RESULT fallos de la formación de los aliados: 0
+SHOTS DONE
+ERROR: Pages in use exist at exit in PagedAllocator: N20RasterizerSceneDummy21GeometryInstanceDummyE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+WARNING: Leaked instance dependency: Bug - did not call instance_notify_deleted when freeing.
+   at: ~Dependency (servers/rendering/storage/utilities.cpp:56)
+WARNING: 14 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 1 RID allocations of type 'N13RendererDummy15MaterialStorage13DummyMaterialE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N13RendererDummy9DummyMeshE' were leaked at exit.
+ERROR: 4 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.
