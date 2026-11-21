@@ -361,6 +361,7 @@ const TABLE: Dictionary = {
 	"TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ": "命中していたぞ。もう一度",
 	"SALTAR LECCIÓN": "レッスンをスキップ",
 	"TOCA PARA SALTAR": "タップでスキップ",
+	"EMPEZAR LA BATALLA": "戦闘開始",
 	"¡CAZA ENEMIGO DESDE EL NORTE! SAL DEL PASILLO ROJO": "北から敵戦闘機！赤い帯から脱出せよ",
 	"¡CAZA ENEMIGO DESDE EL ESTE! SAL DEL PASILLO ROJO": "東から敵戦闘機！赤い帯から脱出せよ",
 	"¡CAZA ENEMIGO DESDE EL SUR! SAL DEL PASILLO ROJO": "南から敵戦闘機！赤い帯から脱出せよ",

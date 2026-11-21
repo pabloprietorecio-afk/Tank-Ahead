@@ -68,7 +68,21 @@ func _process(delta: float) -> void:
 
 ## Color de la bandera sin desgastar en el punto (u, v) de la tela (0..1).
 func _pure_color(u: float, v: float) -> Color:
-	match code:
+	return color_at(code, u, v)
+
+
+## La bandera lisa del idioma `language_code`, como textura pequeña (para teñir con ella otras cosas).
+static func texture(language_code: String) -> ImageTexture:
+	var image := Image.create(96, 64, false, Image.FORMAT_RGB8)
+	for y in 64:
+		for x in 96:
+			image.set_pixel(x, y, color_at(language_code, (x + 0.5) / 96.0, (y + 0.5) / 64.0))
+	return ImageTexture.create_from_image(image)
+
+
+## Color de la bandera del idioma `language_code` en el punto (u, v) de la tela (0..1).
+static func color_at(language_code: String, u: float, v: float) -> Color:
+	match language_code:
 		"es":
 			return Color(0.78, 0.1, 0.12) if (v < 0.25 or v > 0.75) else Color(0.99, 0.76, 0.05)
 		"fr":
@@ -102,7 +116,7 @@ func _pure_color(u: float, v: float) -> Color:
 
 
 ## Brasil: campo verde, rombo amarillo y disco azul (sin la banda con el lema).
-func _brazil(u: float, v: float) -> Color:
+static func _brazil(u: float, v: float) -> Color:
 	var x: float = (u - 0.5) * 3.0
 	var y: float = (v - 0.5) * 2.0
 	if Vector2(x, y).length() < 0.5:
@@ -113,7 +127,7 @@ func _brazil(u: float, v: float) -> Color:
 
 
 ## India: azafrán, blanco y verde, con la rueda (chakra) azul marino de 24 radios.
-func _india(u: float, v: float) -> Color:
+static func _india(u: float, v: float) -> Color:
 	var x: float = (u - 0.5) * 3.0
 	var y: float = (v - 0.5) * 2.0
 	var d: float = Vector2(x, y).length()
@@ -127,7 +141,7 @@ func _india(u: float, v: float) -> Color:
 
 
 ## Union Jack con los bordes blancos y la inversión de las franjas rojas de las diagonales.
-func _union_jack(u: float, v: float) -> Color:
+static func _union_jack(u: float, v: float) -> Color:
 	var blue := Color(0.0, 0.14, 0.4)
 	var white := Color(0.96, 0.96, 0.95)
 	var red := Color(0.78, 0.07, 0.17)

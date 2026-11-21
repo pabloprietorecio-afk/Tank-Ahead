@@ -361,6 +361,7 @@ const TABLE: Dictionary = {
 	"TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ": "यह तुम्हें लग जाता। फिर से कोशिश करो",
 	"SALTAR LECCIÓN": "पाठ छोड़ें",
 	"TOCA PARA SALTAR": "छोड़ने के लिए टैप करें",
+	"EMPEZAR LA BATALLA": "युद्ध शुरू करें",
 	"¡CAZA ENEMIGO DESDE EL NORTE! SAL DEL PASILLO ROJO": "दुश्मन का लड़ाकू विमान उत्तर से! लाल गलियारे से बाहर निकलो",
 	"¡CAZA ENEMIGO DESDE EL ESTE! SAL DEL PASILLO ROJO": "दुश्मन का लड़ाकू विमान पूर्व से! लाल गलियारे से बाहर निकलो",
 	"¡CAZA ENEMIGO DESDE EL SUR! SAL DEL PASILLO ROJO": "दुश्मन का लड़ाकू विमान दक्षिण से! लाल गलियारे से बाहर निकलो",

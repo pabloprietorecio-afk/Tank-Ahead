@@ -8,3 +8,9 @@
   (https://github.com/notofonts/devanagari). Licencia SIL Open Font License 1.1. Se usa como respaldo del hindi.
 
 Las dos se usan sin modificar su nombre ni vender las fuentes por separado, como pide la OFL.
+
+## Special Elite
+
+`SpecialElite-Regular.ttf`: tipografía de máquina de escribir de **Astigmatic** (Brian J.
+Bonislawsky), de Google Fonts, con licencia **Apache 2.0** (`SpecialElite-LICENSE.txt`). Es la
+letra del título «A / TANK / STORY» del vídeo de introducción y de la pantalla de idioma.

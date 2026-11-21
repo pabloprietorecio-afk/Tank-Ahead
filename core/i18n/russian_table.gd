@@ -361,6 +361,7 @@ const TABLE: Dictionary = {
 	"TE HABRÍA ALCANZADO. PRUEBA OTRA VEZ": "ОНО ПОПАЛО БЫ В ТЕБЯ. ПОПРОБУЙ ЕЩЁ РАЗ",
 	"SALTAR LECCIÓN": "ПРОПУСТИТЬ УРОК",
 	"TOCA PARA SALTAR": "НАЖМИТЕ, ЧТОБЫ ПРОПУСТИТЬ",
+	"EMPEZAR LA BATALLA": "НАЧАТЬ БИТВУ",
 	"¡CAZA ENEMIGO DESDE EL NORTE! SAL DEL PASILLO ROJO": "ВРАЖЕСКИЙ ИСТРЕБИТЕЛЬ С СЕВЕРА! УЙДИ С КРАСНОЙ ПОЛОСЫ",
 	"¡CAZA ENEMIGO DESDE EL ESTE! SAL DEL PASILLO ROJO": "ВРАЖЕСКИЙ ИСТРЕБИТЕЛЬ С ВОСТОКА! УЙДИ С КРАСНОЙ ПОЛОСЫ",
 	"¡CAZA ENEMIGO DESDE EL SUR! SAL DEL PASILLO ROJO": "ВРАЖЕСКИЙ ИСТРЕБИТЕЛЬ С ЮГА! УЙДИ С КРАСНОЙ ПОЛОСЫ",

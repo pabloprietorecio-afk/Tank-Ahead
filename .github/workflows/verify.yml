@@ -41,7 +41,7 @@ jobs:
 
       - name: Misiones, navegación, tutorial, lomas, menús y tanques del jugador (sin gráficos)
         env:
-          SHOTS_ONLY: "story mapas rios asaltos nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion intro barcos carga seguir aereo costa mira sonido limite ametralla"
+          SHOTS_ONLY: "story mapas rios asaltos nav tutorial sky ai ctf fit lomas pausa tanques aliados halo formacion intro barcos carga seguir aereo costa mira sonido limite ametralla arranque"
         run: |
           timeout 1800 godot --headless --path . --audio-driver Dummy res://tools/verify/shots.tscn 2>&1 | tee logic.log || true
           grep -E "^(VOZ|NAV|STORY|MAPA|RIO|ASALTO|INTRO|BARCOS|CARGA R|CARGA h|CARGA s|SEGUIR|AEREO|COSTA|MIRA|CAMPAIGN|PREMIUM|ADS|REACH|CLIMB|TUTORIAL|SKY|AI|CTF|FIT|LOMA|PAUSA|TANQUES|ALIADOS|HALO|FORMACION)" logic.log || true
@@ -82,6 +82,7 @@ jobs:
           grep -q "SONIDO RESULT fallos: 0" logic.log || { echo "La explosión real no suena o el interruptor de la pausa no la cambia"; grep "^SONIDO" logic.log; exit 1; }
           grep -q "LIMITE RESULT fallos: 0" logic.log || { echo "El límite del campo: el desierto tiene valla o no avisa, o la estepa se ha quedado sin alambrada"; grep "^LIMITE" logic.log; exit 1; }
           grep -q "AMETRALLA RESULT fallos: 0" logic.log || { echo "Los cazas que ametrallan: salen antes de tiempo, el pasillo no pasa por el jugador, el daño no es el debido o no alternan con el bombardeo"; grep "^AMETRALLA" logic.log; exit 1; }
+          grep -q "ARRANQUE RESULT fallos: 0" logic.log || { echo "El arranque: falta el vídeo de introducción, la primera vez no salen las banderas o el título no se viste con la del idioma, o no se llega al menú"; grep "^ARRANQUE" logic.log; exit 1; }
           grep -q "AEREO RESULT fallos: 0" logic.log || { echo "El ataque aéreo de supervivencia no entra como debe"; grep "^AEREO" logic.log; exit 1; }
           grep -q "BARCOS RESULT fallos: 0" logic.log || { echo "La misión de hundir barcos no sale como debe"; grep "^BARCOS" logic.log; exit 1; }
           grep -q "INTRO RESULT fallos: 0" logic.log || { echo "La entrada aérea de las misiones no empieza o no acaba como debe"; grep "^INTRO" logic.log; exit 1; }

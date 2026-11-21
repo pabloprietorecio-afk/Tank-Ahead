@@ -257,6 +257,24 @@ cambia la potencia según lo que ese vehículo es frente al de serie (los ligero
 menos; los pesados son lentos, duros y pegan más), con su tamaño real y, en los cazacarros de casamata, el
 cañón casi fijo: entonces el casco gira solo hacia donde se apunta (`PlayerInputSource`).
 
+## Arranque: vídeo de introducción y elección de idioma
+
+El juego abre en `ui/intro/intro.tscn` (`Intro`), no en el menú:
+
+- **Vídeo de introducción** (`assets/video/intro.ogv`, 9,5 s): la pantalla de carga se vuelve un
+  carro de verdad, gira la torreta hacia el espectador, dispara y, sobre el fogonazo, queda el
+  título «A / TANK / STORY» a máquina, una palabra por cañonazo. Cubre la pantalla entera (se
+  recorta lo que sobre) y se salta tocando. Cómo está hecho: `assets/video/CREDITS.md`.
+- **La primera vez** (`GameSession.language_chosen`), al acabar el vídeo se queda en esa misma
+  imagen: `TitleCard` pinta el título con las mismas letras y medidas (coincide al píxel), lo
+  aparta a la izquierda y salen las diez banderas. Al tocar una cambia el idioma y **el título se
+  viste con esa bandera** (`shaders/title_flag.gdshader`: la bandera se extiende por el bloque y
+  cada letra enseña su trozo, con un perfil claro para los colores oscuros). De entrada sale el
+  idioma del móvil si el juego lo habla. «EMPEZAR LA BATALLA» lleva al menú.
+- **Las demás veces**, del vídeo al menú. A quien ya jugaba antes no se le pregunta el idioma.
+
+Prueba `arranque`.
+
 ## Cazas que ametrallan y derribos a la vista
 
 **Ametrallamiento** (`entities/air/strafe.gd`, `shaders/strafe_lane.gdshader`). Desde la tercera

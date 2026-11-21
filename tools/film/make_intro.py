@@ -3,9 +3,9 @@ cañonazo. Uso: make_intro.py VIDEO FUENTE.ttf CARPETA_AUDIO SALIDA.mp4
 
 VIDEO: el clip de la pantalla de carga convertida en carro real que acaba al empezar el fogonazo
 (hecho con PixVerse a partir de tools/film/loading_film.tscn). Si trae franjas negras, se quitan.
-FUENTE: una tipografía de máquina de escribir; se usó Special Elite (Astigmatic, licencia Apache 2.0),
-https://github.com/google/fonts/tree/main/apache/specialelite
-CARPETA_AUDIO: assets/audio del juego (cannon.ogg, distant_gun_1.ogg, explosion_real.ogg)."""
+FUENTE: assets/fonts/SpecialElite-Regular.ttf.
+CARPETA_AUDIO: assets/audio del juego (cannon.ogg, distant_gun_1.ogg, explosion_real.ogg).
+Para el vídeo del juego: INTRO_HOLD=40 INTRO_FADE=0 (ver assets/video/CREDITS.md)."""
 import subprocess, sys, os, math
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -99,8 +99,10 @@ def word_layer(text, scale):
 WEAR = np.clip(0.72 + 0.5 * noise_field(9, 11)[:H, :W], 0, 1)
 
 HITS = [8, 27, 46]
-HOLD_AFTER = 54
-FADE = 12
+# Para el juego (INTRO_HOLD, INTRO_FADE): acaba con el título quieto y sin fundido, porque la
+# pantalla que viene detrás empieza con esa misma imagen.
+HOLD_AFTER = int(os.environ.get("INTRO_HOLD", "54"))
+FADE = int(os.environ.get("INTRO_FADE", "12"))
 TITLE_FRAMES = HITS[-1] + HOLD_AFTER + FADE
 for n in range(TITLE_FRAMES):
     canvas = np.tile(BG, (H, W, 1)).astype(np.float32)
@@ -147,7 +149,7 @@ for n in range(TITLE_FRAMES):
         if dy < 0: img[dy:] = img[dy - 1:dy]
         if dx > 0: img[:, :dx] = img[:, dx:dx + 1]
         if dx < 0: img[:, dx:] = img[:, dx - 1:dx]
-    if n >= TITLE_FRAMES - FADE:
+    if FADE > 0 and n >= TITLE_FRAMES - FADE:
         img = (img.astype(np.float32) * ((TITLE_FRAMES - 1 - n) / FADE)).astype(np.uint8)
     frames.append(img)
 

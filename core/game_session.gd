@@ -134,6 +134,21 @@ static func record_wave(wave: int) -> void:
 		cfg.save(PROGRESS_PATH)
 
 
+## ¿Ha elegido ya idioma en la pantalla de bienvenida? Quien ya jugaba antes de que existiera
+## (se le ofreció el tutorial) también cuenta: no se le vuelve a preguntar.
+static func language_chosen() -> bool:
+	var cfg := ConfigFile.new()
+	cfg.load(PROGRESS_PATH)
+	return cfg.get_value("intro", "language_chosen", false) or cfg.get_value("tutorial", "offered", false)
+
+
+static func mark_language_chosen() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(PROGRESS_PATH)
+	cfg.set_value("intro", "language_chosen", true)
+	cfg.save(PROGRESS_PATH)
+
+
 ## Tutorial: si ya se ofreció al abrir el juego y si se ha completado alguna vez.
 static func tutorial_offered() -> bool:
 	var cfg := ConfigFile.new()

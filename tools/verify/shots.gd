@@ -117,6 +117,8 @@ class Runner extends Node:
 			await _real_guns()
 		if only.contains("limite"):
 			await _open_border()
+		if only.contains("arranque"):
+			await _boot()
 		if only.contains("ametralla"):
 			await _strafe()
 		if only.contains("nav"):
@@ -1180,6 +1182,80 @@ class Runner extends Node:
 		print("AMETRALLA supervivencia: en la oleada 2 %s, en la 3 %s: %s" % ["sí" if wave2 else "no", "sí" if wave3 else "no", "bien" if not wave2 and wave3 else "MAL"])
 		print("AMETRALLA RESULT fallos: ", bad)
 		GameSession.debug_weather = -1
+
+	## Arranque: el juego abre con el vídeo de introducción; la primera vez se queda en el título
+	## con las banderas (el título se viste con la del idioma elegido, los textos cambian y
+	## «EMPEZAR LA BATALLA» lleva al menú) y las demás veces pasa al menú.
+	func _boot() -> void:
+		var bad: int = 0
+		var language_was: String = GameSettings.language
+		var progress := ConfigFile.new()
+		progress.load(GameSession.PROGRESS_PATH)
+		var saved: String = progress.encode_to_text()
+		# Como recién instalado: ni idioma elegido ni tutorial ofrecido.
+		for section: String in ["intro", "tutorial"]:
+			if progress.has_section(section):
+				progress.erase_section(section)
+		progress.save(GameSession.PROGRESS_PATH)
+		var main_ok: bool = ProjectSettings.get_setting("application/run/main_scene") == "res://ui/intro/intro.tscn"
+		get_tree().change_scene_to_file("res://ui/intro/intro.tscn")
+		await _frames(6)
+		var intro := get_tree().current_scene as Intro
+		var video: VideoStreamPlayer = null
+		for child: Node in intro.get_children():
+			if child is VideoStreamPlayer:
+				video = child
+		var plays: bool = video != null and video.stream != null and intro.stage == Intro.Stage.VIDEO
+		# El vídeo cubre la pantalla y el título espera debajo, centrado y en tinta.
+		var covers: bool = video != null and video.size.x >= intro.size.x - 1.0 and video.size.y >= intro.size.y - 1.0
+		var inked: bool = intro.title.flag == "" and intro.title.tint() == 0.0 and intro.title.center.distance_to(intro.size * 0.5) < 1.0
+		if not (main_ok and plays and covers and inked):
+			bad += 1
+		print("ARRANQUE el juego abre con el vídeo %s, puesto y cubriendo la pantalla %s, título debajo en tinta %s: %s" % ["sí" if main_ok else "NO", "sí" if plays and covers else "NO", "sí" if inked else "NO", "bien" if main_ok and plays and covers and inked else "MAL"])
+		if DisplayServer.get_name() != "headless":
+			await get_tree().create_timer(11.0).timeout
+		else:
+			intro.skip()
+		await get_tree().create_timer(1.2).timeout
+		var listed: bool = intro.stage == Intro.Stage.LANGUAGE and intro.flags.size() == Loc.LANGUAGES.size() and intro.start_button != null
+		var dressed: bool = intro.title.flag == GameSettings.language and intro.title.tint() > 0.9 and intro.title.center.x < intro.size.x * 0.3
+		if not (listed and dressed):
+			bad += 1
+		print("ARRANQUE primera vez: banderas %d, título apartado y vestido con la de «%s» %s: %s" % [intro.flags.size(), GameSettings.language, "sí" if dressed else "NO", "bien" if listed and dressed else "MAL"])
+		await _snap("arranque_idioma_%s" % GameSettings.language)
+		var changes: int = 0
+		for code: String in ["fr", "de", "ja", "en"]:
+			(intro.flags[code] as FlagButton).pressed.emit()
+			await get_tree().create_timer(0.6).timeout
+			var ok: bool = GameSettings.language == code and intro.title.flag == code and (intro.flags[code] as FlagButton).current and intro.start_button.text == Loc.t("EMPEZAR LA BATALLA") and intro.start_button.text != "EMPEZAR LA BATALLA"
+			changes += int(ok)
+			await _snap("arranque_idioma_%s" % code)
+		if changes != 4:
+			bad += 1
+		print("ARRANQUE al tocar una bandera cambian el idioma, la bandera del título y el botón: %d de 4 (en inglés, «%s»): %s" % [changes, intro.start_button.text, "bien" if changes == 4 else "MAL"])
+		intro.start_button.pressed.emit()
+		await get_tree().create_timer(0.8).timeout
+		await _frames(4)
+		var in_menu: bool = get_tree().current_scene != null and get_tree().current_scene.scene_file_path == "res://levels/main_menu.tscn"
+		var kept: bool = GameSession.language_chosen() and GameSettings.language == "en"
+		if not (in_menu and kept):
+			bad += 1
+		print("ARRANQUE «empezar la batalla»: en el menú %s, idioma guardado %s: %s" % ["sí" if in_menu else "NO", "sí" if kept else "NO", "bien" if in_menu and kept else "MAL"])
+		# Segunda vez: del vídeo, derecho al menú.
+		get_tree().change_scene_to_file("res://ui/intro/intro.tscn")
+		await _frames(6)
+		(get_tree().current_scene as Intro).skip()
+		await get_tree().create_timer(0.9).timeout
+		await _frames(4)
+		var straight: bool = get_tree().current_scene != null and get_tree().current_scene.scene_file_path == "res://levels/main_menu.tscn"
+		if not straight:
+			bad += 1
+		print("ARRANQUE segunda vez: del vídeo al menú %s: %s" % ["sí" if straight else "NO", "bien" if straight else "MAL"])
+		# Todo como estaba.
+		progress.parse(saved)
+		progress.save(GameSession.PROGRESS_PATH)
+		GameSettings.set_language(language_was)
+		print("ARRANQUE RESULT fallos: ", bad)
 
 	## Límite del campo: en el desierto no hay valla y un aviso en pantalla dice dónde acaba; en
 	## la estepa sigue la alambrada y no hace falta aviso.
