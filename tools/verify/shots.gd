@@ -547,7 +547,8 @@ class Runner extends Node:
 		await get_tree().create_timer(2.0).timeout
 		await _snap("menu")
 
-	## Bandera de idioma del menú y el menú en cada idioma.
+	## Bandera de idioma del menú y el menú en cada idioma. (El menú lleva encima la película
+	## antigua: capa «Pelicula».)
 	func _flags() -> void:
 		GameSession.mark_tutorial("offered")
 		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
@@ -1307,9 +1308,9 @@ class Runner extends Node:
 			var ok: bool = GameSettings.language == code and intro.title.flag == code and (intro.flags[code] as FlagButton).current and intro.start_button.text == Loc.t("EMPEZAR LA BATALLA") and intro.start_button.text != "EMPEZAR LA BATALLA"
 			changes += int(ok)
 			await _snap("arranque_idioma_%s" % code)
-		if changes != 4:
+		if changes != 4 or intro.shots != 4:
 			bad += 1
-		print("ARRANQUE al tocar una bandera cambian el idioma, la bandera del título y el botón: %d de 4 (en inglés, «%s»): %s" % [changes, intro.start_button.text, "bien" if changes == 4 else "MAL"])
+		print("ARRANQUE al tocar una bandera cambian el idioma, la bandera del título y el botón: %d de 4 (en inglés, «%s»), con un cañonazo cada vez (%d): %s" % [changes, intro.start_button.text, intro.shots, "bien" if changes == 4 and intro.shots == 4 else "MAL"])
 		intro.start_button.pressed.emit()
 		await get_tree().create_timer(0.8).timeout
 		await _frames(4)

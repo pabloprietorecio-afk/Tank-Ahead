@@ -59,11 +59,14 @@ const ALLIED_CLIPS: int = 9
 const GERMAN_CLIPS: int = 8
 ## Volumen de la radio de fondo por bando: unos 7 dB por debajo de la música.
 const RADIO_DB: Array[float] = [-4.0, -4.0]
+## Cuánto aire de película antigua lleva el menú (1 entero, 0 nada).
+const FILM_STRENGTH: float = 0.9
 
 
 func _ready() -> void:
 	GameSettings.ensure_loaded()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_build_film()
 	if OS.is_debug_build() and OS.get_name() == "Android":
 		_toggle_ads_overlay.call_deferred()
 	# Portada en 3D detrás del menú y un velo oscuro para que se lea el texto.
@@ -132,6 +135,28 @@ func _ready() -> void:
 		_page_tutorial_offer()
 	else:
 		_page_mode()
+
+
+## El menú entero (portada en 3D, textos y botones) se ve como una película de guerra antigua,
+## igual que el vídeo de introducción y la pantalla del título: casi en blanco y negro tirando a
+## sepia, con grano, rayas y parpadeo. Sin apenas baile de la imagen, para leer y tocar a gusto.
+func _build_film() -> void:
+	var reel := CanvasLayer.new()
+	reel.name = "Pelicula"
+	reel.layer = 40
+	add_child(reel)
+	var view := ColorRect.new()
+	view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var film := ShaderMaterial.new()
+	film.shader = load("res://shaders/film_view.gdshader")
+	film.set_shader_parameter("strength", FILM_STRENGTH)
+	film.set_shader_parameter("contrast", 1.25)
+	film.set_shader_parameter("brightness", 0.07)
+	film.set_shader_parameter("grain", 0.055)
+	film.set_shader_parameter("weave_amount", 0.2)
+	view.material = film
+	reel.add_child(view)
 
 
 ## Música del menú y, de fondo y sin parar, la radio: partes aliados y alemanes intercalados,

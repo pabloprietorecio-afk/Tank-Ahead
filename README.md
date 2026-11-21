@@ -292,6 +292,11 @@ El juego abre en `ui/intro/intro.tscn` (`Intro`), no en el menú:
   cada letra enseña su trozo, con un perfil claro para los colores oscuros). De entrada sale el
   idioma del móvil si el juego lo habla. «EMPEZAR LA BATALLA» lleva al menú.
 - **Desde el menú**, la bandera de idioma vuelve a esta pantalla (sin vídeo) para cambiarlo.
+- **Cada bandera que se toca suena con un cañonazo** (`Intro._fire`), como las palabras del título
+  en el vídeo.
+- **Los menús** (portada en 3D, textos y botones) llevan el mismo aire de película antigua:
+  `MainMenu._build_film` pone encima `shaders/film_view.gdshader` al 90 %, algo más claro, con menos
+  grano y casi sin baile de la imagen, para que se lea y se toque a gusto.
 - **Las demás veces**, del vídeo al menú. A quien ya jugaba antes no se le pregunta el idioma.
 
 Prueba `arranque`.

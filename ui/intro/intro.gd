@@ -22,6 +22,11 @@ enum Stage { VIDEO, LANGUAGE, LEAVING }
 ## Lo pone el menú antes de venir: solo a elegir idioma, sin vídeo. Se gasta al entrar.
 static var pick_only: bool = false
 
+## Volumen del cañonazo que suena al tocar una bandera (dB).
+const SHOT_DB: float = -3.0
+## Cañonazos disparados al elegir idioma (lo miran las pruebas).
+var shots: int = 0
+
 var stage: Stage = Stage.VIDEO
 var title: TitleCard
 var start_button: Button
@@ -257,6 +262,23 @@ func pick(code: String) -> void:
 	GameSettings.set_language(code)
 	_refresh_language()
 	title.wear(code)
+	_fire()
+
+
+## El cañonazo de cada bandera que se toca, como los del título en el vídeo. Suena desde la raíz
+## del árbol para que no se corte si enseguida se pasa al menú.
+func _fire() -> void:
+	AudioSetup.ensure()
+	var shot := AudioStreamPlayer.new()
+	shot.stream = Sfx.CANNON
+	shot.bus = AudioSetup.SFX
+	shot.volume_db = SHOT_DB
+	shot.pitch_scale = randf_range(0.95, 1.05)
+	shot.process_mode = Node.PROCESS_MODE_ALWAYS
+	get_tree().root.add_child(shot)
+	shot.finished.connect(shot.queue_free)
+	shot.play()
+	shots += 1
 
 
 ## «EMPEZAR LA BATALLA»: queda elegido el idioma y se pasa al menú.
