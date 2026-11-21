@@ -59,18 +59,21 @@ func reserved_zones() -> Array[Rect2]:
 
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
-	super.start(player_tank, world_root)
+	await super.start(player_tank, world_root)
 	for team in [PLAYER_TEAM, ENEMY_TEAM]:
+		await Loading.breathe()
 		var flag := Flag.create(team, faction_of(team), base_pos(team))
 		flag.set_radar_color(Color(0.35, 0.65, 1.0) if team == PLAYER_TEAM else Color(1.0, 0.2, 0.15))
 		world.add_child(flag)
 		flags.append(flag)
 		_build_base(team)
 	for team in [PLAYER_TEAM, ENEMY_TEAM]:
+		await Loading.breathe()
 		var count: int = TEAM_SIZE - 1 if team == PLAYER_TEAM else ENEMY_COUNT[GameSettings.difficulty]
 		# Atacantes por bando: dos de los tres aliados; del enemigo, según la dificultad.
 		var attackers: int = 2 if team == PLAYER_TEAM else ENEMY_ATTACKERS[GameSettings.difficulty]
 		for i in count:
+			await Loading.breathe()
 			_spawn_unit(team, "attack" if i < attackers else "defend")
 	message.emit(Loc.t("CAPTURA LA BANDERA ENEMIGA Y TRÁELA A TU BASE"), true)
 

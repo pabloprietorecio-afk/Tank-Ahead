@@ -113,12 +113,13 @@ func reserved_zones() -> Array[Rect2]:
 
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
-	super.start(player_tank, world_root)
+	await super.start(player_tank, world_root)
 	get_tree().call_group(&"voice", &"say", "mission_start", VoiceManager.Priority.HIGH)
 	# Una misión marcada `"solo": true` se juega sin aliados ni refuerzos propios.
 	var allies: int = 0 if mission.get("solo", false) else mission.get("allies", 0) + EXTRA_ALLIES
 	var spawn: Vector3 = player_spawn().origin
 	for i in allies:
+		await Loading.breathe()
 		# En abanico a los dos lados del jugador; cada pareja, un poco más atrás.
 		var rank: int = i / 2 + 1
 		var side: float = 1.0 if i % 2 == 0 else -1.0
@@ -128,9 +129,10 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 		"assault":
 			_to_spawn = maxi(roundi(mission["count"] * 2 * GameSettings.total_factor()), 2)
 			# Carros que esperan en posición (atrincherados o en apoyo) además de las oleadas.
-			remaining = _to_spawn + _dig_in(int(mission.get("dug_in", 0)), true) + _dig_in(int(mission.get("overwatch", 0)), false)
+			remaining = _to_spawn + await _dig_in(int(mission.get("dug_in", 0)), true) + await _dig_in(int(mission.get("overwatch", 0)), false)
 		"destroy":
 			for n in _depot_points.size():
+				await Loading.breathe()
 				var point: Vector2 = _depot_points[n]
 				var depot := PropFactory.supply_depot()
 				depot.remove_from_group(&"radar_marks")
@@ -138,32 +140,36 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 				depot.position = Vector3(point.x, 0.0, point.y)
 				world.add_child(depot)
 				_track(depot)
-				_guards(point, 2 if n < 3 else 1)
+				await _guards(point, 2 if n < 3 else 1)
 		"sabotage":
 			for part in StructureFactory.build(mission["target"], world, TARGET_CENTER, 0.0):
+				await Loading.breathe()
 				_track(part)
-			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 6)
-			_build_outposts()
+			await _guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 6)
+			await _build_outposts()
 		"sink":
-			_moor_fleet()
-			_guards(Vector2(0.0, -110.0), 6, 15.0, 70.0)
+			await _moor_fleet()
+			await _guards(Vector2(0.0, -110.0), 6, 15.0, 70.0)
 		"liberate":
 			for part in StructureFactory.camp(world, TARGET_CENTER, mission["count"]):
+				await Loading.breathe()
 				_track(part)
 			# La guardia vigila desde fuera de las alambradas, no encerrada en el campo.
-			_guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 5, 52.0, 78.0)
-			_build_outposts()
+			await _guards(Vector2(TARGET_CENTER.x, TARGET_CENTER.z), 5, 52.0, 78.0)
+			await _build_outposts()
 		"defend":
 			time_left = mission["time"]
 			_build_zone()
 		"breakthrough":
 			_build_exit()
 			for point in DEFENCE_LINES:
-				_guards(point, 2)
-			_guards(Vector2(EXIT_POINT.x, EXIT_POINT.z), 2)
+				await Loading.breathe()
+				await _guards(point, 2)
+			await _guards(Vector2(EXIT_POINT.x, EXIT_POINT.z), 2)
 		"boss":
 			var heaviest: TankStats = roster(ENEMY_TEAM)[0]
 			for stats in roster(ENEMY_TEAM):
+				await Loading.breathe()
 				if stats.max_armor > heaviest.max_armor:
 					heaviest = stats
 			var boss_stats: TankStats = heaviest.duplicate()
@@ -194,9 +200,11 @@ func _dig_in(count: int, revetted: bool) -> int:
 		heavies = roster(ENEMY_TEAM)
 	var soil: Color = Fronts.ground_colors(front)[2]
 	for i in count:
+		await Loading.breathe()
 		var wanted := Vector2(lerpf(-115.0, 115.0, (i + 0.5) / count) + randf_range(-18.0, 18.0), randf_range(-80.0, 5.0) if revetted else randf_range(-120.0, -50.0))
 		var point: Vector2 = wanted
 		for attempt in 12:
+			await Loading.breathe()
 			point = free_point_near(wanted, 0.0, 22.0 + attempt * 3.0)
 			if is_free_point.call(point) and fits(point, 9.0) and not _in_crops(point):
 				break
@@ -232,6 +240,7 @@ func _moor_fleet() -> void:
 	_ships_needed = mini(int(mission.get("needed", count)), count)
 	var transports: int = 0
 	for i in count:
+		await Loading.breathe()
 		var gunboat: bool = i == count / 2
 		var ship := Ship.make(Ship.Kind.GUNBOAT if gunboat else Ship.Kind.TRANSPORT)
 		ship.speed = SHIP_SPEED[GameSettings.difficulty] * (1.15 if gunboat else 1.0)
@@ -264,6 +273,7 @@ func _on_ship_escaped(ship: Ship) -> void:
 func _build_outposts() -> void:
 	var builders: Array = [[StructureFactory.flak_gun, Loc.t("ANTIAÉREO")], [StructureFactory.radio_mast, Loc.t("ANTENA")], [StructureFactory.command_tent, Loc.t("PUESTO AVANZADO")]]
 	for i in _outposts.size():
+		await Loading.breathe()
 		var point: Vector2 = _outposts[i]
 		var prop: Destructible = builders[i % builders.size()][0].call()
 		prop.prize_points = 0
@@ -271,7 +281,7 @@ func _build_outposts() -> void:
 		prop.position = Vector3(point.x, 0.0, point.y)
 		world.add_child(prop)
 		_track(prop)
-		_guards(point, 2)
+		await _guards(point, 2)
 
 
 func _track(part: Destructible) -> void:
@@ -282,6 +292,7 @@ func _track(part: Destructible) -> void:
 
 func _guards(point: Vector2, count: int, min_radius: float = 15.0, max_radius: float = 45.0) -> void:
 	for g in count:
+		await Loading.breathe()
 		var guard: Tank = _spawn_enemy(free_point_near(point, min_radius, max_radius))
 		var brain: AIBrain = guard.get_node("AIBrain")
 		brain.hunt = false

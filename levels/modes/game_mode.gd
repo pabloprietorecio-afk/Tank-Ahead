@@ -141,6 +141,9 @@ func start(player_tank: Tank, world_root: Node3D) -> void:
 	add_to_group(&"game_mode")
 	player.destroyed.connect(_on_player_destroyed)
 	_raid_timer = raid_first
+	# Los modos montan aquí sus tropas y objetivos por tandas, cediendo cuadros a la pantalla de
+	# carga: por eso se llama siempre con `await` (sin pantalla de carga no cede nunca).
+	await Loading.breathe()
 
 
 func _physics_process(delta: float) -> void:

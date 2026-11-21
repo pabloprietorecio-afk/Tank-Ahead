@@ -83,11 +83,15 @@ func build(front_id: int, backdrop_spec: Dictionary) -> void:
 		_build_sea(spec.get("sea_extras", []))
 	var skylines: Dictionary = spec.get("skyline", {})
 	for side: String in skylines:
+		await Loading.breathe()
 		_build_skyline(side, skylines[side])
-	_build_relief(spec.get("relief", "bocage"))
+	await Loading.breathe()
+	await _build_relief(spec.get("relief", "bocage"))
 	for i in int(spec.get("villages", 0)):
+		await Loading.breathe()
 		_build_village()
 	for i in int(spec.get("smoke", 0)):
+		await Loading.breathe()
 		_build_smoke()
 
 
@@ -136,37 +140,48 @@ func _build_relief(kind: String) -> void:
 		"plain", "forest":
 			# Estepa: ondulaciones tan tendidas que apenas levantan, franjas de árboles y bosquetes.
 			for i in 9:
+				await Loading.breathe()
 				_ridge(_spot(260.0, 1500.0, 200.0), _rng.randf_range(600.0, 1100.0), _rng.randf_range(300.0, 480.0), _rng.randf_range(5.0, 13.0), 0, 0)
 			for i in (26 if kind == "forest" else 16):
+				await Loading.breathe()
 				_tree_belt(_spot(40.0, 900.0, 60.0), _rng.randf_range(90.0, 260.0), Color(0.13, 0.25, 0.1))
 			if kind == "forest":
 				# Bosque cerrado alrededor: una pared de árboles no muy lejos.
 				for i in 12:
+					await Loading.breathe()
 					_ridge(_spot(70.0, 420.0, 110.0), _rng.randf_range(260.0, 480.0), _rng.randf_range(90.0, 150.0), _rng.randf_range(15.0, 22.0), 2, 3)
 		"desert", "flat":
 			# Dunas tendidas por todas partes y, salvo en el desierto llano, escarpes y mesetas.
 			for i in (5 if kind == "flat" else 12):
+				await Loading.breathe()
 				_ridge(_spot(60.0, 1100.0, 120.0), _rng.randf_range(260.0, 620.0), _rng.randf_range(110.0, 200.0), _rng.randf_range(5.0, 9.0) if kind == "flat" else _rng.randf_range(8.0, 20.0), 0, 0)
 			if kind == "desert":
 				for i in 7:
+					await Loading.breathe()
 					_ridge(_spot(240.0, 1100.0, 240.0), _rng.randf_range(520.0, 1100.0), _rng.randf_range(200.0, 320.0), _rng.randf_range(40.0, 80.0), 0, 1)
 				# Algún cerro testigo, de roca, más cerca.
 				for i in 3:
+					await Loading.breathe()
 					_ridge(_spot(160.0, 600.0, 200.0), _rng.randf_range(120.0, 220.0), _rng.randf_range(100.0, 160.0), _rng.randf_range(28.0, 50.0), 1, 1)
 		"djebel":
 			# Túnez: sierras de roca pelada que cierran el llano, con sus estribaciones.
 			for i in 9:
+				await Loading.breathe()
 				_ridge(_spot(420.0, 1500.0, 240.0), _rng.randf_range(600.0, 1100.0), _rng.randf_range(320.0, 460.0), _rng.randf_range(110.0, 230.0), 1, 2)
 			for i in 8:
+				await Loading.breathe()
 				_ridge(_spot(120.0, 700.0, 150.0), _rng.randf_range(240.0, 460.0), _rng.randf_range(120.0, 200.0), _rng.randf_range(16.0, 40.0), 1, 2)
 		_:
 			# Normandía: colinas suaves cuarteadas en prados; más altas y boscosas con "hills".
 			var high: bool = kind == "hills"
 			for i in 14:
+				await Loading.breathe()
 				_ridge(_spot(240.0, 1500.0, 190.0), _rng.randf_range(480.0, 900.0), _rng.randf_range(300.0, 460.0), _rng.randf_range(50.0, 95.0) if high else _rng.randf_range(18.0, 42.0), 0, 0)
 			for i in (9 if high else 5):
+				await Loading.breathe()
 				_ridge(_spot(120.0, 800.0, 140.0), _rng.randf_range(220.0, 420.0), _rng.randf_range(110.0, 170.0), _rng.randf_range(20.0, 34.0) if high else _rng.randf_range(12.0, 18.0), 2, 3)
 			for i in 18:
+				await Loading.breathe()
 				_tree_belt(_spot(30.0, 700.0, 50.0), _rng.randf_range(50.0, 150.0), Color(0.12, 0.26, 0.09), _rng.randf() < 0.3)
 
 

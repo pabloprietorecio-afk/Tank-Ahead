@@ -261,7 +261,7 @@ func status_text() -> String:
 
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
-	super(player_tank, world_root)
+	await super(player_tank, world_root)
 	if _saved.is_empty():
 		_saved = {
 			"easy_drive": GameSettings.easy_drive, "aim_assist": GameSettings.aim_assist,

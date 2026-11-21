@@ -6,6 +6,8 @@ extends Control
 ##   idioma; el título se viste con la bandera elegida y «EMPEZAR LA BATALLA» lleva al menú;
 ## - las demás veces, pasa al menú.
 ## El vídeo se salta tocando la pantalla.
+## Desde el menú, la bandera de idioma trae aquí con `pick_only`: sin vídeo, directamente a la
+## pantalla del título con las banderas, y de vuelta al menú.
 
 const VIDEO: String = "res://assets/video/intro.ogv"
 const VIDEO_SIZE: Vector2 = Vector2(1280.0, 720.0)
@@ -16,6 +18,9 @@ const TITLE_SHRINK: float = 0.7
 const PANEL_FROM: float = 0.455
 
 enum Stage { VIDEO, LANGUAGE, LEAVING }
+
+## Lo pone el menú antes de venir: solo a elegir idioma, sin vídeo. Se gasta al entrar.
+static var pick_only: bool = false
 
 var stage: Stage = Stage.VIDEO
 var title: TitleCard
@@ -44,6 +49,10 @@ func _ready() -> void:
 	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(title)
 	resized.connect(_layout)
+	if pick_only:
+		pick_only = false
+		_from_menu()
+		return
 	if ResourceLoader.exists(VIDEO):
 		_video = VideoStreamPlayer.new()
 		_video.stream = load(VIDEO)
@@ -71,6 +80,22 @@ func _ready() -> void:
 	else:
 		_layout()
 		_after_video.call_deferred()
+
+
+## Desde el menú: la pantalla del título con las banderas, ya colocada, saliendo del negro.
+func _from_menu() -> void:
+	stage = Stage.LANGUAGE
+	_build_language_screen()
+	_layout()
+	title.wear(GameSettings.language, 0.01)
+	var veil := ColorRect.new()
+	veil.color = Color.BLACK
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(veil)
+	var fade: Tween = create_tween()
+	fade.tween_property(veil, "color:a", 0.0, 0.35)
+	fade.tween_callback(veil.queue_free)
 
 
 ## El vídeo cubre la pantalla entera (se recorta lo que sobre) y el título se pone donde lo deja.
@@ -139,9 +164,16 @@ func _show_languages() -> void:
 	var move: Tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
 	move.tween_property(title, "center", Vector2(size.x * TITLE_AT, size.y * 0.5), 0.6)
 	move.tween_property(title, "zoom", fit * TITLE_SHRINK, 0.6)
-	_build_panel()
+	_build_language_screen()
 	_panel.modulate.a = 0.0
-	# Las rayas, las motas y el parpadeo de la película siguen por encima, como en el vídeo.
+	move.tween_property(_panel, "modulate:a", 1.0, 0.5).set_delay(0.35)
+	title.wear(GameSettings.language, 0.9)
+
+
+## Las banderas con el botón y, por encima de todo, las rayas, las motas y el parpadeo de la
+## película, como en el vídeo.
+func _build_language_screen() -> void:
+	_build_panel()
 	var film := ColorRect.new()
 	film.name = "Pelicula"
 	film.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -150,8 +182,6 @@ func _show_languages() -> void:
 	damage.shader = load("res://shaders/old_film.gdshader")
 	film.material = damage
 	add_child(film)
-	move.tween_property(_panel, "modulate:a", 1.0, 0.5).set_delay(0.35)
-	title.wear(GameSettings.language, 0.9)
 
 
 func _build_panel() -> void:

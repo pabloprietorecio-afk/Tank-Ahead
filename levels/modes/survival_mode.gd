@@ -41,7 +41,7 @@ var _air_spawned: int = 0
 
 
 func start(player_tank: Tank, world_root: Node3D) -> void:
-	super.start(player_tank, world_root)
+	await super.start(player_tank, world_root)
 	message.emit(Loc.t("%s — PREPÁRATE") % Loc.t(Fronts.NAMES[front]), false)
 
 

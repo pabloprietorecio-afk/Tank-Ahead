@@ -3,6 +3,9 @@ extends Node
 ## Entrada de una misión: la cámara sobrevuela el campo en un barrido amplio, baja en picado y
 ## acaba justo en la cámara del tanque del jugador. Mientras dura, la partida está en pausa (no
 ## pasa nada que el jugador no vea) y la interfaz, escondida; se salta tocando la pantalla.
+## El barrido se ve como una película de guerra antigua (shaders/film_view.gdshader), igual que
+## el vídeo de introducción; ese aire se va poco a poco durante el picado y al llegar al tanque
+## la imagen es ya la del juego.
 
 ## Duración del vuelo (s) y parte de ella en la que todavía no se puede saltar (para que el
 ## toque con el que se entra a la misión no lo corte nada más empezar).
@@ -12,6 +15,8 @@ const SKIP_AFTER: float = 0.5
 const START_HEIGHT: float = 210.0
 const START_RADIUS: float = 330.0
 const SWEEP: float = 2.2
+## Tramo del vuelo (0..1) en el que se va el aire de película antigua: el picado hacia el tanque.
+const FILM_FADE := Vector2(0.5, 0.93)
 
 var player: Tank
 var ui_layer: CanvasLayer
@@ -26,6 +31,7 @@ var _end_radius: float = 0.0
 var _turn: float = 1.0
 var _overlay: CanvasLayer
 var _texts: Control
+var _film: ShaderMaterial
 var _done: bool = false
 
 
@@ -91,6 +97,17 @@ func _build_overlay() -> void:
 	hint.add_theme_constant_override("outline_size", 5)
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay.add_child(hint)
+	# Por encima de todo, títulos incluidos, la película antigua.
+	var reel := CanvasLayer.new()
+	reel.layer = 21
+	add_child(reel)
+	var view := ColorRect.new()
+	view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_film = ShaderMaterial.new()
+	_film.shader = load("res://shaders/film_view.gdshader")
+	view.material = _film
+	reel.add_child(view)
 
 
 func _process(delta: float) -> void:
@@ -128,8 +145,14 @@ func _place(t: float) -> void:
 	var clouds := get_tree().current_scene.get_node_or_null("Weather/CloudDome") as Node3D
 	if clouds != null:
 		clouds.global_position = Vector3(eye.x, 0.0, eye.z)
+	_film.set_shader_parameter("strength", film_strength(t))
 	# El título entra al principio y se va antes del picado.
 	_texts.modulate.a = smoothstep(0.03, 0.14, t) * (1.0 - smoothstep(0.6, 0.74, t))
+
+
+## Cuánto aire de película antigua lleva la imagen en el punto `t` del vuelo (1 entero, 0 nada).
+static func film_strength(t: float) -> float:
+	return 1.0 - smoothstep(FILM_FADE.x, FILM_FADE.y, t)
 
 
 func _input(event: InputEvent) -> void:

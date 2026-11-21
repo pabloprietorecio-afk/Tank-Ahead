@@ -56,18 +56,20 @@ func _ready() -> void:
 		_keep_clear.append(Rect2(Vector2(minf(near_corner.x, far_corner.x), minf(near_corner.y, far_corner.y)), (far_corner - near_corner).abs()))
 	Backdrop.sea_side = _beach_dir
 	_build_ground()
+	await Loading.breathe()
 	_build_walls(far_spec.get("sea", ""))
 	await Loading.step(0.14, "suelo y borde")
 	if not GameSession.debug_bare:
 		# El paisaje de fuera del campo, hasta el horizonte.
 		var backdrop := Backdrop.new()
 		add_child(backdrop)
-		backdrop.build(GameSession.front, far_spec)
+		await backdrop.build(GameSession.front, far_spec)
 	await Loading.step(0.32, "horizonte")
 	if _mode.wants_scenery() and not GameSession.debug_bare:
 		await _build_scenery()
 	await Loading.step(0.7, "decorado")
 	_spawn_player(spawn)
+	await Loading.breathe()
 	Fx.on(self).player = _player
 	_mode.is_free_point = func(p: Vector2) -> bool:
 		for rect in _obstacle_rects:
@@ -75,6 +77,7 @@ func _ready() -> void:
 				return false
 		return true
 	add_child(_mode)
+	await Loading.breathe()
 	_build_weather()
 	await Loading.step(0.76, "jugador y clima")
 	if _mode.wants_scenery() and not GameSession.debug_bare:
@@ -84,6 +87,7 @@ func _ready() -> void:
 		sky.front = GameSession.front
 		sky.is_free_point = _mode.is_free_point
 		add_child(sky)
+	await Loading.breathe()
 	if _mode.wants_pickups():
 		var spawner := PickupSpawner.new()
 		spawner.name = "PickupSpawner"
@@ -99,12 +103,14 @@ func _ready() -> void:
 		ambience.weather = (get_node("Weather") as Weather).kind
 		ambience.sea_side = _beach_dir
 		add_child(ambience)
+	await Loading.breathe()
 	if not GameSession.debug_bare:
 		# Las huellas de las orugas; junto al mar el suelo es arena de playa y se marcan más.
 		var marks := TrackMarks.new()
 		marks.name = "TrackMarks"
 		add_child(marks)
 		marks.build(GameSession.front, _beach_dir, BEACH_FROM)
+	await Loading.breathe()
 	_build_ui()
 	await Loading.step(0.84, "interfaz")
 	var voice := VoiceManager.new()
@@ -115,7 +121,7 @@ func _ready() -> void:
 	music.volume_db = -6.0
 	add_child(music)
 	await Loading.step(0.88, "voz y música")
-	_mode.start(_player, self)
+	await _mode.start(_player, self)
 	var with_intro: bool = GameSession.mode == GameSession.Mode.STORY and not GameSession.skip_intro and not GameSession.debug_bare
 	if Loading.current != null:
 		# Con pantalla de carga: se retira cuando el campo ya está pintado debajo; la partida
@@ -369,21 +375,25 @@ func _build_scenery() -> void:
 	# que nunca se coloca encima de ellas. En el desierto son dunas y crestas alargadas; en la
 	# estepa y en Normandía, ondulaciones redondas del terreno.
 	for i in int(_layout.get("ridge", 0)):
+		await Loading.breathe()
 		_add_relief(_rng.randf_range(30.0, 42.0), _rng.randf_range(1.6, 2.4) if desert else 1.0)
 	for i in int(_layout.get("mounds", 2 if desert else 3)):
+		await Loading.breathe()
 		_add_relief(_rng.randf_range(21.0, 30.0), 1.0)
 	for i in int(_layout.get("dunes", 5 if desert else 0)):
+		await Loading.breathe()
 		_add_relief(_rng.randf_range(12.0, 18.0), _rng.randf_range(2.2, 3.4))
 	match front:
 		Fronts.Id.AFRICA:
-			_scenery_africa()
+			await _scenery_africa()
 		Fronts.Id.KURSK:
-			_scenery_kursk()
+			await _scenery_kursk()
 		_:
-			_scenery_normandy()
+			await _scenery_normandy()
 	await Loading.step(0.62, "paisaje del frente")
 	# Ruinas con bidones, rocas y depósitos de combustible abandonados en todos los frentes.
 	for r in 4:
+		await Loading.breathe()
 		var pos := _free_spot(8.0)
 		if pos == Vector2.INF:
 			continue
@@ -399,16 +409,19 @@ func _build_scenery() -> void:
 			vent.position = Vector3(_rng.randf_range(-3.0, 3.0), 0.6, 1.2)
 			ruin.add_child(vent)
 		for b in _rng.randi_range(1, 3):
+			await Loading.breathe()
 			var barrel := PropFactory.barrel()
 			barrel.position = Vector3(pos.x + _rng.randf_range(-5.0, 5.0), 0.0, pos.y + _rng.randf_range(2.0, 5.0))
 			add_child(barrel)
 	# Edificios con premio (anillo verde en el radar).
 	var prizes: Array[Callable] = [StructureFactory.radio_mast, StructureFactory.water_tower, StructureFactory.flak_gun, StructureFactory.flak_gun, StructureFactory.command_tent]
 	for factory in prizes:
+		await Loading.breathe()
 		var pos := _free_spot(6.0)
 		if pos != Vector2.INF:
 			_place(factory.call(), pos, 6.0, _rng.randf() * TAU)
 	for i in int(_layout.get("scatter", 25 if desert else 12)):
+		await Loading.breathe()
 		var radius: float = _rng.randf_range(0.8, 2.5)
 		var pos := _free_spot(radius)
 		if pos != Vector2.INF:
@@ -448,6 +461,7 @@ func _add_relief(radius: float, stretch: float) -> void:
 ## palomar, huertos de manzanos, cruceros en los caminos.
 func _scenery_normandy() -> void:
 	for v in int(_layout.get("villages", 2)):
+		await Loading.breathe()
 		# El pueblo de la iglesia ocupa más: las casas van desplazadas respecto al templo.
 		var center := _free_spot(48.0 if v == 0 else 30.0)
 		if center == Vector2.INF:
@@ -461,19 +475,23 @@ func _scenery_normandy() -> void:
 		else:
 			_village(center, 4, func() -> Node3D: return PropFactory.house(_house_size()), func() -> Node3D: return PropFactory.bombed_house(_house_size(), 0))
 		for l in 3:
+			await Loading.breathe()
 			var lamp := PropFactory.lamp_post()
 			lamp.position = Vector3(center.x + _rng.randf_range(-20.0, 20.0), 0.0, center.y + _rng.randf_range(-20.0, 20.0))
 			add_child(lamp)
 	for f in int(_layout.get("farm", 1)):
+		await Loading.breathe()
 		var pos := _free_spot(24.0)
 		if pos != Vector2.INF:
 			_place(FrontProps.stone_farm(), pos, 20.0, round(_rng.randf() * 4.0) * PI * 0.5)
 	# Planeadores estrellados (los que tomaron los puentes) y estacas contra ellos en los prados.
 	for g in int(_layout.get("gliders", 0)):
+		await Loading.breathe()
 		var pos := _free_spot(12.0)
 		if pos != Vector2.INF:
 			_place(FrontProps.glider_wreck(), pos, 10.0, _rng.randf() * TAU)
 	for a in int(_layout.get("asparagus", 0)):
+		await Loading.breathe()
 		var size := Vector2(_rng.randf_range(50.0, 80.0), _rng.randf_range(40.0, 60.0))
 		var pos := _free_spot(maxf(size.x, size.y) * 0.5)
 		if pos != Vector2.INF:
@@ -483,23 +501,27 @@ func _scenery_normandy() -> void:
 			_keep_clear.append(Rect2(pos - size * 0.5, size))
 	# El bocage: una cuadrícula de setos con portillos. Los sueltos de siempre, además.
 	if _layout.has("bocage"):
-		_build_bocage(float(_layout["bocage"]))
+		await _build_bocage(float(_layout["bocage"]))
 	for i in int(_layout.get("hedges", 12)):
+		await Loading.breathe()
 		var length: float = _rng.randf_range(18.0, 34.0)
 		var pos := _free_spot(length * 0.5)
 		if pos != Vector2.INF:
 			_place(PropFactory.hedgerow(length), pos, length * 0.5, round(_rng.randf() * 2.0) * PI * 0.5)
 	# Huertos de manzanos.
 	for o in int(_layout.get("woods", 5)):
+		await Loading.breathe()
 		var center := _free_spot(12.0)
 		if center != Vector2.INF:
 			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.apple_tree(_rng.randf_range(4.0, 6.0)),
 					(func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(4.0, 6.0), 0, burning)) if o < 2 else Callable())
 	for f in 4:
+		await Loading.breathe()
 		var pos := _free_spot(6.0)
 		if pos != Vector2.INF:
 			_place(PropFactory.fence(12.0), pos, 6.0, _rng.randf() * TAU)
 	for c in 2:
+		await Loading.breathe()
 		var pos := _free_spot(2.0)
 		if pos != Vector2.INF:
 			_place(FrontProps.calvary(), pos, 1.5, _rng.randf() * TAU)
@@ -512,8 +534,11 @@ func _build_bocage(cell: float) -> void:
 	var start: float = -lines * cell * 0.5
 	var shift := Vector2(_rng.randf_range(-8.0, 8.0), _rng.randf_range(-8.0, 8.0))
 	for horizontal: bool in [true, false]:
+		await Loading.breathe()
 		for i in range(1, lines):
+			await Loading.breathe()
 			for j in lines:
+				await Loading.breathe()
 				if _rng.randf() < 0.26:
 					continue
 				var gate: float = _rng.randf_range(13.0, 17.0)
@@ -537,6 +562,7 @@ func _build_bocage(cell: float) -> void:
 ## piedra, jaimas, camiones quemados en la pista y campos de minas cercados.
 func _scenery_africa() -> void:
 	for v in int(_layout.get("villages", 1)):
+		await Loading.breathe()
 		# Sitio para el pueblo y para su palmeral, que va a un lado.
 		var center := _free_spot(44.0)
 		if center == Vector2.INF:
@@ -547,19 +573,23 @@ func _scenery_africa() -> void:
 				func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(7.0, 10.0), 2, burning))
 	# Afloramientos: peñascos grandes apiñados, la única cobertura del llano.
 	for o in int(_layout.get("outcrops", 5)):
+		await Loading.breathe()
 		var pos := _free_spot(9.0)
 		if pos == Vector2.INF:
 			continue
 		for r in _rng.randi_range(3, 5):
+			await Loading.breathe()
 			var rock: Destructible = PropFactory.rock(_rng.randf_range(2.4, 4.6))
 			rock.position = Vector3(pos.x + _rng.randf_range(-6.0, 6.0), 0.0, pos.y + _rng.randf_range(-6.0, 6.0))
 			add_child(rock)
 		_obstacle_rects.append(Rect2(pos - Vector2(11.0, 11.0), Vector2(22.0, 22.0)))
 	for i in 5:
+		await Loading.breathe()
 		var pos := _free_spot(5.0)
 		if pos != Vector2.INF:
 			_place(FrontProps.sangar(), pos, 4.0, _rng.randf() * TAU)
 	for i in 5:
+		await Loading.breathe()
 		var pos := _free_spot(5.0)
 		if pos != Vector2.INF:
 			_place(PropFactory.sandbags(_rng.randf_range(6.0, 10.0)), pos, 5.0, _rng.randf() * TAU)
@@ -567,16 +597,19 @@ func _scenery_africa() -> void:
 	var camp := _free_spot(16.0)
 	if camp != Vector2.INF:
 		for t in 3:
+			await Loading.breathe()
 			var tent: Destructible = FrontProps.tent()
 			tent.position = Vector3(camp.x + (t - 1) * 9.0 + _rng.randf_range(-1.5, 1.5), 0.0, camp.y + _rng.randf_range(-5.0, 5.0))
 			tent.rotation.y = _rng.randf_range(-0.3, 0.3)
 			add_child(tent)
 		_obstacle_rects.append(Rect2(camp - Vector2(17.0, 12.0), Vector2(34.0, 24.0)))
 	for i in 3:
+		await Loading.breathe()
 		var pos := _free_spot(5.0)
 		if pos != Vector2.INF:
 			_place(FrontProps.truck_wreck(), pos, 4.0, _rng.randf() * TAU)
 	for i in int(_layout.get("minefields", 2)):
+		await Loading.breathe()
 		var size := Vector2(_rng.randf_range(30.0, 52.0), _rng.randf_range(20.0, 34.0))
 		var pos := _free_spot(maxf(size.x, size.y) * 0.5)
 		if pos != Vector2.INF:
@@ -586,16 +619,19 @@ func _scenery_africa() -> void:
 			_keep_clear.append(Rect2(pos - size * 0.5, size).grow(1.0))
 	# Palmeras solo donde hay agua (los oasis piden más); fuera, acacias sueltas.
 	for i in int(_layout.get("woods", 2)):
+		await Loading.breathe()
 		var pos := _free_spot(4.0)
 		if pos != Vector2.INF:
 			_scatter(pos, 3, 4.0, func() -> Node3D: return PropFactory.palm(_rng.randf_range(6.0, 9.0)))
 	for i in 9:
+		await Loading.breathe()
 		var pos := _free_spot(3.0)
 		if pos != Vector2.INF:
 			_place(FrontProps.acacia(_rng.randf_range(4.0, 6.5)), pos, 1.0, _rng.randf() * TAU)
 	# Matorral: muchas matas, un solo dibujo. No se ponen en caminos ni dentro de nada.
 	var tufts := PackedVector3Array()
 	for i in 260:
+		await Loading.breathe()
 		var p := Vector2(_rng.randf_range(-ARENA_HALF + 6.0, ARENA_HALF - 6.0), _rng.randf_range(-ARENA_HALF + 6.0, ARENA_HALF - 6.0))
 		if _is_clear(Rect2(p - Vector2(0.8, 0.8), Vector2(1.6, 1.6))):
 			tufts.append(Vector3(p.x, Terrain.height(p.x, p.y), p.y))
@@ -607,12 +643,14 @@ func _scenery_africa() -> void:
 ## de tierra con su línea de telégrafo.
 func _scenery_kursk() -> void:
 	for v in int(_layout.get("villages", 2)):
+		await Loading.breathe()
 		var center := _free_spot(34.0)
 		if center == Vector2.INF:
 			continue
 		_village(center, 5, func() -> Node3D: return PropFactory.izba(Vector3(_rng.randf_range(5.0, 7.0), _rng.randf_range(3.0, 4.0), _rng.randf_range(6.0, 8.0))),
 				func() -> Node3D: return PropFactory.bombed_house(Vector3(_rng.randf_range(5.0, 7.0), _rng.randf_range(3.0, 4.0), _rng.randf_range(6.0, 8.0)), 2))
 		for f in 3:
+			await Loading.breathe()
 			var fence := PropFactory.fence(10.0)
 			fence.position = Vector3(center.x + _rng.randf_range(-25.0, 25.0), 0.0, center.y + _rng.randf_range(-25.0, 25.0))
 			fence.rotation.y = _rng.randf() * TAU
@@ -630,6 +668,7 @@ func _scenery_kursk() -> void:
 	if mill != Vector2.INF:
 		_place(FrontProps.windmill(), mill, 6.0, _rng.randf() * TAU)
 	for i in int(_layout.get("sunflowers", 2)):
+		await Loading.breathe()
 		var size := Vector2(snappedf(_rng.randf_range(30.0, 46.0), 4.0), snappedf(_rng.randf_range(24.0, 38.0), 4.0))
 		var pos := _free_spot(maxf(size.x, size.y) * 0.5)
 		if pos != Vector2.INF:
@@ -640,27 +679,33 @@ func _scenery_kursk() -> void:
 	# Carros de los combates de los días anteriores.
 	var models: Array[TankStats] = []
 	for faction in 2:
+		await Loading.breathe()
 		models.append_array(_mode.roster(faction))
 	for i in int(_layout.get("hulks", 3)):
+		await Loading.breathe()
 		var pos := _free_spot(5.0)
 		if pos != Vector2.INF and not models.is_empty():
 			_place(FrontProps.tank_hulk(models.pick_random()), pos, 4.0, _rng.randf() * TAU)
 	for g in int(_layout.get("woods", 7)):
+		await Loading.breathe()
 		var center := _free_spot(12.0)
 		if center != Vector2.INF:
 			_scatter(center, _rng.randi_range(5, 9), 10.0, func() -> Node3D: return PropFactory.birch(_rng.randf_range(7.0, 11.0)),
 					(func(burning: bool) -> Node3D: return PropFactory.burnt_tree(_rng.randf_range(7.0, 11.0), 1, burning)) if g < 2 else Callable())
 	for i in 16:
+		await Loading.breathe()
 		var pos := _free_spot(3.0)
 		if pos != Vector2.INF:
 			_place(PropFactory.haystack(), pos, 3.0)
 	# Líneas de erizos antitanque.
 	for line in 3:
+		await Loading.breathe()
 		var start := _free_spot(14.0)
 		if start == Vector2.INF:
 			continue
 		var dir := Vector2.from_angle(_rng.randf() * TAU)
 		for i in 6:
+			await Loading.breathe()
 			var p: Vector2 = start + dir * (i - 2.5) * 4.5
 			var hog := PropFactory.hedgehog()
 			hog.position = Vector3(p.x, 0.0, p.y)

@@ -12,8 +12,9 @@ se guardan en `assets/voice/tutorial`. Si falta alguna, el tutorial muestra solo
 
 ## Idiomas
 Diez idiomas: español (por defecto), inglés, francés, italiano, japonés, portugués de Brasil,
-indonesio, hindi, alemán y ruso. Se eligen tocando la bandera vieja de arriba a la derecha del menú
-principal o en OPCIONES → «IDIOMA / LANGUAGE». El texto del código está en español y es la clave de
+indonesio, hindi, alemán y ruso. La bandera vieja de arriba a la derecha del menú principal y
+OPCIONES → «IDIOMA / LANGUAGE» llevan a la pantalla del título «A TANK / STORY», donde se elige entre
+las diez banderas (la misma del primer arranque, sin el vídeo; `Intro.pick_only`). El texto del código está en español y es la clave de
 traducción: `Loc.t("TEXTO")` lo muestra tal cual en español y lo busca en `core/i18n/<idioma>_table.gd`
 en los demás (si falta, se ve en español). Para un texto nuevo basta una línea en cada tabla.
 
@@ -136,8 +137,11 @@ dura más. En el agua, los vados y los puentes no se marca.
 ## Entrada aérea de las misiones
 Al empezar una misión de historia (`levels/intro_flight.gd`) la cámara sobrevuela el campo en espiral
 desde 210 m, baja en picado y acaba en la cámara del tanque, con el título de la misión. La partida está
-en pausa mientras dura (7,5 s) y se salta tocando la pantalla. Las pruebas la quitan con
-`GameSession.skip_intro`; la suya es `SHOTS_ONLY=intro`.
+en pausa mientras dura (7,5 s) y se salta tocando la pantalla. El barrido se ve como una película
+de guerra antigua, igual que el vídeo de introducción (`shaders/film_view.gdshader`, que lee la
+pantalla: casi blanco y negro, sepia, grano, rayas, parpadeo); ese aire se va poco a poco durante el
+picado (`IntroFlight.FILM_FADE`) y al llegar al tanque la imagen es la del juego. Las pruebas la
+quitan con `GameSession.skip_intro`; la suya es `SHOTS_ONLY=intro` (`INTRO_FOTOS=1` guarda momentos).
 
 ## Sonido de ambiente y sonidos nuevos (grabaciones reales)
 `levels/ambience.gd` pone un fondo propio de cada frente (pájaros y brisa en Normandía, viento en el
@@ -199,11 +203,23 @@ elevada quedaba por encima del objetivo. Sin objetivo fijado cuenta también los
 Al entrar en una partida (`ui/loading/`), una pantalla tapa el montaje del campo: un carro de perfil
 avanza por un terreno ondulado (ruedas, eslabones y polvo animados, dibujado por código en
 `LoadingArt`), con el título de la misión, «CARGANDO…» y una barra de avance. Montar el campo ocupa al
-juego entero, así que `Arena._ready` lo hace por pasos y cede un cuadro entre uno y otro
-(`await Loading.step(...)`); el dibujo usa el reloj de verdad y avanza aunque los cuadros lleguen a
-saltos. Mientras dura, el árbol está en pausa. Sin pantalla abierta (las pruebas) la arena se monta de
-una vez. `LOAD_TIMES=1` imprime lo que tarda cada paso. Prueba: `SHOTS_ONLY=carga`
-(`CARGA_FOTOS=1` guarda la pantalla a tres tamaños).
+juego entero, así que se hace a trocitos para que la animación vaya fluida:
+
+- la escena se lee del disco en otro hilo (`Loading.open`);
+- la arena, el horizonte y el modo de juego ceden un cuadro cada 10 ms de trabajo dentro de sus
+  bucles (`await Loading.breathe()`), además de en cada paso grande (`await Loading.step(...)`, que
+  mueve la barra). Por eso `GameMode.start` y lo que monta tropas se llaman con `await`;
+- mientras carga no se pinta el mundo 3D (`Viewport.disable_3d`: lo tapa la pantalla y pintarlo en
+  cada cuadro alargaría la carga); se pinta en los tres últimos cuadros, ya con todo montado;
+- el dibujo no da saltos: si un cuadro tarda de más, el carro avanza lo de un cuadro normal.
+
+Lo que no se puede trocear es montar un tanque (unos 10-30 ms en un PC, más en un móvil): al
+colocar las tropas la animación va más lenta. Mientras dura, el árbol está en pausa. Sin pantalla
+abierta (las pruebas) nada cede y la arena se monta de una vez. `LOAD_TIMES=1` imprime lo que tarda
+cada paso y los cuadros largos. En el móvil, el diagnóstico oculto del menú (cinco toques en el
+título) enseña cómo fue la última carga: cuadros, duración, el más largo y lo que tardó en pintarse
+el campo por primera vez. Prueba: `SHOTS_ONLY=carga` (`CARGA_FOTOS=1` guarda la pantalla a tres
+tamaños).
 
 ## Seguir en el campo tras la victoria
 El menú de misión cumplida (y el de victoria en captura la bandera) ofrece «SEGUIR EN EL CAMPO»,
@@ -275,6 +291,7 @@ El juego abre en `ui/intro/intro.tscn` (`Intro`), no en el menú:
   viste con esa bandera** (`shaders/title_flag.gdshader`: la bandera se extiende por el bloque y
   cada letra enseña su trozo, con un perfil claro para los colores oscuros). De entrada sale el
   idioma del móvil si el juego lo habla. «EMPEZAR LA BATALLA» lleva al menú.
+- **Desde el menú**, la bandera de idioma vuelve a esta pantalla (sin vídeo) para cambiarlo.
 - **Las demás veces**, del vídeo al menú. A quien ya jugaba antes no se le pregunta el idioma.
 
 Prueba `arranque`.

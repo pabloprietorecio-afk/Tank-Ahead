@@ -500,7 +500,7 @@ class Runner extends Node:
 			bad_diag += 1
 		menu._on_title_input(tap)
 		await _frames(2)
-		if menu._ads_overlay == null or menu._ads_overlay.text != Ads.debug_status() or Ads.debug_status() == "":
+		if menu._ads_overlay == null or not (menu._ads_overlay.text as String).begins_with(Ads.debug_status()) or Ads.debug_status() == "":
 			bad_diag += 1
 		for i in 5:
 			menu._on_title_input(tap)
@@ -545,7 +545,7 @@ class Runner extends Node:
 		await get_tree().create_timer(2.0).timeout
 		await _snap("menu")
 
-	## Bandera de idioma del menú: cerrada, con la lista abierta y con el menú en cada idioma.
+	## Bandera de idioma del menú y el menú en cada idioma.
 	func _flags() -> void:
 		GameSession.mark_tutorial("offered")
 		get_tree().change_scene_to_file("res://levels/main_menu.tscn")
@@ -553,9 +553,6 @@ class Runner extends Node:
 		await get_tree().create_timer(1.5).timeout
 		var menu: Node = get_tree().current_scene
 		await _snap("flags_menu")
-		menu._flag_list.visible = true
-		await _frames(2)
-		await _snap("flags_lista")
 		for code: String in Loc.LANGUAGES:
 			menu._pick_language(code)
 			await _frames(3)
@@ -995,6 +992,9 @@ class Runner extends Node:
 			Loading.open(get_tree(), "res://levels/arena.tscn", "PRUEBA")
 			await _frames(2)
 			var shown: bool = Loading.current != null and get_tree().paused
+			# Mientras carga no se pinta el mundo 3D (lo tapa la pantalla); al acabar, sí.
+			var screen: Loading = Loading.current
+			var hidden_3d: bool = get_tree().root.disable_3d
 			var frames: int = 0
 			var steps: int = 0
 			var last: float = -1.0
@@ -1004,6 +1004,17 @@ class Runner extends Node:
 					steps += 1
 				await _frames(1)
 				frames += 1
+			# Fluidez: el montaje se reparte en muchos cuadros cortos en vez de en una docena larga.
+			var times: PackedInt32Array = screen.frame_times() if is_instance_valid(screen) else PackedInt32Array()
+			var longest: int = 0
+			for gap: int in times:
+				longest = maxi(longest, gap)
+			# (En la historia hay tropas que montar y se nota en el número de cuadros; la cifra
+			# depende de la máquina, así que el mínimo es holgado: sin trocear salían 12 o 13.)
+			var fluid: bool = (times.size() >= 16 or not story) and hidden_3d and not get_tree().root.disable_3d
+			if not fluid:
+				bad += 1
+			print("CARGA %s: %d cuadros, el más largo %d ms | sin pintar el 3D mientras carga y pintándolo al acabar: %s | %s" % ["historia" if story else "supervivencia", times.size(), longest, "sí" if hidden_3d and not get_tree().root.disable_3d else "NO", "bien" if fluid else "MAL"])
 			GameSession.skip_intro = true
 			await _frames(3)
 			var arena: Node = get_tree().current_scene
@@ -1251,6 +1262,32 @@ class Runner extends Node:
 		if not straight:
 			bad += 1
 		print("ARRANQUE segunda vez: del vídeo al menú %s: %s" % ["sí" if straight else "NO", "bien" if straight else "MAL"])
+		# Desde el menú, la bandera lleva a la pantalla del título a elegir idioma (sin vídeo) y,
+		# con el botón, de vuelta al menú con el idioma nuevo.
+		var menu: Node = get_tree().current_scene
+		if straight:
+			(menu._flag as FlagButton).pressed.emit()
+		await _frames(6)
+		await get_tree().create_timer(0.6).timeout
+		var picker := get_tree().current_scene as Intro
+		var no_video: bool = picker != null
+		if picker != null:
+			for child: Node in picker.get_children():
+				if child is VideoStreamPlayer:
+					no_video = false
+		var ready_to_pick: bool = no_video and picker.stage == Intro.Stage.LANGUAGE and picker.flags.size() == Loc.LANGUAGES.size() and picker.title.flag == "en" and picker.title.center.x < picker.size.x * 0.3
+		var back: bool = false
+		if ready_to_pick:
+			await _snap("arranque_desde_menu")
+			(picker.flags["it"] as FlagButton).pressed.emit()
+			await get_tree().create_timer(0.6).timeout
+			picker.start_button.pressed.emit()
+			await get_tree().create_timer(0.8).timeout
+			await _frames(4)
+			back = get_tree().current_scene != null and get_tree().current_scene.scene_file_path == "res://levels/main_menu.tscn" and GameSettings.language == "it"
+		if not (ready_to_pick and back):
+			bad += 1
+		print("ARRANQUE la bandera del menú lleva a la pantalla del título sin vídeo %s, y de vuelta al menú en italiano %s: %s" % ["sí" if ready_to_pick else "NO", "sí" if back else "NO", "bien" if ready_to_pick and back else "MAL"])
 		# Todo como estaba.
 		progress.parse(saved)
 		progress.save(GameSession.PROGRESS_PATH)
@@ -1640,8 +1677,13 @@ class Runner extends Node:
 			var player: Tank = arena.get_node("GameMode").player
 			var started: bool = intro != null and get_tree().paused and not hud_layer.visible and get_viewport().get_camera_3d() != player.camera
 			var height: float = get_viewport().get_camera_3d().global_position.y
+			# El barrido va con aire de película antigua, entero al empezar y nada al llegar al tanque.
+			var film_now: float = float(intro._film.get_shader_parameter("strength")) if intro != null and intro._film != null else -1.0
+			var filmed: bool = film_now > 0.99 and IntroFlight.film_strength(0.45) == 1.0 and IntroFlight.film_strength(0.75) > 0.05 and IntroFlight.film_strength(0.75) < 0.95 and IntroFlight.film_strength(0.95) == 0.0
+			if not filmed:
+				bad += 1
 			if OS.get_environment("INTRO_FOTOS") != "" and not skip:
-				for moment: float in [1.2, 3.6, 5.6, 6.8]:
+				for moment: float in [1.2, 3.6, 4.8, 5.6, 6.2, 6.9]:
 					await get_tree().create_timer(maxf(moment - intro._clock, 0.01)).timeout
 					await _snap("intro_%02d" % roundi(moment * 10.0))
 			if skip:
@@ -1656,7 +1698,7 @@ class Runner extends Node:
 			var ended: bool = not get_tree().paused and hud_layer.visible and get_viewport().get_camera_3d() == player.camera and arena.get_node_or_null("IntroFlight") == null
 			if not started or not ended or height < 100.0:
 				bad += 1
-			print("INTRO %s: empieza en pausa y desde %.0f m de altura: %s | acaba con la partida en marcha y la cámara del tanque: %s" % ["saltada con un toque" if skip else "entera", height, "sí" if started else "NO", "sí" if ended else "NO"])
+			print("INTRO %s: empieza en pausa y desde %.0f m de altura: %s | película antigua al empezar y nada al llegar: %s | acaba con la partida en marcha y la cámara del tanque: %s" % ["saltada con un toque" if skip else "entera", height, "sí" if started else "NO", "sí" if filmed else "NO", "sí" if ended else "NO"])
 			get_tree().paused = false
 		print("INTRO RESULT fallos: ", bad)
 		GameSession.debug_weather = -1

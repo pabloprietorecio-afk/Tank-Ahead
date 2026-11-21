@@ -22,6 +22,9 @@ const SCALE: float = 1.45
 const WHEEL_R: float = 12.5
 const WHEELS: Array[float] = [-58.0, -29.0, 0.0, 29.0, 58.0]
 
+## Lo más que avanza la animación en un cuadro (s), por mucho que haya tardado en llegar.
+const MAX_STEP: float = 0.05
+
 var title: String = ""
 ## Hasta dónde debe llegar la barra (0..1); la barra se acerca a ese punto con suavidad.
 var goal: float = 0.0
@@ -47,10 +50,11 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	# Con el reloj de verdad: aunque el juego esté ocupado montando el campo y los cuadros
-	# lleguen a saltos, el carro ha avanzado lo que toca.
+	# Con el reloj de verdad, pero sin dar saltos: si un cuadro tarda de más (el juego está
+	# montando el campo), el carro avanza como mucho lo de un cuadro normal y sigue desde donde
+	# estaba; se nota menos que verlo aparecer más adelante.
 	var now: int = _now_msec()
-	var passed: float = minf((now - _last) / 1000.0, 0.5)
+	var passed: float = minf((now - _last) / 1000.0, MAX_STEP)
 	_last = now
 	_travel += SPEED * passed
 	_shown = move_toward(_shown, goal, passed * 0.9) if _shown < goal else goal

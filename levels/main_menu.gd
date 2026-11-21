@@ -29,10 +29,8 @@ const BOTTOM_MARGIN: float = 12.0
 var fit_height: float = 0.0
 
 var _content: VBoxContainer
-## Bandera de idioma (arriba a la derecha) y su lista de idiomas.
+## Bandera de idioma (arriba a la derecha): lleva a la pantalla del título a elegirlo.
 var _flag: FlagButton
-var _flag_list: PanelContainer
-var _flag_rows: Dictionary = {}
 var _on_options: bool = false
 var _showing_premium: bool = false
 ## Anuncio recompensado en curso / terminado sin premio (pantalla premium).
@@ -187,8 +185,6 @@ func _clear(subtitle: String) -> void:
 	_showing_premium = false
 	if not _reward_busy:
 		_reward_failed = false
-	if _flag_list != null:
-		_flag_list.visible = false
 	for child in _content.get_children():
 		# Oculta deja de contar para el tamaño de la página ya, aunque se borre al acabar el fotograma.
 		(child as Control).visible = false
@@ -405,7 +401,8 @@ func _play_tutorial() -> void:
 	_play()
 
 
-## Bandera vieja arriba a la derecha: al tocarla se despliega la lista de idiomas.
+## Bandera vieja arriba a la derecha: al tocarla se va a la pantalla del título «A TANK STORY»,
+## donde se elige idioma entre las banderas (la misma del primer arranque).
 func _build_flag() -> void:
 	_flag = FlagButton.create(GameSettings.language, true)
 	_flag.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -413,74 +410,23 @@ func _build_flag() -> void:
 	_flag.offset_left = -16.0 - _flag.custom_minimum_size.x
 	_flag.offset_top = 14.0
 	_flag.offset_bottom = 14.0 + _flag.custom_minimum_size.y
-	_flag.pressed.connect(func() -> void: _flag_list.visible = not _flag_list.visible)
+	_flag.pressed.connect(_choose_language)
 	add_child(_flag)
-	_flag_list = PanelContainer.new()
-	_flag_list.visible = false
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.08, 0.05, 0.88)
-	style.border_color = Color(0.55, 0.42, 0.2)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(8.0)
-	_flag_list.add_theme_stylebox_override("panel", style)
-	var column := GridContainer.new()
-	column.columns = 2
-	column.add_theme_constant_override("h_separation", 6)
-	column.add_theme_constant_override("v_separation", 2)
-	_flag_list.add_child(column)
-	for code: String in Loc.LANGUAGES:
-		var row := Button.new()
-		row.flat = true
-		row.focus_mode = Control.FOCUS_NONE
-		row.custom_minimum_size = Vector2(250.0, 76.0)
-		var box := HBoxContainer.new()
-		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		box.add_theme_constant_override("separation", 6)
-		box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		row.add_child(box)
-		var icon := FlagButton.create(code, false)
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.scale = Vector2(0.78, 0.78)
-		icon.custom_minimum_size *= 0.78
-		box.add_child(icon)
-		var name_label := _label(Loc.LANGUAGE_NAMES[code], 24, Color(0.92, 0.88, 0.76))
-		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		name_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		box.add_child(name_label)
-		row.pressed.connect(_pick_language.bind(code))
-		column.add_child(row)
-		_flag_rows[code] = icon
-	add_child(_flag_list)
-	# Tamaño fijo: 2 columnas de filas de 250 x 76 (+ separaciones y el margen del panel).
-	var list_width: float = 2.0 * 250.0 + 6.0 + 16.0
-	var list_height: float = ceilf(Loc.LANGUAGES.size() / 2.0) * 76.0 + (ceilf(Loc.LANGUAGES.size() / 2.0) - 1.0) * 2.0 + 16.0
-	_flag_list.anchor_left = 1.0
-	_flag_list.anchor_right = 1.0
-	_flag_list.anchor_top = 0.0
-	_flag_list.anchor_bottom = 0.0
-	_flag_list.offset_right = -16.0
-	_flag_list.offset_left = -16.0 - list_width
-	_flag_list.offset_top = 112.0
-	_flag_list.offset_bottom = 112.0 + list_height
-	_refresh_flags()
 
 
-func _refresh_flags() -> void:
-	for code: String in _flag_rows:
-		(_flag_rows[code] as FlagButton).current = code == GameSettings.language
+## A la pantalla del título a elegir idioma; de allí se vuelve a este menú.
+func _choose_language() -> void:
+	Intro.pick_only = true
+	get_tree().change_scene_to_file("res://ui/intro/intro.tscn")
 
 
-## Cambia de idioma desde la bandera: si se estaba en Opciones se vuelve a pintar esa página y,
-## si no, se vuelve a la primera (sus textos, ya traducidos, la dejan lista).
+## Pone el menú en otro idioma sin salir de él (lo usan las pruebas, que lo recorren en todos):
+## si se estaba en Opciones se vuelve a pintar esa página y, si no, la primera.
 func _pick_language(code: String) -> void:
-	_flag_list.visible = false
 	if code == GameSettings.language:
 		return
 	GameSettings.set_language(code)
 	_flag.set_code(code)
-	_refresh_flags()
 	_retranslate()
 	if _on_options:
 		_page_audio()
@@ -545,13 +491,7 @@ func _page_audio() -> void:
 	var footer := HBoxContainer.new()
 	footer.add_theme_constant_override("separation", ROW_GAP)
 	_content.add_child(footer)
-	var language: Button = _button("IDIOMA / LANGUAGE: %s" % Loc.LANGUAGE_NAMES[GameSettings.language], func() -> void:
-		var next: int = (Loc.LANGUAGES.find(GameSettings.language) + 1) % Loc.LANGUAGES.size()
-		GameSettings.set_language(Loc.LANGUAGES[next])
-		_flag.set_code(GameSettings.language)
-		_refresh_flags()
-		_retranslate()
-		_page_audio())
+	var language: Button = _button("IDIOMA / LANGUAGE: %s" % Loc.LANGUAGE_NAMES[GameSettings.language], _choose_language)
 	language.reparent(footer)
 	language.add_theme_font_size_override("font_size", 22)
 	language.custom_minimum_size = Vector2(400.0, 56.0)
@@ -699,6 +639,16 @@ func _on_title_input(event: InputEvent) -> void:
 		_toggle_ads_overlay()
 
 
+## Lo que enseña el diagnóstico oculto: el estado de los anuncios y cómo fue la última pantalla
+## de carga (cuadros pintados y los que tardaron de más), que en un móvil no se puede medir de
+## otro modo.
+func _diagnostics() -> String:
+	var text: String = Ads.debug_status()
+	if Loading.last_report != "":
+		text += "\nÚltima carga: " + Loading.last_report
+	return text
+
+
 ## Estado de los anuncios en una esquina del menú. Siempre a la vista en las compilaciones de
 ## depuración en Android; en las demás, con cinco toques seguidos en el título.
 func _toggle_ads_overlay() -> void:
@@ -716,12 +666,12 @@ func _toggle_ads_overlay() -> void:
 	diag.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
 	diag.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
 	diag.add_theme_constant_override("outline_size", 5)
-	diag.text = Ads.debug_status()
+	diag.text = _diagnostics()
 	add_child(diag)
 	var timer := Timer.new()
 	timer.wait_time = 1.0
 	timer.autostart = true
-	timer.timeout.connect(func() -> void: diag.text = Ads.debug_status())
+	timer.timeout.connect(func() -> void: diag.text = _diagnostics())
 	diag.add_child(timer)
 	_ads_overlay = diag
 
